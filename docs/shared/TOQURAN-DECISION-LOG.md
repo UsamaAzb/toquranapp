@@ -57,3 +57,12 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Owner: `toquranapp`
 - Follow-up: Add a deferred sprint for Arabic vocabulary games.
 - Status: Approved for Phase 1.
+
+### 2026-05-28 - Accelerated Real DB Target
+- Decision: Use `u504065335_to_quran` as the real To Quran app DB target for accelerated deployment. Keep `toquranapp_local` as the completed dry-run/proof baseline.
+- Why: Owner wants deployment within two days and confirmed the old To Quran DB/export has no client data requiring preservation except the Quran YouTube/video list.
+- App/LMS impact: Real-target schema and starter/reference data patches must intentionally target `u504065335_to_quran`, cite backup/export evidence, and use SQL preflight guards.
+- Website impact: The public website must be updated or coordinated because it previously used the same DB name and may expect old tables.
+- Owner: `toquranapp`
+- Follow-up: Create the real-target transition patch, starter/reference data patch, and public website handoff checklist before launch.
+- Status: Approved for accelerated deployment path.

@@ -1,6 +1,6 @@
 # Week14 Selective Reuse Import Plan
 
-Status: Phase 2 complete locally; starter/reference data pending
+Status: Phase 2 complete locally; real DB transition and starter/reference data pending
 Date: 2026-05-27; updated 2026-05-28
 
 ## Objective
@@ -12,7 +12,7 @@ This plan originally stopped before implementation. Phase 1 was implemented on 2
 ## Non-Goals
 
 - Do not import more app code without a scoped phase/task.
-- Structure baseline is complete in `toquranapp_local`; do not add or mutate data without a scoped manual patch.
+- Structure baseline is complete in `toquranapp_local` as the proof run; real DB transition to `u504065335_to_quran` must use a scoped manual patch with backup evidence and target guards.
 - Do not clean old To Quran tables yet.
 - Do not update the public website write path yet.
 - Do not include Arabic vocabulary games in first import.
@@ -23,6 +23,7 @@ This plan originally stopped before implementation. Phase 1 was implemented on 2
 - Public `toquran` is a Laravel 10 public website with current To Quran service copy and booking form.
 - Current To Quran DB evidence is the SQL export `u504065335_to_quran.sql`, backed up into this repo.
 - Owner clarified on 2026-05-28 that the old `u504065335_to_quran` export has no client data requiring preservation; the only intentional legacy preservation target is the Quran YouTube/video list.
+- Owner directed on 2026-05-28 that deployment work should target the real app DB name `u504065335_to_quran`; `toquranapp_local` remains the completed local dry-run baseline.
 - Week14 current live schema was exported read-only into this repo.
 - Week14 schema freshness check passed on 2026-05-28: `docs/audits/2026-05-28-week14-schema-freshness-check.md`.
 - Week14 current app/docs/tests were inspected as the source implementation.
@@ -175,8 +176,8 @@ Result:
 
 Entry gate:
 
-- establish and document the To Quran local/app target DB name and connection before executing schema setup
-- confirm the target is not the public/live website DB
+- establish and document the To Quran app target DB name and connection before executing schema setup
+- confirm whether the target is the local proof DB `toquranapp_local` or the real app DB `u504065335_to_quran`
 - confirm backup/export evidence is still present
 
 Prepare manual SQL/migration notes:
@@ -202,7 +203,7 @@ Result:
 - local app DB: `toquranapp_local`
 - table count: 352
 - data imported: none
-- next DB work: To Quran starter/reference data patch before TQ2 intake/family adaptation
+- next DB work: guarded transition patch for real app DB `u504065335_to_quran`, then To Quran starter/reference data patch before TQ2 intake/family adaptation
 
 ### Phase 3 - Intake And Family Foundation
 
@@ -258,15 +259,16 @@ Plan after deployment:
 
 ## DB Plan
 
-Do not execute as part of this correction pass. For later Phase 2 DB work, Codex may execute To Quran local/app DB setup and schema work without separate owner approval when `docs/DB-SAFETY-POLICY.md` target checks pass.
+Do not execute real-target mutation without a scoped manual patch. Codex may execute To Quran app DB setup and schema work without separate owner approval when `docs/DB-SAFETY-POLICY.md` target checks pass.
 
 1. Keep `u504065335_to_quran` export as preservation source.
 2. Treat the matched Week14 live schema snapshot as source schema evidence after the completed Phase 0.5 freshness gate.
-3. Create a To Quran app schema plan from Week14 after To Quran adaptation decisions are accepted.
-4. Map old data:
+3. Treat `toquranapp_local` as the completed dry-run baseline.
+4. Create a guarded real-target transition patch for `u504065335_to_quran`, including fresh backup/export evidence and Quran YouTube/video-list preservation notes.
+5. Map old data:
    - Quran YouTube/video list -> later Library/content migration candidate
    - old bookings/contact/users/students -> no intentional preservation currently required
-5. Create cleanup documentation before destructive cleanup of old/export-only data.
+6. Create cleanup documentation before destructive cleanup of old/export-only data.
 
 ## Public Website Handoff Plan
 

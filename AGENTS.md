@@ -31,11 +31,22 @@ Reuse does not mean blind copying:
 ## Database Rules
 
 - Create or confirm an export before any DB investigation that may lead to change.
-- Codex may perform To Quran local/app DB setup and schema work without separate owner approval when a backup/export exists, the target DB is verified as a To Quran local/app DB, and the action is not aimed at the public/live website DB by accident.
+- Codex may perform To Quran app DB setup and schema work without separate owner approval when a backup/export exists, the target DB is verified as the intended To Quran app target, and the action is not aimed at the wrong public/live website connection by accident.
+- As of 2026-05-28, the accelerated deployment target is the real To Quran DB name `u504065335_to_quran`; `toquranapp_local` remains the completed local dry-run/proof baseline.
 - Do not drop, truncate, clean, or overwrite old/export-only data without documenting the cleanup plan first.
-- Do not run Laravel migrations, seeders, `migrate:fresh`, `db:wipe`, or import/restore commands against a public/live website DB target.
+- Do not run Laravel migrations, seeders, `migrate:fresh`, `db:wipe`, or import/restore commands against any target until the target DB name, backup/export, and intended repo ownership have been verified.
 - Durable schema/data changes must be written as manual SQL or migration notes under `database/manual/`, with target checks and backup evidence.
 - Treat public website migrations as consumer artifacts, not app schema authority.
+
+## Local Server Ports
+
+Keep local web servers separated across the connected repos:
+
+- To Quran app (`D:\xampp\htdocs\toquranapp`): `http://127.0.0.1:8014`
+- Week14 LMS (`D:\xampp\htdocs\week14-app-lms`): usually `http://localhost:8000`
+- Yonfiqoon (`D:\xampp\htdocs\yonfiqoon`): `http://127.0.0.1:8011`
+
+Use `php artisan serve --host=127.0.0.1 --port=8014` for this repo unless that port is already occupied. If a port conflict appears, inspect the process first and record the alternate port in the task notes.
 
 ## Ownership
 
@@ -59,4 +70,4 @@ As of 2026-05-28, Phase 1 app skeleton import has been performed and committed:
 - excluded/removed from the import: runtime uploads, copied public content payloads, logs, generated storage, vendor, node_modules, old SQL dumps, and To Quran planning/manual DB docs
 - verification: `/login` returned 200 with title `To Quran | Login`; focused auth/PWA/credential tests passed
 
-Current DB state: Phase 2 local schema baseline is complete in `toquranapp_local` with 352 tables and no imported rows. Starter/reference data is still pending and must be created intentionally in a later patch. Do not target the public/live website DB `u504065335_to_quran`.
+Current DB state: Phase 2 local schema baseline is complete in `toquranapp_local` with 352 tables and no imported rows. On 2026-05-28 the owner changed the deployment posture: the real app DB target is now `u504065335_to_quran` for the accelerated deployment path. Before mutating that real target, create/confirm a fresh backup, preserve the Quran YouTube/video list as the only intentional legacy data, and use a guarded manual SQL transition patch.

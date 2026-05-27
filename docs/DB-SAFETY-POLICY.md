@@ -24,28 +24,29 @@ As of 2026-05-27:
 As of 2026-05-28:
 
 - Phase 1 app skeleton import is committed at `270e832`.
-- The To Quran local/app DB target for Phase 2 planning is `toquranapp_local`.
-- The public/live website DB name remains `u504065335_to_quran`; it must not be used as the app baseline target by accident.
+- The To Quran local/app DB target used for the Phase 2 proof run is `toquranapp_local`.
 - The local `toquranapp_local` structure-only baseline was created with 352 tables and no imported rows. Execution evidence is recorded in `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`.
+- The owner then changed the deployment posture for speed: the real To Quran app DB target is `u504065335_to_quran`.
+- Because `u504065335_to_quran` was also the public website DB name/export source, every real-target patch must verify that it is intentionally targeting the app deployment DB and not an accidental wrong connection.
 
 ## Allowed Without Separate Owner Approval
 
-Codex may perform To Quran local/app DB setup and schema work without separate owner approval when all of these are true:
+Codex may perform To Quran app DB setup and schema work without separate owner approval when all of these are true:
 
 1. A backup/export exists for any source DB or export being used.
-2. The target DB name and connection are verified as a To Quran local/app DB target.
-3. The action is not aimed at the public/live website DB by accident.
+2. The target DB name and connection are verified as the intended To Quran app DB target.
+3. If the target is `u504065335_to_quran`, the patch states that this is intentional for accelerated deployment.
 4. Durable schema/data work is documented with manual SQL, migration notes, or a clear execution note under `database/manual/`.
-5. Destructive cleanup of old/export-only data is documented before execution.
+5. Destructive cleanup of old/export-only data is documented before execution, including the Quran YouTube/video-list preservation boundary.
 
-This permission covers local/app schema creation, app baseline setup, schema patch execution, and controlled data mapping for the To Quran app DB. It does not make `toquran` the app schema authority.
+This permission covers dry-run schema creation, real app baseline setup, schema patch execution, and controlled data mapping for the To Quran app DB. It does not make `toquran` the app schema authority.
 
 ## Still Forbidden Without A Cleanup Plan
 
 - Dropping tables or columns.
 - Truncating data.
 - Importing Week14 over To Quran data without a To Quran baseline/mapping plan.
-- Running Laravel migrations or seeders against a public/live website DB target.
+- Running Laravel migrations or seeders against a target before confirming the intended To Quran app DB name and backup evidence.
 - Running `migrate:fresh`, `migrate:refresh`, `db:wipe`, or restore/import commands against the wrong target or without backup evidence.
 - Cleaning old Week14/To Quran data just because it looks obsolete.
 
@@ -57,7 +58,7 @@ This permission covers local/app schema creation, app baseline setup, schema pat
 4. Identify data worth preserving, obsolete tables, missing tables, and cleanup risk.
 5. Write a manual SQL patch or migration note under `database/manual/`.
 6. Update `docs/shared/SHARED-DB-HANDOFF.md`.
-7. Execute local/app To Quran DB work when the allowed-work checks above pass; otherwise stop and ask.
+7. Execute To Quran app DB work when the allowed-work checks above pass; otherwise stop and ask.
 
 ## Baseline/Patch Convention
 
@@ -72,8 +73,9 @@ Do not treat the old To Quran SQL export as the target LMS schema. It is evidenc
 
 The recommended strategy is:
 
+- treat `toquranapp_local` as the completed dry-run baseline;
+- use `u504065335_to_quran` as the real app DB target for the accelerated deployment path, after fresh backup/export confirmation;
 - build the app schema from the current Week14 LMS schema after To Quran adaptation decisions are approved;
-- use `toquranapp_local` as the local/app target DB name for Phase 2 schema setup unless a later decision changes it;
 - create To Quran starter/reference data intentionally in a later patch;
 - map/preserve the old Quran YouTube/video list later into the Library/content system;
 - keep Arabic vocabulary games and legacy Quran video migration out of Phase 1;

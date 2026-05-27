@@ -26,6 +26,22 @@ Any change that affects both repos must update the relevant shared docs:
 - `docs/shared/TERMINOLOGY-AND-SERVICES.md`
 - `docs/shared/DEPLOYMENT-AND-WORKFLOW-HANDOFF.md`
 
+## Local Server Rule
+
+Do not reuse the same local web port across the connected repos:
+
+- To Quran app: `http://127.0.0.1:8014`
+- Week14 LMS: `http://localhost:8000`
+- Yonfiqoon: `http://127.0.0.1:8011`
+
+For this repo, prefer:
+
+```powershell
+php artisan serve --host=127.0.0.1 --port=8014
+```
+
+If `8014` is already in use, identify what owns the port before choosing a temporary alternate and note the alternate in the task closure.
+
 ## Reuse Workflow
 
 Before writing new app code:

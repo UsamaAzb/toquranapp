@@ -30,14 +30,14 @@ database/manual/
 
 ## Current Local App Target
 
-- Phase 2 local/app DB target: `toquranapp_local`
-- Public/live website DB name to avoid for app baseline work: `u504065335_to_quran`
+- Phase 2 local dry-run DB target: `toquranapp_local`
+- Accelerated real app DB target: `u504065335_to_quran`
 - Current local baseline table count: 352
 
 ## Rules
 
 - Do not edit baseline snapshots to create schema changes.
-- Codex may execute To Quran local/app DB setup and schema work when `docs/DB-SAFETY-POLICY.md` target checks pass.
-- Do not execute patches against public/live website DB targets.
+- Codex may execute To Quran app DB setup and schema work when `docs/DB-SAFETY-POLICY.md` target checks pass.
+- Real-target patches for `u504065335_to_quran` must explicitly say the target is intentional for accelerated To Quran deployment and must cite backup/export evidence.
 - Add cleanup SQL only after cleanup intent and target data have been documented.
 - Prefer MariaDB-compatible SQL because the local XAMPP Week14 baseline is MariaDB-family and Week14 manual patches target MariaDB compatibility.

@@ -36,6 +36,30 @@ When app code is imported, verify:
 - storage/public file delivery rules are documented before uploading app assets.
 - public website sign-in link remains `https://app.toquran.org/login`.
 
+## Local Development Ports
+
+Use separate local web origins so the connected repos do not collide:
+
+| Repo | Local URL | Notes |
+| --- | --- | --- |
+| `D:\xampp\htdocs\toquranapp` | `http://127.0.0.1:8014` | To Quran private LMS/app |
+| `D:\xampp\htdocs\week14-app-lms` | `http://localhost:8000` | Week14 LMS source/reference |
+| `D:\xampp\htdocs\yonfiqoon` | `http://127.0.0.1:8011` | Yonfiqoon app/site |
+
+For this repo, run:
+
+```powershell
+php artisan serve --host=127.0.0.1 --port=8014
+```
+
+Do not use the web port as DB-target evidence. DB target checks must come from `.env`, Laravel config, MySQL connection output, and manual SQL preflight guards.
+
+## Accelerated DB Deployment Posture
+
+Owner direction on 2026-05-28: target the real To Quran app DB name `u504065335_to_quran` instead of spending more time on disposable local-only targets. The completed `toquranapp_local` baseline remains useful as the safe proof run.
+
+Before mutating `u504065335_to_quran`, create/confirm a fresh backup/export, preserve the Quran YouTube/video list as the only intentional legacy data, and use guarded manual SQL that states the real-target intent.
+
 ## Open Follow-Up
 
-After the import strategy is approved, create a deployment checklist equivalent to Week14's server push checklist but To Quran-specific.
+Create a To Quran deployment checklist equivalent to Week14's server push checklist, including the real DB transition, starter/reference data, queue/mail requirements, and public website handoff.

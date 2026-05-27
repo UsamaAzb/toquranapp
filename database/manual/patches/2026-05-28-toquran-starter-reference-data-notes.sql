@@ -1,6 +1,6 @@
 -- To Quran starter/reference data notes
 -- Date: 2026-05-28
--- Target: local/app DB only, `toquranapp_local`
+-- Target: app DB; local proof was `toquranapp_local`, accelerated real target is `u504065335_to_quran`
 -- Status: notes only; do not execute as data insert patch yet.
 
 -- Phase 2 creates the empty app schema baseline only.

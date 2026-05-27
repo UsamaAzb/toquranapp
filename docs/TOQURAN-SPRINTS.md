@@ -52,7 +52,7 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Execution artifact: `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`
 - Verification: local `toquranapp_local` has 352 tables; `/login` renders as `To Quran`.
 - Website action: none yet; public website handoff waits until app-side target/schema is approved.
-- DB action: local/app schema baseline created; starter/reference data remains a later explicit patch.
+- DB action: local/app schema baseline created; owner then requested accelerated real DB target `u504065335_to_quran`; starter/reference data remains a later explicit patch.
 
 ### TQ2. To Quran Service Catalog And Intake Foundation
 
@@ -60,7 +60,7 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Depends on: TQ1.5
 - Goal: Adapt Week14 family/intake model to Quran Memorization, Quranic Arabic, My Deen Journey, Paid Parental Consultation, and Sanad Ijazah service interests.
 - Website action: align public form values and reference prefix after app target is approved.
-- DB action: manual SQL/map plan for service tables and intake rows.
+- DB action: first create the real-target transition patch for `u504065335_to_quran`, then manual SQL/map plan for service tables and intake rows.
 
 ### TQ3. Family Workspace And Account Lifecycle
 
