@@ -59,4 +59,4 @@ As of 2026-05-28, Phase 1 app skeleton import has been performed and committed:
 - excluded/removed from the import: runtime uploads, copied public content payloads, logs, generated storage, vendor, node_modules, old SQL dumps, and To Quran planning/manual DB docs
 - verification: `/login` returned 200 with title `To Quran | Login`; focused auth/PWA/credential tests passed
 
-Current DB direction: Phase 2 should create the To Quran app schema baseline and data-mapping plan before app DB setup. The local app DB target is documented as `toquranapp_local`; do not target the public/live website DB `u504065335_to_quran`.
+Current DB state: Phase 2 local schema baseline is complete in `toquranapp_local` with 352 tables and no imported rows. Starter/reference data is still pending and must be created intentionally in a later patch. Do not target the public/live website DB `u504065335_to_quran`.

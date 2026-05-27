@@ -44,12 +44,15 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 
 ### TQ1.5. Schema Baseline And Data Mapping Plan
 
-- Status: `active`
+- Status: `done`
 - Depends on: TQ1
 - Goal: Establish the To Quran local/app DB target, create a schema baseline plan from the matched Week14 structure, and document what starter data should be To Quran-created, skipped, or migrated later.
 - Current artifact: `docs/plans/active/2026-05-28-schema-baseline-data-mapping-plan.md`
+- DB artifact: `database/manual/patches/2026-05-28-create-toquranapp-local-baseline.sql`
+- Execution artifact: `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`
+- Verification: local `toquranapp_local` has 352 tables; `/login` renders as `To Quran`.
 - Website action: none yet; public website handoff waits until app-side target/schema is approved.
-- DB action: planning only until manual SQL/execution notes exist and target checks pass.
+- DB action: local/app schema baseline created; starter/reference data remains a later explicit patch.
 
 ### TQ2. To Quran Service Catalog And Intake Foundation
 

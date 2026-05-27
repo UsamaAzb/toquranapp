@@ -1,6 +1,6 @@
 # To Quran Schema Baseline And Data Mapping Plan
 
-Status: active planning
+Status: implemented locally
 Date: 2026-05-28
 Sprint: TQ1.5
 
@@ -12,7 +12,7 @@ Create the Phase 2 DB strategy for the private To Quran LMS after the Week14 app
 
 - Phase 1 app import is committed at `270e832 Import Week14 LMS foundation for To Quran`.
 - The imported app boots locally and `/login` renders as `To Quran`.
-- Current local `.env` is ignored and used only for smoke testing.
+- Current local `.env` is ignored and points to `toquranapp_local` for smoke testing.
 - The old public To Quran export is backed up at `database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql`.
 - The matched Week14 schema evidence is:
   - `database/manual/baseline/2026-05-27-235118-week14-live-schema.sql`
@@ -128,6 +128,18 @@ Phase 2 is ready to close when:
 - imported app can connect to the baseline DB;
 - `php artisan about`, `/login`, and focused tests still pass;
 - `docs/shared/SHARED-DB-HANDOFF.md` records the target DB and schema-source decision.
+
+Status: complete on 2026-05-28.
+
+Result:
+
+- baseline patch: `database/manual/patches/2026-05-28-create-toquranapp-local-baseline.sql`
+- execution note: `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`
+- local app schema snapshot: `database/manual/baseline/2026-05-28-toquranapp-local-schema.sql`
+- local app DB: `toquranapp_local`
+- table count: 352
+- data imported: none
+- smoke check: `/login` returned 200 with title `To Quran | Login`
 
 ## Open Caveats
 

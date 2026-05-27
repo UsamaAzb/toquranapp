@@ -19,11 +19,20 @@ database/manual/
   - read-only structure snapshot of local Week14 live schema `u504065335_vuexy_week14`
 - `baseline/2026-05-28-001530-week14-fresh-schema.sql`
   - fresh read-only Week14 schema export used by `docs/audits/2026-05-28-week14-schema-freshness-check.md`
+- `baseline/2026-05-28-toquranapp-local-schema.sql`
+  - post-execution structure snapshot of local app DB `toquranapp_local`
+- `patches/2026-05-28-create-toquranapp-local-baseline.sql`
+  - guarded structure-only baseline patch used to create `toquranapp_local`
+- `patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`
+  - execution and verification notes for the local baseline setup
+- `patches/2026-05-28-toquran-starter-reference-data-notes.sql`
+  - notes for later intentional starter/reference data; no inserts yet
 
 ## Current Local App Target
 
 - Phase 2 local/app DB target: `toquranapp_local`
 - Public/live website DB name to avoid for app baseline work: `u504065335_to_quran`
+- Current local baseline table count: 352
 
 ## Rules
 

@@ -26,6 +26,7 @@ As of 2026-05-28:
 - Phase 1 app skeleton import is committed at `270e832`.
 - The To Quran local/app DB target for Phase 2 planning is `toquranapp_local`.
 - The public/live website DB name remains `u504065335_to_quran`; it must not be used as the app baseline target by accident.
+- The local `toquranapp_local` structure-only baseline was created with 352 tables and no imported rows. Execution evidence is recorded in `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`.
 
 ## Allowed Without Separate Owner Approval
 
@@ -73,6 +74,7 @@ The recommended strategy is:
 
 - build the app schema from the current Week14 LMS schema after To Quran adaptation decisions are approved;
 - use `toquranapp_local` as the local/app target DB name for Phase 2 schema setup unless a later decision changes it;
+- create To Quran starter/reference data intentionally in a later patch;
 - map/preserve the old Quran YouTube/video list later into the Library/content system;
 - keep Arabic vocabulary games and legacy Quran video migration out of Phase 1;
 - keep destructive cleanup of old tables documented separately before execution.

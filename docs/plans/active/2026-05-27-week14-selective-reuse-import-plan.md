@@ -192,7 +192,17 @@ Verification:
 - target DB and backup/export evidence are confirmed before execution
 - cleanup plan remains separate
 
-Current Phase 2 artifact: `docs/plans/active/2026-05-28-schema-baseline-data-mapping-plan.md`.
+Status: complete locally on 2026-05-28.
+
+Result:
+
+- Phase 2 artifact: `docs/plans/active/2026-05-28-schema-baseline-data-mapping-plan.md`
+- baseline patch: `database/manual/patches/2026-05-28-create-toquranapp-local-baseline.sql`
+- execution note: `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`
+- local app DB: `toquranapp_local`
+- table count: 352
+- data imported: none
+- next DB work: To Quran starter/reference data patch before TQ2 intake/family adaptation
 
 ### Phase 3 - Intake And Family Foundation
 

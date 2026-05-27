@@ -1,0 +1,37 @@
+-- To Quran starter/reference data notes
+-- Date: 2026-05-28
+-- Target: local/app DB only, `toquranapp_local`
+-- Status: notes only; do not execute as data insert patch yet.
+
+-- Phase 2 creates the empty app schema baseline only.
+-- Do not import Week14 rows blindly.
+-- Do not import old public To Quran users/students/bookings/contact rows by default.
+
+-- Starter data that should be created intentionally in a later patch:
+-- 1. Spatie roles:
+--    - super_admin
+--    - admin
+--    - customer_support
+--    - teacher
+--    - parent
+--    - student
+--
+-- 2. To Quran service catalog/reference values:
+--    - Quran Memorization
+--    - Quranic Arabic
+--    - My Deen Journey
+--    - Paid Parental Consultation
+--    - Sanad Ijazah
+--
+-- 3. Minimal app defaults:
+--    - current academic year / operating year if required by dashboards;
+--    - Quran/Arabic subject defaults;
+--    - parent behavior/accountability subject mapping;
+--    - any first admin account creation path, preferably through an explicit command or one-time SQL with owner-provided email.
+--
+-- 4. Later Library migration candidate:
+--    - old Quran YouTube/video list from the public To Quran export.
+--
+-- Deferred:
+--    - Arabic vocabulary games and Arabic vocabulary data.
+--    - Week14 English vocabulary/Cambridge/phonics content.
