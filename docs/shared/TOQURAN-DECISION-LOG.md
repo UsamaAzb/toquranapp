@@ -28,8 +28,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Manual DB artifacts, future schema patches, and import strategy live in `toquranapp`.
 - Website impact: Public intake and copy must align with shared docs and may need later updates after the app schema is approved.
 - Owner: `toquranapp`
-- Follow-up: Mirror or reference the shared docs from the website repo after the app-side Phase 1 baseline exists.
-- Status: Approved for Phase 1.
+- Follow-up: Mirror or reference the shared docs from the website repo before public intake handoff work begins.
+- Status: Approved for Phase 1 and Phase 2 local baseline.
 
 ### 2026-05-27 - Reuse Week14 Selectively
 - Decision: Week14 LMS is the source implementation, but Week14 product content and sprint history must not be copied blindly.
@@ -37,8 +37,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Copy/adapt Week14 code after owner approval according to the selective reuse plan.
 - Website impact: Website handoff rules and service labels must follow To Quran docs, not Week14 naming.
 - Owner: `toquranapp`
-- Follow-up: Start Phase 1 app skeleton import from Week14 with the approved selective reuse boundaries.
-- Status: Approved for Phase 1.
+- Follow-up: Create intentional To Quran starter/reference data, then proceed to TQ2 service catalog and intake adaptation.
+- Status: Approved for Phase 1 and Phase 2 local baseline.
 
 ### 2026-05-27 - My Deen Journey Is a To Quran Service
 - Decision: My Deen Journey is a To Quran service, not a direct rename of Week14 Journey.

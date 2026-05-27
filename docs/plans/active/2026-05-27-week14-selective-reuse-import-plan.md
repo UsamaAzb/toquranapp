@@ -1,6 +1,6 @@
 # Week14 Selective Reuse Import Plan
 
-Status: Phase 1 implemented; Phase 2 planning active
+Status: Phase 2 complete locally; starter/reference data pending
 Date: 2026-05-27; updated 2026-05-28
 
 ## Objective
@@ -12,7 +12,7 @@ This plan originally stopped before implementation. Phase 1 was implemented on 2
 ## Non-Goals
 
 - Do not import more app code without a scoped phase/task.
-- Do not import or mutate DB schema/data yet.
+- Structure baseline is complete in `toquranapp_local`; do not add or mutate data without a scoped manual patch.
 - Do not clean old To Quran tables yet.
 - Do not update the public website write path yet.
 - Do not include Arabic vocabulary games in first import.
