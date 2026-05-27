@@ -1,0 +1,16 @@
+.git/
+node_modules/
+vendor/
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+bootstrap/cache/
+coverage/
+dist/
+build/
+*.log
+.env
+.env.*
+Dockerfile*
+.dockerignore

@@ -1,0 +1,40 @@
+[
+  {
+    "name": "sprout repeated letters reveal all",
+    "difficulty": "sprout",
+    "word": "letter",
+    "action": "choose:t",
+    "expected": {
+      "revealedOccurrences": 2,
+      "terminal": false
+    }
+  },
+  {
+    "name": "climber repeated letters reveal one occurrence",
+    "difficulty": "climber",
+    "word": "letter",
+    "action": "choose:t",
+    "expected": {
+      "revealedOccurrences": 1,
+      "keyRemainsClickable": true
+    }
+  },
+  {
+    "name": "champion timer is six seconds per non-space character",
+    "difficulty": "champion",
+    "word": "ice cream",
+    "expected": {
+      "seconds": 48
+    }
+  },
+  {
+    "name": "custom no-audio round can start teacher-led",
+    "difficulty": "sprout",
+    "word": "car",
+    "custom": true,
+    "audioUrl": "",
+    "expected": {
+      "audioPrimed": true
+    }
+  }
+]

@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+early_access: false
+
+reviews:
+  profile: "chill"
+  high_level_summary: true
+  review_status: true
+  review_details: true
+  collapse_walkthrough: false
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_instructions:
+    - path: "docs/DEFERRED.md"
+      instructions: |
+        Treat this file as the canonical deferred-issues register.
+        Before suggesting a fix for an issue that appears intentionally postponed, check whether it is already listed here.
+        Do not re-flag an approved deferral as a fresh bug without acknowledging the deferral entry and its stated rationale.
+
+    - path: "docs/reviews/**/*.md"
+      instructions: |
+        Treat files in docs/reviews as review artifacts and findings records, not implementation plans.
+        Preserve the original findings context accurately.
+        When a PR is implementing or resolving review findings, review the diff against the recorded findings instead of treating the review artifact as stale prose.
+
+    - path: "docs/plans/**/*.md"
+      instructions: |
+        Treat files in docs/plans as execution plans and workflow artifacts.
+        Check for internal consistency between summary, checklist state, implementation notes, review comments, and final status.
+        Flag stale status text, mismatched phase state, ambiguous execution steps, and plan/review drift.
+
+    - path: "database/manual/**/*.sql"
+      instructions: |
+        Treat these files as manual database artifacts.
+        Baseline files are reference snapshots; patch files are intentional reviewed SQL changes.
+        Review for safety, reversibility, environment assumptions, and consistency with documented manual DB workflow.
+
+    - path: "database/manual/**/*.md"
+      instructions: |
+        Review these files as durable database workflow documentation.
+        Preserve the distinction between baseline snapshots, manual patch files, and historical import dumps.
+
+chat:
+  auto_reply: true

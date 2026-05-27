@@ -1,0 +1,120 @@
+@extends('layouts/layoutMaster')
+
+@section('title', 'Listen & Read')
+@section('meta_description', 'Browse independent reading stories and chapters for listening and reading practice.')
+@section('content')
+  <link rel="stylesheet" href="{{asset('public/front/css/custom.css')}}">
+  @include('front.partials.resource-page-styles')
+<div class="resource-page" id="">
+  <div class="topic_title_sec col-md-12">
+    <div class="container">
+{{--<div class="col-md-12 p-2 mt-5">
+  <div class="col-md-3 mt-3 mb-4">
+
+  <a class="back_but" href="{{url($lang.'/subject/language-literature/'.$grade)}}" >
+  <i class="fa-solid fa-caret-left back-arr"></i>
+  {{ucfirst($grade)}}</a>
+  </div>
+  <div class="col-md-12 text-center page_inside_text">
+<h5>{{ucfirst($grade)}}</h5>
+  </div>
+
+  <div class="col-md-12 text-center page_inside_text">
+<h1>Units</h1>
+  </div>
+  <div class="col-md-12 text-center page_inside_text mt-3">
+<h2>Language and Literature, units, independant reading, digital library, and more</h2>
+  </div>
+</div>--}}
+</div>
+</div>
+
+<div class="container-fluid box-div">
+<div class=" row  mt-2 justify-content-center">
+        <div class="col-lg-10 col-md-10 col-12">
+
+    <!--<div class="stu_list ">-->
+        <div class=" ">
+
+     <div   class="stu_table row  mt-2 justify-content-center">
+    <div class="col-md-offset-3 col-md-9 col-lg-9 col-11">
+  <div class="accordion unit_group" id="accordionExample">
+    @if($stories)
+    @foreach($stories as $k=>$story)
+    <?php $story_id=$story->id;  ?>
+    <div class="accordion-item panel panel-default">
+      <h2 class="accordion-header panel-heading " id="heading_{{$story_id}}" >
+
+        <!--<button class="accordion-button unit-button @if($k!=0) collapsed @endif col-md-9" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{$k}}" aria-expanded="@if($k!=0) true @else false @endif " aria-controls="collapse_{{$k}}">-->
+        <!-- <p>{{$story->title}}  @if($story->description)<span style="font-size:14px"> ( {{$story->description}} )</span> @endif</p> -->
+
+        <!--</button>-->
+        
+        
+         <button class="accordion-button unit-button @if($story_id!=$story_d) collapsed @endif col-md-9" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{$story_id}}" aria-expanded="@if($story_id!=$story_d) true @else false @endif " aria-controls="collapse_{{$story_id}}">
+         <p>{{$story->title}}  @if($story->description)<span style="font-size:14px"> ({{$story->description}})</span> @endif</p> 
+
+        </button>
+        
+ <!--<button class="accordion-button unit-button  col-md-9" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{$k}}" aria-expanded="@if($k!=0) true @else false @endif " aria-controls="collapse_{{$k}}">-->
+ <!--        <p>{{$story->title}}  @if($story->description)<span style="font-size:14px"> ( {{$story->description}} )</span> @endif</p> -->
+
+ <!--       </button>-->
+      </h2>
+      <!--<div id="collapse_{{$k}}" class="accordion-collapse collapse @if($k==0) show @endif" aria-labelledby="heading_{{$k}}" data-bs-parent="#accordionExample">-->
+      <div id="collapse_{{$story_id}}" class="accordion-collapse collapse @if($story_id==$story_d) show @endif" aria-labelledby="heading_{{$story_id}}" data-bs-parent="#accordionExample">
+        <div class="accordion-body panel-body lessons_body">
+         
+
+          @if($story->chapters)
+          @foreach($story->chapters as $k=>$chapter)
+<a  @if($chapter->slug!= Null) href="{{url('reading/listen-read/'.$chapter->slug)}}" @else href="#"  @endif>
+          <div class="lesson_div ">
+
+{{$chapter->title}}
+          </div>
+          </a>
+          @endforeach
+          @endif
+
+        </div>
+      </div>
+    </div>
+    @endforeach
+    @endif
+
+  </div>
+
+
+  </div>
+
+
+
+
+</div>
+
+</div>
+</div>
+  </div>
+</div>
+</div>
+</div>
+<div class="modal fade" id="video_Modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+              <button type="button" class="btn-close close_video_modal" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+      <div class="modal-body">
+        <div class="col-md-12 col-12 col-sm-12 show_video">
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+@endsection
+@push('scripts')
+@include('front.partials.resource-native-video-modal-script')
+@endpush

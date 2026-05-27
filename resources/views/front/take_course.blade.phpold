@@ -1,0 +1,263 @@
+@extends('front.layouts.master')
+@section('content')
+<style>
+@media only screen and (max-width: 600px) {
+  audio {
+    max-width: 250px!important;
+  }
+}
+audio:hover, audio:focus, audio:active
+{
+-webkit-box-shadow: 15px 15px 20px rgba(0,0, 0, 0.4);
+-moz-box-shadow: 15px 15px 20px rgba(0,0, 0, 0.4);
+box-shadow: 15px 15px 20px rgba(0,0, 0, 0.4);
+-webkit-transform: scale(1.05);
+-moz-transform: scale(1.05);
+transform: scale(1.05);
+}
+
+
+audio
+{
+  width: 347px;
+    background-color: #f1f3f4;
+-webkit-transition:all 0.5s linear;
+-moz-transition:all 0.5s linear;
+-o-transition:all 0.5s linear;
+transition:all 0.5s linear;
+-moz-box-shadow: 2px 2px 4px 0px #006773;
+-webkit-box-shadow:  2px 2px 4px 0px #006773;
+box-shadow: 2px 2px 4px 0px #006773;
+-moz-border-radius:7px 7px 7px 7px ;
+-webkit-border-radius:7px 7px 7px 7px ;
+border-radius:7px 7px 7px 7px ;
+}
+
+
+
+body {
+  /*background-image: url("{{asset('public/quiz/q1.jpg')}}");*/
+  height: 100%;
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+    background-color: #1396de9e;
+}
+.nav-link.units{
+    font-family: cursive!important;
+    color: #ce2009 !important;
+}
+.card-header{
+        background-color: #f2f1f0 !important;
+    border-bottom: 7px solid #004c76 !important;
+}
+[class*=icheck-]>input:first-child+label::before {
+    width:15px !important;
+    height:15px !important;
+
+}
+ [class*=icheck-]>input:first-child:checked+label::after {
+     top:-3px !important;
+     left:-3px !important;
+ }
+
+ hr.hr-quiz{
+  width: 84%;
+border: 1px dashed #a5ccd3;
+}
+.logout{
+color: black;
+}
+.logout-user{
+  list-style: none;
+
+}
+.logout-user a{
+  font-size: 18px;
+      color: #004c76;
+}
+.user{
+  font-size: 17px !important;
+    text-align: end !important;
+    color: #004c76 !important;
+}
+.drop-logout.dropdown-menu{
+  right: 0!important;
+      width: 72%;
+      margin: auto;
+      left: 62px;
+}
+.nav-levels{
+  border-radius: 6px;
+box-shadow: 4px 6px 4px #004c76;
+}
+.level-link{
+  font-size: 19px;
+}
+.current_level{
+   border-bottom: 4px solid #004c76;
+    color: #ce2009 !important;
+    width: fit-content;
+
+}
+
+
+@media (min-width:768px) and (max-width:992px) {
+.navbar-brand{
+  margin-left: 0!important;
+}
+.user {
+  text-align: start !important;
+}
+.level-li{
+  padding-left: 20px !important;
+}
+  }
+  @media (min-width:425px) and (max-width:768px) {
+    .navbar-brand{
+      margin-left: 0!important;
+    }
+    .user {
+      text-align: start !important;
+    }
+    .level-li{
+      padding-left: 20px !important;
+    }
+  }
+  @media  (max-width:375px){
+  .navbar-brand{  margin-left: 0!important;
+  }
+  .user {
+    text-align: start !important;
+  }
+  .level-li{
+    padding-left: 20px !important;
+  }
+    }
+</style>
+<div class="container mt-5">
+
+  <section class=" content-header d-flex justify-content-center row">
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-light col-md-11 nav-levels">
+          <div class="container-fluid">
+
+
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                      <span class="navbar-toggler-icon"></span>
+                  </button>
+
+
+
+            <!-- <a class="navbar-brand" href="#">Navbar</a> -->
+            <div class="collapse navbar-collapse row" id="navbarNavAltMarkup">
+              <ul class="navbar-nav me-auto mb-2 mb-lg-0 col-md-12">
+                @foreach($all_levels as $lev)
+                <li class="nav-item level-li">
+                  <a class="nav-link level-link active @if($lev->id== $level->id) current_level @endif" aria-current="page" href="{{route('front.course.level',$lev->id)}}?u={{$emp->id}}">{{$lev->title}}</a>
+                </li>
+                @endforeach
+                <?php  $logout=$lang.'/logout' ?>
+                <li class="nav-item dropdown col-md-3 level-li  ml-auto navbar-brand">
+              <a href="#" class="nav-link dropdown-toggle user" data-toggle="dropdown">Welcome  {{$emp->first_name}} <b class="caret"></b></a>
+              <ul class="drop-logout dropdown-menu ">
+              <li align="center " class="well">
+                <a href="{{url($logout)}}" class="logout">
+              <i class="fas fa-sign-out-alt"></i> Log out
+              </a>
+              </li>
+              </ul>
+              </li>
+              </ul>
+
+            </div>
+            </div>
+        </nav>
+
+  </section>
+
+
+
+
+    <div class="d-flex justify-content-center row">
+        <div class="col-md-11 col-lg-11">
+            <div class="col-md-12">
+                <div class="question bg-white p-3 border-bottom">
+
+                <div class="question bg-white p-3 border-bottom">
+                  <div class="card card-primary card-tabs">
+                    <!-- tabs -->
+                    <div class="card-header p-0 pt-1" >
+                      <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
+                        @foreach($units as $k=> $unit)
+                        <li  role="presentation"  class="nav-item ">
+                          <a  @if($k == 0) class=" nav-link units active" @endif class="nav-link units" id="{{$unit->title}}-tap" data-toggle="pill" href="#tab-{{$unit->id}}" role="tab" aria-controls="#tab-{{ $unit->id }}" >{{$unit->title}}</a>
+                        </li>
+                        @endforeach
+                      </ul>
+                    </div>
+
+                    <!-- body -->
+
+                  <div class="card-body">
+                    <div class="tab-content" id="custom-tabs-one-tabContent">
+                      @foreach($units as $ke=>$unit)
+
+                      <!-- sec info -->
+                      @if($unit->lessons)
+                      <div @if($ke == 0) class="tab-pane active" @else class="tab-pane" @endif id="tab-{{$unit->id}}" role="tabpanel"  >
+
+                        @foreach($unit->lessons as $less)
+                        @if($less->type=="audio")
+                        <div class="col-md-12 row">
+                            <div class="col-md-2 col-sm-2" style="max-width: 74px;">
+                            <label style="padding-top: 12px;">{{$less->title}}</label>
+                            </div>
+                       <div class="col-md-9 col-sm-9">
+                        <audio class="col-md-10 col-sm-12" controls controlsList="nodownload" preload="none">
+                         <source src="{{asset($less->file)}}" type="audio/mpeg" >
+                         Your browser does not support the audio element.
+                         </audio>
+                         </div>
+                         </div>
+                         <hr class="hr-quiz">
+
+                         @endif
+                        @endforeach
+
+</div>
+@endif
+                  @endforeach <!--End sec info-->
+
+
+
+                  </div>
+
+
+                    <!-- /.card -->
+                  </div>
+
+
+
+
+                  <footer class="main-footer" style="margin-left:0px !important;">
+                      <strong>Copyright &copy; Mr. Usama Azb. </strong>
+                      All rights reserved.
+                      <div class="float-right d-none d-sm-inline-block">
+                      </div>
+                    </footer>
+
+
+
+
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+@endsection

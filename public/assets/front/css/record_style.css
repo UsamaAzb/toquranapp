@@ -1,0 +1,252 @@
+button:disabled {
+  pointer-events: none;
+  background: lightgray;
+}
+.css-10mtgs1 {
+    padding: 3px;
+    border: 1px solid rgb(217, 221, 228);
+    border-radius: 2px;
+
+  }
+  .css-s5xdrg {
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    padding-right: 0!important;
+    padding-left: 0!important;
+}
+
+
+.css-1q80go0 {
+    display: inline-flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    align-items: center;
+    font-size: 15px;
+    padding: 0px 12px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    text-decoration: none;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+    /* min-width: 80px; */
+    transition: color 0.2s ease 0s, background-color 0.2s ease 0s, border-color 0.2s ease 0s;
+    min-height: 40px;
+    line-height: 32px;
+    color: rgb(0, 85, 217);
+    background-color: rgb(217, 232, 255);
+  }
+  .css-1otgxk4 {
+    background: rgb(250, 250, 251);
+    flex: 1 1 0%;
+    border-radius: 2px;
+    margin-left: 2px;
+    height: 46px;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+}
+.css-ve9zs5 {
+    margin-left: 12px;
+    color: rgb(77, 97, 130);
+    font-size: 12px;
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: -0.27px;
+    line-height: 19px;
+}
+.css-1q80go0:hover {
+    background-color: rgb(204, 224, 255);
+}
+.css-r29ycs {
+    display: inline-flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    align-items: center;
+    font-size: 15px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    text-decoration: none;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+    transition: color 0.2s ease 0s, background-color 0.2s ease 0s, border-color 0.2s ease 0s;
+    line-height: 32px;
+    color: rgb(77, 97, 130);
+    background-color: rgb(235, 237, 240);
+    min-height: auto;
+    min-width: auto;
+    padding: 8px;
+    vertical-align: middle;
+}
+.css-o1wny5 {
+    display: inline-flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    align-items: center;
+    font-size: 15px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    text-decoration: none;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+    transition: color 0.2s ease 0s, background-color 0.2s ease 0s, border-color 0.2s ease 0s;
+    line-height: 32px;
+    color: rgb(77, 97, 130);
+    min-height: auto;
+    min-width: auto;
+    padding: 8px;
+    vertical-align: middle;
+    margin-left: 2px;
+    background-color: rgb(254, 224, 224);
+}
+.css-16r7llb {
+    display: inline-flex;
+    line-height: 1em;
+    width: 24px;
+    height: 24px;
+}
+.css-16r7llb {
+    display: inline-flex;
+    line-height: 1em;
+    width: 24px;
+    height: 24px;
+}
+.css-glb2fz {
+    display: flex;
+    flex: 1 1 0%;
+    margin-left: 10px;
+}
+.css-1of55lx {
+    color: rgb(77, 97, 130);
+    font-size: 12px;
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: -0.27px;
+    line-height: 19px;
+    margin: 4px 0px 0px;
+}
+.css-ny1adc {
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    margin-top: 4px;
+    margin-left: 13px;
+}
+.css-1lf1lm0 {
+    background: rgb(254, 48, 48);
+    width: 10px;
+    height: 11px;
+    border-radius: 50%;
+}
+.css-z4k8dv {
+    color: rgb(77, 97, 130);
+    font-size: 12px;
+    font-weight: 400;
+    font-style: normal;
+    letter-spacing: -0.27px;
+    line-height: 19px;
+    margin: 0px 0px 0px 4px;
+}
+.uploaded_audio{
+      box-shadow: none !important;
+
+
+}
+.uploaded_audio,.uploaded_audio:hover, .audio:focus, .audio:active{
+  -webkit-transform: scale(1)!important;
+  -moz-transform: scale(1)!important;
+  transform: scale(1)!important;
+}
+.upload_record{
+  display: inline-flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    align-items: center;
+    font-size: 17px;
+    /* padding: 9px 48px; */
+    border: 1px solid transparent;
+    border-radius: 7px;
+    text-decoration: none;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+    /* min-width: 88px; */
+    transition: color 0.2s ease 0s, background-color 0.2s ease 0s, border-color 0.2s ease 0s;
+    min-height: 40px;
+    line-height: 32px;
+    color: rgb(0, 85, 217);
+    background-color: rgb(217, 232, 255);
+    /* position: absolute;
+    top: 5px;
+
+    margin-left: 50px; */
+    font-weight: 600;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+.upload_record .fa-check-circle{
+  padding-right: 6px;
+
+}
+.delete_record{
+  display: inline-flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-align: center;
+    align-items: center;
+    font-size: 15px;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    text-decoration: none;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+    transition: color 0.2s ease 0s, background-color 0.2s ease 0s, border-color 0.2s ease 0s;
+    color: rgb(77, 97, 130);
+    background-color: rgb(241 243 244);
+    /* padding: 16px 23px; */
+    vertical-align: middle;
+    margin-left: -12px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    min-width: 36px;
+
+    /* margin-left: auto;
+    position: absolute;
+    top: 4px;
+    margin-left: 2px; */
+}
+.delete_record i{
+  font-size: 18px;
+}
+.record_list{
+  margin-bottom: 0px !important;
+}
+.record_list li{
+  margin-bottom: 0px !important;
+}
+.saving_record{
+  margin-bottom: 0!important;
+    margin-top: 0!important;
+}
+.audio-box{
+  margin-right: 0 !important;
+}
+@media only screen and (max-width: 600px) {
+  .delete_record {
+    margin-left: 0px!important;
+
+  }
+
+
+.uploaded_audio{
+  max-width: 100%!important;
+}
+}

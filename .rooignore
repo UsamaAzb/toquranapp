@@ -1,0 +1,35 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies
+vendor/
+node_modules/
+
+# Laravel runtime (logs, cache, compiled views, sessions)
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+bootstrap/cache/
+
+# Build output
+public/build/
+build/
+
+# SQL dumps, local DB files, backups, and archives
+*.sql
+*.sqlite
+*.sqlite3
+*.dump
+*.bak
+*.backup
+*.zip
+*.7z
+*.rar
+*.gz
+*.tar
+
+# Log files
+*.log

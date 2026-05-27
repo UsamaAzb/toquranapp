@@ -1,0 +1,10 @@
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/webp "access plus 7 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "^background[0-9]+\.webp$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+</IfModule>

@@ -1,0 +1,72 @@
+{
+  "menu": [
+
+    
+    {
+      "url": "https://toquran.org/book-consultation",
+      "name": "Register",
+      "icon": "menu-icon icon-base ti tabler-shield-lock",
+      "slug": "auth-register-basic",
+      "target": "_blank",
+      "roles": ["admin"]
+    },
+    {
+      "url": "/admin/bookings",
+      "name": "Booking",
+      "icon": "menu-icon icon-base ti tabler-clipboard-list",
+      "slug": "admin-booking",
+      "roles": ["admin"]
+    },
+    {
+      "url": "/admin/calendar",
+      "name": "Calendar",
+      "icon": "menu-icon icon-base ti tabler-calendar",
+      "slug": "admin-booking",
+      "roles": ["admin"]
+    },
+    
+     {
+      "url": "/student/classes",
+      "name": "My Subjects",
+      "icon": "menu-icon icon-base ti tabler-books",
+      "slug": "admin-booking",
+      "roles": ["student"]
+    },
+    {
+      "url": "/student/journey/board",
+      "name": "Journey",
+      "icon": "menu-icon icon-base ti tabler-track",
+      "slug": "admin-booking",
+      "roles": ["student"]
+    },
+    {
+      "url": "/teacher/classes",
+      "name": "My Classes",
+      "icon": "menu-icon icon-base ti tabler-books",
+      "slug": "admin-booking",
+        "roles": ["teacher"]
+    },
+    {
+      "url": "/teacher/library",
+      "name": "Library",
+      "icon": "menu-icon icon-base ti tabler-files",
+      "slug": "teacher-library",
+      "roles": ["teacher", "admin"]
+    },
+    {
+      "url": "/teacher/vocabulary/games/launch",
+      "name": "Vocab Games",
+      "icon": "menu-icon icon-base ti tabler-pacman",
+      "slug": "teacher-vocabulary-games",
+      "roles": ["teacher", "admin"]
+    },
+    
+    {
+      "url": "/vocabulary/games",
+      "name": "Vocab Games",
+      "icon": "menu-icon icon-base ti tabler-pacman",
+      "slug": "vocabulary-games",
+      "roles": ["student"]
+    }
+  ]
+}

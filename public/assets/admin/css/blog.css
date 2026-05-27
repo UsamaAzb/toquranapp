@@ -1,0 +1,84 @@
+p{
+color: #414446;
+font-size: 18px;
+}
+h1{
+  color: #E41937;
+  font-weight: 600 !important;
+  font-size: 2rem!important;
+
+
+}
+h2{
+color:#023a56;
+}
+h3{
+  color: #006699;
+}
+h4 {
+    color: #2396cf;
+  }
+  h5,h6{
+  color: #414446;
+}
+.blogimg{
+    width: 80%;
+      border-radius: 11px;
+      border: 1px solid #5c6a7754;
+      padding: 6px;
+      margin-left: 20px;
+      margin-bottom: 6px;
+      margin-top: 7px;
+
+}
+.rightblogimg-text{
+  width: 297px;
+    height: 245px;
+    border-radius: 11px;
+    border: 1px solid #5c6a7754;
+    padding: 6px;
+    float: right;
+    margin-left: 20px;
+    margin-bottom: 6px;
+    margin-top: 7px;
+}
+.leftblogimg-text{
+  width: 297px;
+    height: 245px;
+    border-radius: 11px;
+    border: 1px solid #5c6a7754;
+    padding: 6px;
+    float: left;
+    margin-right: 20px;
+    margin-bottom: 6px;
+    margin-top: 7px;
+}
+/* ul,ol{
+  color: #5c6a77;
+    font-weight: 600;
+    font-size: 18px;
+    margin-top: 15px;
+    border-left: 3px solid #5d8be7;
+    padding: 17px;
+    list-style-type: none;
+    padding-left: 33px;
+    position: relative;
+
+} */
+ table thead{
+  color: #fff;
+    background-color: #212529;
+}
+table td{
+  border: 0px;
+}
+ table thead td{
+  color: #fff;
+font-size: 18px;
+border-color: #32383e;
+border: 0px;
+    border-top: 1px solid black;
+}
+ tbody tr:nth-of-type(odd) {
+    background-color: rgba(0,0,0,.05) !important;
+}
