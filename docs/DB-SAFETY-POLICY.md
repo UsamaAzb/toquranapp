@@ -21,6 +21,12 @@ As of 2026-05-27:
 - Owner clarified on 2026-05-28 that the old `u504065335_to_quran` export has no client data requiring preservation. The only intentionally preserved legacy data is the Quran YouTube/video list, planned for a later Library migration.
 - A Week14 schema freshness check confirmed the 2026-05-27 Week14 snapshot matches a fresh read-only export from local `u504065335_vuexy_week14`: `docs/audits/2026-05-28-week14-schema-freshness-check.md`.
 
+As of 2026-05-28:
+
+- Phase 1 app skeleton import is committed at `270e832`.
+- The To Quran local/app DB target for Phase 2 planning is `toquranapp_local`.
+- The public/live website DB name remains `u504065335_to_quran`; it must not be used as the app baseline target by accident.
+
 ## Allowed Without Separate Owner Approval
 
 Codex may perform To Quran local/app DB setup and schema work without separate owner approval when all of these are true:
@@ -66,7 +72,7 @@ Do not treat the old To Quran SQL export as the target LMS schema. It is evidenc
 The recommended strategy is:
 
 - build the app schema from the current Week14 LMS schema after To Quran adaptation decisions are approved;
-- establish and document the To Quran local/app target DB name before Phase 2 schema setup;
+- use `toquranapp_local` as the local/app target DB name for Phase 2 schema setup unless a later decision changes it;
 - map/preserve the old Quran YouTube/video list later into the Library/content system;
 - keep Arabic vocabulary games and legacy Quran video migration out of Phase 1;
 - keep destructive cleanup of old tables documented separately before execution.

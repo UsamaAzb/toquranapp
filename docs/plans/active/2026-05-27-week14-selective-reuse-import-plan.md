@@ -1,17 +1,17 @@
 # Week14 Selective Reuse Import Plan
 
-Status: approved for Phase 1; pre-implementation correction applied
+Status: Phase 1 implemented; Phase 2 planning active
 Date: 2026-05-27; updated 2026-05-28
 
 ## Objective
 
 Plan how to reuse `D:\xampp\htdocs\week14-app-lms` for the To Quran private app at `app.toquran.org` without importing blindly or destroying existing To Quran data.
 
-This plan stops before implementation.
+This plan originally stopped before implementation. Phase 1 was implemented on 2026-05-28 in commit `270e832 Import Week14 LMS foundation for To Quran`.
 
 ## Non-Goals
 
-- Do not copy app code yet.
+- Do not import more app code without a scoped phase/task.
 - Do not import or mutate DB schema/data yet.
 - Do not clean old To Quran tables yet.
 - Do not update the public website write path yet.
@@ -110,8 +110,8 @@ Use this table when coordinating the import plan with `docs/TOQURAN-SPRINTS.md`.
 | --- | --- | --- |
 | Phase 0 - Owner Review | TQ0 | Complete; audit and selective reuse strategy are approved for Phase 1. |
 | Phase 0.5 - Week14 Schema Freshness Gate | TQ0.5 | Complete; schema snapshot freshness is verified. |
-| Phase 1 - App Skeleton Import | TQ1 | Next implementation phase. |
-| Phase 2 - Schema Baseline And Data Mapping Plan | TQ1 entry/exit gate before TQ2 | Establish the app DB target and schema plan before intake/family adaptation. |
+| Phase 1 - App Skeleton Import | TQ1 | Complete in commit `270e832`. |
+| Phase 2 - Schema Baseline And Data Mapping Plan | TQ1.5 / TQ1 exit gate before TQ2 | Establish the app DB target and schema plan before intake/family adaptation. |
 | Phase 3 - Intake And Family Foundation | TQ2 and TQ3 | Split implementation work by service catalog/intake first, then family lifecycle. |
 | Phase 4 - Core Tutoring LMS | TQ4 | Sessions, task flows, protected attachments, approval, rewards, and behavior/consequence foundations. |
 | Phase 5 - My Deen Journey | TQ5 | Service-specific adaptation after core tutoring surfaces exist. |
@@ -162,6 +162,15 @@ Verification:
 - no Week14 brand in visible first-run areas
 - no DB destructive commands
 
+Status: complete on 2026-05-28.
+
+Result:
+
+- commit: `270e832 Import Week14 LMS foundation for To Quran`
+- source: Week14 branch `2028-vocabulary-intervention` at `c5d5af9`
+- verification: `/login` returned 200 with title `To Quran | Login`; focused auth/PWA/credential tests passed
+- caveat: dependency security advisories exist in the inherited Composer lock and must be hardened before deployment
+
 ### Phase 2 - Schema Baseline And Data Mapping Plan
 
 Entry gate:
@@ -182,6 +191,8 @@ Verification:
 
 - target DB and backup/export evidence are confirmed before execution
 - cleanup plan remains separate
+
+Current Phase 2 artifact: `docs/plans/active/2026-05-28-schema-baseline-data-mapping-plan.md`.
 
 ### Phase 3 - Intake And Family Foundation
 
@@ -257,7 +268,7 @@ After app schema target is approved:
 - decide whether public writes directly to app-owned DB tables or calls an app-owned endpoint
 - add/consume shared docs in the public repo
 
-## Verification For This Planning Task
+## Verification For The Original Planning Task
 
 Done when:
 
@@ -265,5 +276,7 @@ Done when:
 - audit doc exists
 - reuse/import plan exists
 - backup/baseline evidence exists
-- no app import was performed
+- no app import was performed during the original planning task
 - no DB mutation was performed
+
+Later status: Phase 1 app import was completed separately on 2026-05-28 in commit `270e832`.

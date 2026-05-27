@@ -34,16 +34,27 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 
 ### TQ1. App Skeleton Import From Week14
 
-- Status: `pending`
+- Status: `done`
 - Depends on: TQ0 done and TQ0.5 freshness gate
 - Goal: Bring in the Laravel 12/Jetstream/Spatie/Livewire/Vuexy app foundation from Week14 with To Quran branding/config and no data destructive operations.
+- Current artifact: commit `270e832 Import Week14 LMS foundation for To Quran`
+- Verification: app boots to `/login` as `To Quran`; focused auth/PWA/credential tests pass.
 - Website action: none during app skeleton import except shared docs alignment.
 - DB action: prepare To Quran app schema baseline plan; no import until the SQL plan exists and `docs/DB-SAFETY-POLICY.md` target checks pass.
+
+### TQ1.5. Schema Baseline And Data Mapping Plan
+
+- Status: `active`
+- Depends on: TQ1
+- Goal: Establish the To Quran local/app DB target, create a schema baseline plan from the matched Week14 structure, and document what starter data should be To Quran-created, skipped, or migrated later.
+- Current artifact: `docs/plans/active/2026-05-28-schema-baseline-data-mapping-plan.md`
+- Website action: none yet; public website handoff waits until app-side target/schema is approved.
+- DB action: planning only until manual SQL/execution notes exist and target checks pass.
 
 ### TQ2. To Quran Service Catalog And Intake Foundation
 
 - Status: `pending`
-- Depends on: TQ1
+- Depends on: TQ1.5
 - Goal: Adapt Week14 family/intake model to Quran Memorization, Quranic Arabic, My Deen Journey, Paid Parental Consultation, and Sanad Ijazah service interests.
 - Website action: align public form values and reference prefix after app target is approved.
 - DB action: manual SQL/map plan for service tables and intake rows.

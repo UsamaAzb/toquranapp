@@ -20,6 +20,11 @@ database/manual/
 - `baseline/2026-05-28-001530-week14-fresh-schema.sql`
   - fresh read-only Week14 schema export used by `docs/audits/2026-05-28-week14-schema-freshness-check.md`
 
+## Current Local App Target
+
+- Phase 2 local/app DB target: `toquranapp_local`
+- Public/live website DB name to avoid for app baseline work: `u504065335_to_quran`
+
 ## Rules
 
 - Do not edit baseline snapshots to create schema changes.

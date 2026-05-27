@@ -10,12 +10,13 @@ Track database and runtime items that affect both To Quran repos.
 
 | Date | Item | Source | Owner | Status |
 | --- | --- | --- | --- | --- |
-| 2026-05-27 | `toquranapp` started empty; no app `.env` or app schema configured | Local audit | `toquranapp` | Open |
+| 2026-05-27 | `toquranapp` started empty; no app `.env` or app schema configured | Local audit | `toquranapp` | Historical |
 | 2026-05-27 | Local `u504065335_to_quran` schema is absent; only SQL export evidence exists | Public repo export | `toquranapp` | Open |
 | 2026-05-27 | To Quran export has 44 tables; Week14 live schema snapshot has 352 tables; direct overwrite is unsafe | Schema comparison | `toquranapp` | Open |
 | 2026-05-28 | Owner clarified the old `u504065335_to_quran` export has no client data needing preservation; only the Quran YouTube/video list is intentionally preserved | Owner clarification | `toquranapp` | Preserve video list later |
 | 2026-05-27 | Week14 app schema includes missing LMS foundation tables for family lifecycle, intake review, automation, rewards, Library, vocabulary, permissions, and tests | Week14 snapshot | `toquranapp` | Candidate import source |
 | 2026-05-28 | Fresh Week14 schema export matches the 2026-05-27 Week14 snapshot structurally; data-only patches remain To Quran planning caveats | Freshness check | `toquranapp` | Complete |
+| 2026-05-28 | Phase 1 app skeleton import is complete in commit `270e832`; Phase 2 local app DB target is `toquranapp_local` | TQ1/TQ1.5 plan | `toquranapp` | Active |
 
 ## Current Backup/Baseline Evidence
 
@@ -30,6 +31,8 @@ Track database and runtime items that affect both To Quran repos.
 - To Quran export table count: 44
 - Week14 live schema table count: 352
 - Common table count: 23
+- To Quran Phase 2 local app target: `toquranapp_local`
+- Public/live website DB name to avoid for app baseline work: `u504065335_to_quran`
 - To Quran-only tables include `employees`, `employees_course`, `employee_quizzes_old`, `quran_courses`, `quran_course_translations`, `surahs`, `surahs_old`, `surh_videos`, old Laratrust-style `role_user`/`permission_user` tables, and old course/lesson tables.
 - Week14-only tables include modern `parents`, `booking_children`, `booking_intake_review`, `booking_intake_submission_locks`, `account_histories`, Spatie permission tables, automation tables, reward ledger tables, Library tables, and vocabulary wrapper tables.
 
@@ -54,8 +57,8 @@ Document before destructive cleanup:
 ## Recommended DB Direction
 
 1. Do not import Week14 over the To Quran export.
-2. Complete the reuse/import strategy first.
+2. Treat Phase 1 app skeleton import as complete in `toquranapp`; use Phase 2 to establish the app DB baseline.
 3. Use the matched Week14 schema snapshot as structural source evidence.
-4. Create a To Quran app schema from the Week14 current LMS schema after service/terminology adaptation decisions are accepted.
+4. Create a To Quran local app schema in `toquranapp_local` from the Week14 current LMS schema after service/terminology adaptation decisions are accepted.
 5. Preserve the Quran YouTube/video list later through a Library/content migration.
 6. Keep destructive cleanup documented before execution.

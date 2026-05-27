@@ -45,10 +45,18 @@ Reuse does not mean blind copying:
 
 ## Current Audit State
 
-As of 2026-05-27, this directory started as an empty/non-git app workspace. The first audit created planning/docs artifacts only and captured:
+As of 2026-05-27, this directory started as an empty/non-git app workspace. The first audit created planning/docs artifacts and captured:
 
 - backup copy: `database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql`
 - Week14 live schema snapshot: `database/manual/baseline/2026-05-27-235118-week14-live-schema.sql`
 - Week14 freshness check: `docs/audits/2026-05-28-week14-schema-freshness-check.md`
 
-No LMS code import has been performed yet.
+As of 2026-05-28, Phase 1 app skeleton import has been performed and committed:
+
+- commit: `270e832 Import Week14 LMS foundation for To Quran`
+- source: current Week14 working tree on branch `2028-vocabulary-intervention` at `c5d5af9`
+- scope: Laravel/LMS foundation, app code, tests, config, views, routes, and static skeleton assets
+- excluded/removed from the import: runtime uploads, copied public content payloads, logs, generated storage, vendor, node_modules, old SQL dumps, and To Quran planning/manual DB docs
+- verification: `/login` returned 200 with title `To Quran | Login`; focused auth/PWA/credential tests passed
+
+Current DB direction: Phase 2 should create the To Quran app schema baseline and data-mapping plan before app DB setup. The local app DB target is documented as `toquranapp_local`; do not target the public/live website DB `u504065335_to_quran`.
