@@ -29,6 +29,8 @@ As of 2026-05-28:
 - The owner then changed the deployment posture for speed: the real To Quran app DB target is `u504065335_to_quran`.
 - Because `u504065335_to_quran` was also the public website DB name/export source, every real-target patch must verify that it is intentionally targeting the app deployment DB and not an accidental wrong connection.
 - On branch `tq-real-db-transition`, the real-name local target `u504065335_to_quran` was created from a guarded structure-only baseline, then starter/reference data was inserted intentionally. The target has 352 tables, 7 roles, 5 service values, 3 To Quran subjects, 12 grade-level subject mappings, and 0 users.
+- A follow-up framework infrastructure correction restored Laravel/Sanctum/Spatie keys and indexes in `u504065335_to_quran`. Evidence is recorded in `database/manual/patches/2026-05-28-framework-infrastructure-indexes-execution-note.sql`.
+- A follow-up Library column correction renamed the malformed imported column ` general_library_dp_unit_id` to `general_library_dp_unit_id` in `u504065335_to_quran`. Evidence is recorded in `database/manual/patches/2026-05-28-library-column-correction-execution-note.sql`.
 
 ## Allowed Without Separate Owner Approval
 
@@ -37,8 +39,9 @@ Codex may perform To Quran app DB setup and schema work without separate owner a
 1. A backup/export exists for any source DB or export being used.
 2. The target DB name and connection are verified as the intended To Quran app DB target.
 3. If the target is `u504065335_to_quran`, the patch states that this is intentional for accelerated deployment.
-4. Durable schema/data work is documented with manual SQL, migration notes, or a clear execution note under `database/manual/`.
-5. Destructive cleanup of old/export-only data is documented before execution, including the Quran YouTube/video-list preservation boundary.
+4. If the target is `u504065335_to_quran`, correction/data patches require an explicit operator-set confirmation variable or equivalent instance-level guard, not only `DATABASE()` name checks.
+5. Durable schema/data work is documented with manual SQL, migration notes, or a clear execution note under `database/manual/`.
+6. Destructive cleanup of old/export-only data is documented before execution, including the Quran YouTube/video-list preservation boundary.
 
 This permission covers dry-run schema creation, real app baseline setup, schema patch execution, and controlled data mapping for the To Quran app DB. It does not make `toquran` the app schema authority.
 
@@ -57,9 +60,13 @@ This permission covers dry-run schema creation, real app baseline setup, schema 
 2. Verify target DB name, connection, and repo ownership before executing anything.
 3. Compare against Week14 source schema.
 4. Identify data worth preserving, obsolete tables, missing tables, and cleanup risk.
-5. Write a manual SQL patch or migration note under `database/manual/`.
-6. Update `docs/shared/SHARED-DB-HANDOFF.md`.
-7. Execute To Quran app DB work when the allowed-work checks above pass; otherwise stop and ask.
+5. Review framework infrastructure tables against expected Laravel/Sanctum/Spatie keys, indexes, foreign keys, and auto-increment columns.
+6. Scan baseline/replay SQL for malformed identifiers, including leading/trailing spaces inside backticks.
+7. Add fixed-ID drift checks before starter/reference inserts.
+8. Make preservation-only SQL inert by default when practical.
+9. Write a manual SQL patch or migration note under `database/manual/`.
+10. Update `docs/shared/SHARED-DB-HANDOFF.md`.
+11. Execute To Quran app DB work when the allowed-work checks above pass; otherwise stop and ask.
 
 ## Baseline/Patch Convention
 

@@ -27,6 +27,7 @@ This changes the execution target, not the safety requirements:
 4. Write a guarded manual SQL patch under `database/manual/patches/` that:
    - selects or creates `u504065335_to_quran`;
    - checks `DATABASE() = 'u504065335_to_quran'`;
+   - for correction/data patches after the baseline, requires an explicit operator confirmation variable or equivalent instance-level guard;
    - states that the real target is intentional for accelerated deployment;
    - includes backup evidence comments;
    - avoids importing Week14 rows blindly.
@@ -91,4 +92,15 @@ Completed locally on 2026-05-28:
 - starter/reference patch: `database/manual/patches/2026-05-28-toquran-starter-reference-data.sql`
 - starter/reference execution note: `database/manual/patches/2026-05-28-toquran-starter-reference-data-execution-note.sql`
 - starter/reference rows: roles, service catalog values, current operating year, program, learner levels, To Quran subjects, and grade-level subject mappings
+- framework infrastructure correction patch: `database/manual/patches/2026-05-28-add-framework-infrastructure-indexes.sql`
+- framework infrastructure correction note: `database/manual/patches/2026-05-28-framework-infrastructure-indexes-execution-note.sql`
+- Library column correction patch: `database/manual/patches/2026-05-28-fix-library-dp-global-context-column.sql`
+- Library column correction note: `database/manual/patches/2026-05-28-library-column-correction-execution-note.sql`
+- schema snapshot after DB corrections: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
 - current blocker before TQ2 intake transfer: first admin/teacher account decision and To Quran adaptation of remaining Week14 intake/test fixtures
+
+## Post-Review Corrections
+
+CodeRabbit correctly identified that the initial real-target baseline omitted keys/indexes on several framework infrastructure tables. The follow-up correction restored the Laravel cache/session/job/password reset table keys, Sanctum token keys, and Spatie pivot keys/foreign keys. The credential-column comment was reviewed but not applied as a schema drop in this pass: `recoverable_password_encrypted` is an encrypted, active workflow field; `pin_unhash` is plaintext compatibility debt that requires app-code changes; `decryp_password` is legacy nullable plaintext and should remain unwritten or be removed in a focused hardening pass.
+
+CodeRabbit also correctly identified a malformed imported Library column named ` general_library_dp_unit_id` with a leading space. The live real-target DB was corrected to `general_library_dp_unit_id`, and the To Quran-owned baseline replay files were corrected so fresh targets do not recreate the typo. Starter/reference data was also hardened with fail-fast drift checks for canonical fixed IDs.

@@ -73,6 +73,20 @@ Before declaring an implementation done:
 - Verify all planned files exist and match the approved scope.
 - Run focused tests where code exists.
 - Confirm manual SQL artifacts exist for DB changes.
+- For DB baseline/replay work, complete the DB Review Checklist below before asking for external review.
 - Confirm public website docs/implementation impact is recorded.
 - Update shared docs if any service, intake, terminology, DB, deployment, or workflow decision changed.
 - Do not close by intent or by partial evidence.
+
+## DB Review Checklist
+
+Before calling DB baseline, import, correction, or starter-data work review-ready:
+
+- Compare framework-owned tables against expected Laravel/Sanctum/Spatie shape, including primary keys, unique keys, lookup indexes, foreign keys, and auto-increment columns.
+- Scan schema snapshots and patches for suspicious identifiers, especially leading/trailing spaces inside backticked column/table names.
+- For fixed-ID starter/reference rows, add fail-fast drift checks before inserts so conflicting pre-existing IDs abort instead of silently preserving wrong mappings.
+- For real-target patches, require an explicit operator confirmation variable or equivalent instance-level guard in addition to `DATABASE()` checks.
+- For preservation-only SQL, make accidental execution inert by default, or document why that cannot be done.
+- Re-run idempotent patches after execution where practical, and verify both the success path and the expected guard-failure path.
+- Export or update a post-correction schema snapshot after live DB corrections, and make the replay order explicit in `database/manual/README.md`.
+- Record the result in `docs/shared/SHARED-DB-HANDOFF.md`, with wording that distinguishes local completion from committed/finalized work.

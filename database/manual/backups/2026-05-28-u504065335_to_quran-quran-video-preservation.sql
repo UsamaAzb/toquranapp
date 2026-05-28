@@ -4,6 +4,31 @@
 -- Purpose: preserve old Quran surah/video list before real app DB transition.
 -- Tables included: surahs, surahs_old, surh_videos
 -- Status: preservation evidence only; do not execute into app schema without a Library migration plan.
+--
+-- Legacy limitations to address in any future Library migration:
+-- - The preserved `surahs`, `surahs_old`, and `surh_videos` definitions are copied from the old export.
+-- - Do not reuse these table definitions as final app schema.
+-- - Missing constraints/indexes must be designed before migration:
+--   - primary keys on preserved ids;
+--   - unique/indexed surah numbers;
+--   - indexes for video lookup by surah, ayah range, and sort order;
+--   - foreign-key or application-level integrity from videos to migrated surahs.
+-- - `surahs` still uses legacy `utf8mb3`; future Library tables must use `utf8mb4`.
+-- - Legacy varchar sizes and timestamp defaults need review before import into app-owned tables.
+-- - `surh_videos.created_at` has legacy ON UPDATE behavior and `updated_at` has a zero-date default.
+--
+-- Content limitations:
+-- - `surh_videos` preserves 106 YouTube embed rows.
+-- - Coverage is partial: videos exist for 20 surahs only (`1`, `96`-`114`).
+-- - The rows reference 89 distinct local image paths under `public/uploads/surhs/`.
+-- - Those image files are not included in this SQL extract and must be archived separately from the public website/uploads directory if they are needed.
+-- - YouTube embed links should be validated during migration because unlisted/deleted videos will become broken Library resources.
+--
+-- Execution guard:
+-- The preserved SQL payload is wrapped in a block comment so sourcing this file creates zero tables by default.
+-- Do not unwrap it directly into the app schema. Copy/adapt it only inside a documented Library migration or scratch import plan.
+
+/*
 
 -- Table structure for table `surahs`
 --
@@ -421,3 +446,5 @@ INSERT INTO `surh_videos` (`id`, `surh_id`, `video_link`, `img_ar`, `img_en`, `i
 -- --------------------------------------------------------
 
 --
+
+*/

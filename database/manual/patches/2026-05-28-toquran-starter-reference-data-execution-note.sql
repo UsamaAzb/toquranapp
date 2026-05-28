@@ -7,6 +7,11 @@
 -- Preflight:
 -- - Verified DATABASE() = 'u504065335_to_quran'.
 -- - Verified app schema baseline was present before insert work.
+-- - Post-review hardening now also requires the explicit operator confirmation
+--   variable @toquran_confirm_real_db_target = 'u504065335_to_quran'.
+-- - Post-review hardening now fails fast if canonical fixed IDs already map to
+--   different service, academic year, program, subject, learner-level, or
+--   grade-level subject values.
 
 -- Rows created intentionally:
 -- - roles: 7 (`owner`, `super_admin`, `admin`, `customer_support`, `teacher`, `parent`, `student`)
@@ -32,6 +37,8 @@
 -- Verification:
 -- - `php -l app\Support\BookingSubjectProvisioning.php` passed.
 -- - Focused auth/PWA/credential tests passed after real-target setup: 13 tests, 50 assertions.
+-- - Re-running the hardened starter/reference patch against the current target
+--   completed cleanly and did not change the verified row counts.
 -- - Tinker check:
 --   - `AcademicYear::currentId()` returned 1.
 --   - `BookingSubjectProvisioning::planForGradeLevel(1)` returned Quran Memorization, Quranic Arabic, and My Deen Journey with active student/teacher statuses.

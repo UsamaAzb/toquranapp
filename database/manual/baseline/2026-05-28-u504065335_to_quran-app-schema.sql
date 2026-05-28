@@ -1459,7 +1459,7 @@ DROP TABLE IF EXISTS `general_library_unit_dp_global_context`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `general_library_unit_dp_global_context` (
   `id` int(10) NOT NULL,
-  ` general_library_dp_unit_id` int(10) NOT NULL,
+  `general_library_dp_unit_id` int(10) NOT NULL,
   `global_context_id` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -5341,4 +5341,3 @@ CREATE TABLE `vocabulary_source_access` (
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-

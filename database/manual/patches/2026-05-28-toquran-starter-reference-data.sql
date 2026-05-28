@@ -21,6 +21,11 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS `_toquran_starter_reference_preflight`$$
 CREATE PROCEDURE `_toquran_starter_reference_preflight`()
 BEGIN
+    IF COALESCE(@toquran_confirm_real_db_target, '') <> 'u504065335_to_quran' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Refusing starter data: set @toquran_confirm_real_db_target = ''u504065335_to_quran'' before running this patch';
+    END IF;
+
     IF DATABASE() <> 'u504065335_to_quran' THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Refusing starter data: selected DB is not u504065335_to_quran';
     END IF;
@@ -31,6 +36,74 @@ BEGIN
         WHERE table_schema = 'u504065335_to_quran'
     ) < 300 THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Refusing starter data: app schema baseline is not present';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM `services`
+        WHERE (`id` = 1 AND `name` <> 'Quran Memorization')
+           OR (`id` = 2 AND `name` <> 'Quranic Arabic')
+           OR (`id` = 3 AND `name` <> 'My Deen Journey')
+           OR (`id` = 4 AND `name` <> 'Paid Parental Consultation')
+           OR (`id` = 5 AND `name` <> 'Sanad Ijazah')
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Starter data drift detected: canonical service IDs already map to different names';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM `academic_years`
+        WHERE `id` = 1
+          AND (`title` <> '2026-2027' OR `start_date` <> '2026-05-28' OR `end_date` <> '2027-05-27')
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Starter data drift detected: canonical academic year ID already maps to different values';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM `school_program`
+        WHERE `id` = 1
+          AND (`title` <> 'To Quran Private Tutoring' OR `code` <> 'TQ')
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Starter data drift detected: canonical program ID already maps to different values';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM `subjects`
+        WHERE (`id` = 1 AND (`title` <> 'Quran Memorization' OR `code` <> 'QURAN_MEM'))
+           OR (`id` = 2 AND (`title` <> 'Quranic Arabic' OR `code` <> 'QURAN_AR'))
+           OR (`id` = 15 AND (`title` <> 'My Deen Journey' OR `code` <> 'MDJ'))
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Starter data drift detected: canonical subject IDs already map to different values';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM `grade_levels`
+        WHERE (`id` = 1 AND (`title` <> 'General Learner' OR `code` <> 'GENERAL' OR `level_order` <> 1))
+           OR (`id` = 2 AND (`title` <> 'Beginner' OR `code` <> 'BEGINNER' OR `level_order` <> 2))
+           OR (`id` = 3 AND (`title` <> 'Intermediate' OR `code` <> 'INTERMEDIATE' OR `level_order` <> 3))
+           OR (`id` = 4 AND (`title` <> 'Advanced' OR `code` <> 'ADVANCED' OR `level_order` <> 4))
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Starter data drift detected: canonical grade-level IDs already map to different values';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM `grade_level_subjects`
+        WHERE `academic_year_id` = 1
+          AND `grade_level_id` IN (1, 2, 3, 4)
+          AND `subject_id` IN (1, 2, 15)
+          AND (`type` <> 'standard' OR `status` <> 'active')
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Starter data drift detected: canonical grade-level subject mappings already have different values';
     END IF;
 END$$
 DELIMITER ;

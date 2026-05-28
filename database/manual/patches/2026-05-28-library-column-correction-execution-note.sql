@@ -1,0 +1,39 @@
+-- To Quran Library column correction execution note
+-- Date: 2026-05-28
+-- Target DB: u504065335_to_quran
+-- Patch: database/manual/patches/2026-05-28-fix-library-dp-global-context-column.sql
+--
+-- Reason:
+-- The imported Week14 schema included a malformed column identifier in
+-- `general_library_unit_dp_global_context`: ` general_library_dp_unit_id`
+-- with a leading space. Runtime code and future Library mappings expect
+-- `general_library_dp_unit_id`.
+--
+-- Execution:
+-- - Ran the guarded correction patch against local MySQL target
+--   `u504065335_to_quran`.
+-- - Set the required operator confirmation variable:
+--   @toquran_confirm_real_db_target = 'u504065335_to_quran'
+-- - Renamed the column in place.
+-- - No rows were inserted, deleted, or truncated.
+--
+-- Replay artifact update:
+-- The To Quran-owned baseline replay files were also corrected so future fresh
+-- imports do not recreate the malformed identifier:
+-- - database/manual/patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql
+-- - database/manual/patches/2026-05-28-create-toquranapp-local-baseline.sql
+-- - database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema.sql
+-- - database/manual/baseline/2026-05-28-toquranapp-local-schema.sql
+--
+-- Week14 source snapshots remain evidence of the source schema and were not
+-- changed.
+--
+-- Post-execution verification:
+-- `information_schema.columns` for `general_library_unit_dp_global_context`
+-- now reports:
+-- - id
+-- - general_library_dp_unit_id
+-- - global_context_id
+--
+-- Snapshot after correction:
+-- - database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql
