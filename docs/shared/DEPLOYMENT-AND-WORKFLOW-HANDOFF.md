@@ -58,8 +58,10 @@ Do not use the web port as DB-target evidence. DB target checks must come from `
 
 Owner direction on 2026-05-28: target the real To Quran app DB name `u504065335_to_quran` instead of spending more time on disposable local-only targets. The completed `toquranapp_local` baseline remains useful as the safe proof run.
 
-Before mutating `u504065335_to_quran`, create/confirm a fresh backup/export, preserve the Quran YouTube/video list as the only intentional legacy data, and use guarded manual SQL that states the real-target intent.
+Current local branch result: `u504065335_to_quran` has been created locally with the app schema baseline and intentional starter/reference data. The Quran YouTube/video list is preserved separately for a later Library migration.
+
+Before server deployment, confirm the destination host/database backup, run only reviewed manual SQL, and coordinate public website changes because the public site previously used the same DB name/export source.
 
 ## Open Follow-Up
 
-Create a To Quran deployment checklist equivalent to Week14's server push checklist, including the real DB transition, starter/reference data, queue/mail requirements, and public website handoff.
+Create a To Quran deployment checklist equivalent to Week14's server push checklist, including real server DB backup/restore, starter/reference data verification, queue/mail requirements, public website handoff, and composer security hardening.

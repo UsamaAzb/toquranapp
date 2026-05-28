@@ -37,8 +37,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Copy/adapt Week14 code after owner approval according to the selective reuse plan.
 - Website impact: Website handoff rules and service labels must follow To Quran docs, not Week14 naming.
 - Owner: `toquranapp`
-- Follow-up: Create intentional To Quran starter/reference data, then proceed to TQ2 service catalog and intake adaptation.
-- Status: Approved for Phase 1 and Phase 2 local baseline.
+- Follow-up: Proceed to TQ2 service catalog/intake adaptation and public website handoff.
+- Status: Approved through real DB baseline and starter/reference data.
 
 ### 2026-05-27 - My Deen Journey Is a To Quran Service
 - Decision: My Deen Journey is a To Quran service, not a direct rename of Week14 Journey.
@@ -64,5 +64,14 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Real-target schema and starter/reference data patches must intentionally target `u504065335_to_quran`, cite backup/export evidence, and use SQL preflight guards.
 - Website impact: The public website must be updated or coordinated because it previously used the same DB name and may expect old tables.
 - Owner: `toquranapp`
-- Follow-up: Create the real-target transition patch, starter/reference data patch, and public website handoff checklist before launch.
-- Status: Approved for accelerated deployment path.
+- Follow-up: Create public website handoff checklist and verify real server backup/deploy path before launch.
+- Status: Implemented locally on branch `tq-real-db-transition`; pending review before commit.
+
+### 2026-05-28 - Starter Reference Data Baseline
+- Decision: Create only minimal starter/reference rows for the deployable To Quran app baseline: roles, service values, current operating year, To Quran program, learner levels, To Quran subjects, and grade-level subject mappings. The `owner` role is included as a compatibility carry-forward because imported Week14 routes still reference it; it is not yet an approved To Quran product role.
+- Why: TQ2 intake/family transfer needs known roles, service values, `AcademicYear::currentId()`, and grade-level subject mappings, but user/client accounts and content imports should remain intentional later steps.
+- App/LMS impact: `u504065335_to_quran` now has starter/reference rows and no user/client rows. `BookingSubjectProvisioning` was adapted so subject ids 1, 2, and 15 map to Quran Memorization, Quranic Arabic, and My Deen Journey.
+- Website impact: Public intake service values should align to the five app service values before launch.
+- Owner: `toquranapp`
+- Follow-up: Review TQ2 intake/service adaptation, first admin/teacher account creation path, and public website service-value handoff.
+- Status: Implemented locally on branch `tq-real-db-transition`; pending review before commit.

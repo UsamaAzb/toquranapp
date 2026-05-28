@@ -1,6 +1,6 @@
 # Real DB Transition And Starter Data Plan
 
-Status: active
+Status: real DB baseline and starter/reference data executed locally
 Date: 2026-05-28
 Sprint: TQ1.5 exit gate before TQ2
 
@@ -21,7 +21,7 @@ This changes the execution target, not the safety requirements:
 
 ## Required Before Real DB Mutation
 
-1. Create or confirm a fresh backup/export for `u504065335_to_quran`.
+1. Create or confirm backup/export evidence for `u504065335_to_quran`.
 2. Verify the active Laravel `.env`, Laravel config, and MySQL connection are all pointing to the intended DB target.
 3. Extract or document the preservation path for the Quran YouTube/video list before destructive cleanup.
 4. Write a guarded manual SQL patch under `database/manual/patches/` that:
@@ -37,7 +37,7 @@ This changes the execution target, not the safety requirements:
 Create intentionally for To Quran:
 
 - roles: `super_admin`, `admin`, `customer_support`, `teacher`, `parent`, `student`
-- required permission rows for imported middleware and dashboards
+- explicit permission rows only after a To Quran permission list is defined; the current imported access gates are role-based
 - service catalog values:
   - Quran Memorization
   - Quranic Arabic
@@ -69,10 +69,26 @@ Minimum website follow-up before launch:
 
 The transition is ready to close when:
 
-- fresh real-target backup/export exists;
+- backup/export evidence exists;
 - real-target baseline patch and execution note exist;
 - `u504065335_to_quran` has the expected app schema table count;
 - no Week14 rows were blindly imported;
 - starter/reference data patch is documented and scoped;
 - `/login` still renders as `To Quran`;
 - focused auth/PWA/credential tests still pass.
+
+## Execution Result
+
+Completed locally on 2026-05-28:
+
+- real-target baseline patch: `database/manual/patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql`
+- execution note: `database/manual/patches/2026-05-28-u504065335_to_quran-baseline-execution-note.sql`
+- preservation extract: `database/manual/backups/2026-05-28-u504065335_to_quran-quran-video-preservation.sql`
+- real app DB target: `u504065335_to_quran`
+- table count: 352
+- imported rows: none
+- verification: `/login` returned HTTP 200 as `To Quran | Login`; focused auth/PWA/credential tests passed
+- starter/reference patch: `database/manual/patches/2026-05-28-toquran-starter-reference-data.sql`
+- starter/reference execution note: `database/manual/patches/2026-05-28-toquran-starter-reference-data-execution-note.sql`
+- starter/reference rows: roles, service catalog values, current operating year, program, learner levels, To Quran subjects, and grade-level subject mappings
+- current blocker before TQ2 intake transfer: first admin/teacher account decision and To Quran adaptation of remaining Week14 intake/test fixtures

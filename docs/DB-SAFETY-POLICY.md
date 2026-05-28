@@ -28,6 +28,7 @@ As of 2026-05-28:
 - The local `toquranapp_local` structure-only baseline was created with 352 tables and no imported rows. Execution evidence is recorded in `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`.
 - The owner then changed the deployment posture for speed: the real To Quran app DB target is `u504065335_to_quran`.
 - Because `u504065335_to_quran` was also the public website DB name/export source, every real-target patch must verify that it is intentionally targeting the app deployment DB and not an accidental wrong connection.
+- On branch `tq-real-db-transition`, the real-name local target `u504065335_to_quran` was created from a guarded structure-only baseline, then starter/reference data was inserted intentionally. The target has 352 tables, 7 roles, 5 service values, 3 To Quran subjects, 12 grade-level subject mappings, and 0 users.
 
 ## Allowed Without Separate Owner Approval
 
@@ -74,9 +75,9 @@ Do not treat the old To Quran SQL export as the target LMS schema. It is evidenc
 The recommended strategy is:
 
 - treat `toquranapp_local` as the completed dry-run baseline;
-- use `u504065335_to_quran` as the real app DB target for the accelerated deployment path, after fresh backup/export confirmation;
+- use `u504065335_to_quran` as the real app DB target for the accelerated deployment path;
 - build the app schema from the current Week14 LMS schema after To Quran adaptation decisions are approved;
-- create To Quran starter/reference data intentionally in a later patch;
+- keep the executed starter/reference data patch as the baseline for TQ2 intake and family adaptation;
 - map/preserve the old Quran YouTube/video list later into the Library/content system;
 - keep Arabic vocabulary games and legacy Quran video migration out of Phase 1;
 - keep destructive cleanup of old tables documented separately before execution.

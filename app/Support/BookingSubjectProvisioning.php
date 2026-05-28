@@ -11,14 +11,23 @@ use Illuminate\Support\Facades\Schema;
 
 final class BookingSubjectProvisioning
 {
-    public const SUBJECT_LANGUAGE_AND_LITERATURE = 1;
+    public const SUBJECT_QURAN_MEMORIZATION = 1;
 
-    /** @deprecated Use SUBJECT_LANGUAGE_AND_LITERATURE. */
-    public const SUBJECT_ENGLISH = 1;
+    public const SUBJECT_QURANIC_ARABIC = 2;
 
-    public const SUBJECT_MATH = 2;
+    public const SUBJECT_MY_DEEN_JOURNEY = 15;
 
-    public const SUBJECT_WELL_BEING = 15;
+    /** @deprecated Use SUBJECT_QURAN_MEMORIZATION. */
+    public const SUBJECT_LANGUAGE_AND_LITERATURE = self::SUBJECT_QURAN_MEMORIZATION;
+
+    /** @deprecated Use SUBJECT_QURAN_MEMORIZATION. */
+    public const SUBJECT_ENGLISH = self::SUBJECT_QURAN_MEMORIZATION;
+
+    /** @deprecated Use SUBJECT_QURANIC_ARABIC. */
+    public const SUBJECT_MATH = self::SUBJECT_QURANIC_ARABIC;
+
+    /** @deprecated Use SUBJECT_MY_DEEN_JOURNEY. */
+    public const SUBJECT_WELL_BEING = self::SUBJECT_MY_DEEN_JOURNEY;
 
     public static function planForGradeLevel(?int $gradeLevelId): array
     {
@@ -88,27 +97,24 @@ final class BookingSubjectProvisioning
     public static function activeByDefaultSubjectIds(): array
     {
         return [
-            self::SUBJECT_LANGUAGE_AND_LITERATURE,
-            self::SUBJECT_WELL_BEING,
+            self::SUBJECT_QURAN_MEMORIZATION,
+            self::SUBJECT_QURANIC_ARABIC,
+            self::SUBJECT_MY_DEEN_JOURNEY,
         ];
     }
 
     public static function subjectName(int $subjectId): string
     {
         return match ($subjectId) {
-            self::SUBJECT_LANGUAGE_AND_LITERATURE => 'Language and Literature',
-            self::SUBJECT_MATH => 'Math',
-            self::SUBJECT_WELL_BEING => 'Well Being',
+            self::SUBJECT_QURAN_MEMORIZATION => 'Quran Memorization',
+            self::SUBJECT_QURANIC_ARABIC => 'Quranic Arabic',
+            self::SUBJECT_MY_DEEN_JOURNEY => 'My Deen Journey',
             default => 'Subject '.$subjectId,
         };
     }
 
     public static function displaySubjectName(int $subjectId, ?string $storedTitle = null): string
     {
-        if ($subjectId === self::SUBJECT_LANGUAGE_AND_LITERATURE) {
-            return self::subjectName($subjectId);
-        }
-
         return filled($storedTitle)
             ? (string) $storedTitle
             : self::subjectName($subjectId);
@@ -116,11 +122,12 @@ final class BookingSubjectProvisioning
 
     public static function displaySubjectShortName(int $subjectId, ?string $storedTitle = null): string
     {
-        if ($subjectId === self::SUBJECT_LANGUAGE_AND_LITERATURE) {
-            return 'L&L';
-        }
-
-        return self::displaySubjectName($subjectId, $storedTitle);
+        return match ($subjectId) {
+            self::SUBJECT_QURAN_MEMORIZATION => 'Quran',
+            self::SUBJECT_QURANIC_ARABIC => 'Arabic',
+            self::SUBJECT_MY_DEEN_JOURNEY => 'Deen Journey',
+            default => self::displaySubjectName($subjectId, $storedTitle),
+        };
     }
 
     public static function displayPayloadForStudentSubject(StudentsSubject $studentSubject): array
@@ -186,20 +193,28 @@ final class BookingSubjectProvisioning
     {
         $title = strtolower((string) $storedTitle);
 
-        if ($subjectId === self::SUBJECT_LANGUAGE_AND_LITERATURE || str_contains($title, 'language') || str_contains($title, 'literature')) {
+        if ($subjectId === self::SUBJECT_QURAN_MEMORIZATION) {
+            return ['icon' => 'ti tabler-book-2', 'tone' => 'quran'];
+        }
+
+        if ($subjectId === self::SUBJECT_QURANIC_ARABIC) {
             return ['icon' => 'ti tabler-books', 'tone' => 'language'];
         }
 
-        if ($subjectId === self::SUBJECT_WELL_BEING || str_contains($title, 'well')) {
+        if ($subjectId === self::SUBJECT_MY_DEEN_JOURNEY) {
             return ['icon' => 'ti tabler-heart-handshake', 'tone' => 'wellbeing'];
         }
 
-        if ($subjectId === self::SUBJECT_MATH || str_contains($title, 'math')) {
-            return ['icon' => 'ti tabler-percentage', 'tone' => 'math'];
+        if (str_contains($title, 'arabic') || str_contains($title, 'language')) {
+            return ['icon' => 'ti tabler-books', 'tone' => 'language'];
         }
 
         if (str_contains($title, 'quran')) {
-            return ['icon' => 'ti tabler-book-2', 'tone' => 'default'];
+            return ['icon' => 'ti tabler-book-2', 'tone' => 'quran'];
+        }
+
+        if (str_contains($title, 'deen') || str_contains($title, 'journey') || str_contains($title, 'well')) {
+            return ['icon' => 'ti tabler-heart-handshake', 'tone' => 'wellbeing'];
         }
 
         if (str_contains($title, 'science')) {

@@ -70,4 +70,13 @@ As of 2026-05-28, Phase 1 app skeleton import has been performed and committed:
 - excluded/removed from the import: runtime uploads, copied public content payloads, logs, generated storage, vendor, node_modules, old SQL dumps, and To Quran planning/manual DB docs
 - verification: `/login` returned 200 with title `To Quran | Login`; focused auth/PWA/credential tests passed
 
-Current DB state: Phase 2 local schema baseline is complete in `toquranapp_local` with 352 tables and no imported rows. On 2026-05-28 the owner changed the deployment posture: the real app DB target is now `u504065335_to_quran` for the accelerated deployment path. Before mutating that real target, create/confirm a fresh backup, preserve the Quran YouTube/video list as the only intentional legacy data, and use a guarded manual SQL transition patch.
+Current DB state: Phase 2 local schema baseline is complete in `toquranapp_local` with 352 tables and no imported rows. On 2026-05-28 the owner changed the deployment posture: the real app DB target is now `u504065335_to_quran` for the accelerated deployment path.
+
+On branch `tq-real-db-transition`, the real-name local target has been created and verified:
+
+- real app DB: `u504065335_to_quran`
+- table count: 352
+- starter/reference rows: roles, services, current operating year, program, learner levels, To Quran subjects, and grade-level subject mappings
+- no user/client rows imported; `users` remains 0
+- Quran YouTube/video list preserved separately at `database/manual/backups/2026-05-28-u504065335_to_quran-quran-video-preservation.sql`
+- next work: TQ2 intake/service adaptation, first admin/teacher account decision, public website handoff, and pre-deployment security hardening

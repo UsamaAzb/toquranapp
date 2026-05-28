@@ -1,13 +1,13 @@
 -- To Quran starter/reference data notes
 -- Date: 2026-05-28
 -- Target: app DB; local proof was `toquranapp_local`, accelerated real target is `u504065335_to_quran`
--- Status: notes only; do not execute as data insert patch yet.
+-- Status: superseded by executable patch `2026-05-28-toquran-starter-reference-data.sql`.
 
 -- Phase 2 creates the empty app schema baseline only.
 -- Do not import Week14 rows blindly.
 -- Do not import old public To Quran users/students/bookings/contact rows by default.
 
--- Starter data that should be created intentionally in a later patch:
+-- Starter data that was created intentionally in the executable patch:
 -- 1. Spatie roles:
 --    - super_admin
 --    - admin

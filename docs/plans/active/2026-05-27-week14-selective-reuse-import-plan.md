@@ -1,6 +1,6 @@
 # Week14 Selective Reuse Import Plan
 
-Status: Phase 2 complete locally; real DB transition and starter/reference data pending
+Status: Phase 2 real DB transition and starter/reference data complete locally; TQ2 adaptation pending
 Date: 2026-05-27; updated 2026-05-28
 
 ## Objective
@@ -203,7 +203,7 @@ Result:
 - local app DB: `toquranapp_local`
 - table count: 352
 - data imported: none
-- next DB work: guarded transition patch for real app DB `u504065335_to_quran`, then To Quran starter/reference data patch before TQ2 intake/family adaptation
+- next DB/code work: TQ2 intake/service adaptation, first admin/teacher account decision, public website handoff, and pre-deployment hardening
 
 ### Phase 3 - Intake And Family Foundation
 
@@ -259,12 +259,12 @@ Plan after deployment:
 
 ## DB Plan
 
-Do not execute real-target mutation without a scoped manual patch. Codex may execute To Quran app DB setup and schema work without separate owner approval when `docs/DB-SAFETY-POLICY.md` target checks pass.
+Real-target mutation was executed locally with scoped manual patches on branch `tq-real-db-transition`. Future DB work must continue to use manual SQL and `docs/DB-SAFETY-POLICY.md` target checks.
 
 1. Keep `u504065335_to_quran` export as preservation source.
 2. Treat the matched Week14 live schema snapshot as source schema evidence after the completed Phase 0.5 freshness gate.
 3. Treat `toquranapp_local` as the completed dry-run baseline.
-4. Create a guarded real-target transition patch for `u504065335_to_quran`, including fresh backup/export evidence and Quran YouTube/video-list preservation notes.
+4. Use the guarded real-target transition patch for `u504065335_to_quran`, including backup/export evidence and Quran YouTube/video-list preservation notes.
 5. Map old data:
    - Quran YouTube/video list -> later Library/content migration candidate
    - old bookings/contact/users/students -> no intentional preservation currently required
