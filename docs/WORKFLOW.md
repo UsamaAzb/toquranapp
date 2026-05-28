@@ -83,7 +83,7 @@ Before declaring an implementation done:
 Before calling DB baseline, import, correction, or starter-data work review-ready:
 
 - Compare framework-owned tables against expected Laravel/Sanctum/Spatie shape, including primary keys, unique keys, lookup indexes, foreign keys, and auto-increment columns.
-- Scan schema snapshots and patches for suspicious identifiers, especially leading/trailing spaces inside backticked column/table names.
+- Scan schema snapshots and patches for suspicious identifiers, including leading/trailing spaces and accidental embedded spaces inside backticked column/table names.
 - For fixed-ID starter/reference rows, add fail-fast drift checks before inserts so conflicting pre-existing IDs abort instead of silently preserving wrong mappings.
 - For real-target patches, require an explicit operator confirmation variable or equivalent instance-level guard in addition to `DATABASE()` checks.
 - For preservation-only SQL, make accidental execution inert by default, or document why that cannot be done.

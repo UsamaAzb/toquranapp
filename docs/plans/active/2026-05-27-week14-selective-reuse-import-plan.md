@@ -206,7 +206,7 @@ Result:
 - accelerated real-target DB: `u504065335_to_quran`
 - real-target starter/reference data: complete
 - real-target framework infrastructure key/index correction: complete
-- real-target malformed Library column-name correction: complete
+- real-target malformed Library column-name and identifier-drift corrections: complete
 - current real-target schema evidence: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
 - next DB/code work: TQ2 intake/service adaptation, first admin/teacher account decision, public website handoff, and pre-deployment hardening
 

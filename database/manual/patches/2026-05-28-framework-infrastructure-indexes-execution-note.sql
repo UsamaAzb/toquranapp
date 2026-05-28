@@ -48,6 +48,9 @@
 -- - information_schema.statistics shows the expected keys and indexes.
 -- - information_schema.table_constraints shows the expected Spatie foreign
 --   keys for model_has_permissions, model_has_roles, and role_has_permissions.
+-- - Post-review hardening added orphan preflight checks before the Spatie
+--   foreign-key ALTER statements. Re-running the hardened patch against the
+--   current target completed cleanly.
 -- - Focused tests passed:
 --   php artisan test tests/Feature/AuthenticationTest.php tests/Feature/PwaInstallabilityTest.php tests/Feature/CredentialRevealTest.php
 --   Result: 32 passed, 129 assertions.

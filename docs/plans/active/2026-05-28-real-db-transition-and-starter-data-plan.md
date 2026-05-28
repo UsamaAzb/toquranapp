@@ -96,6 +96,8 @@ Completed locally on 2026-05-28:
 - framework infrastructure correction note: `database/manual/patches/2026-05-28-framework-infrastructure-indexes-execution-note.sql`
 - Library column correction patch: `database/manual/patches/2026-05-28-fix-library-dp-global-context-column.sql`
 - Library column correction note: `database/manual/patches/2026-05-28-library-column-correction-execution-note.sql`
+- Library identifier drift correction patch: `database/manual/patches/2026-05-28-fix-library-schema-identifier-drift.sql`
+- Library identifier drift correction note: `database/manual/patches/2026-05-28-library-schema-identifier-drift-execution-note.sql`
 - schema snapshot after DB corrections: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
 - current blocker before TQ2 intake transfer: first admin/teacher account decision and To Quran adaptation of remaining Week14 intake/test fixtures
 
@@ -104,3 +106,5 @@ Completed locally on 2026-05-28:
 CodeRabbit correctly identified that the initial real-target baseline omitted keys/indexes on several framework infrastructure tables. The follow-up correction restored the Laravel cache/session/job/password reset table keys, Sanctum token keys, and Spatie pivot keys/foreign keys. The credential-column comment was reviewed but not applied as a schema drop in this pass: `recoverable_password_encrypted` is an encrypted, active workflow field; `pin_unhash` is plaintext compatibility debt that requires app-code changes; `decryp_password` is legacy nullable plaintext and should remain unwritten or be removed in a focused hardening pass.
 
 CodeRabbit also correctly identified a malformed imported Library column named ` general_library_dp_unit_id` with a leading space. The live real-target DB was corrected to `general_library_dp_unit_id`, and the To Quran-owned baseline replay files were corrected so fresh targets do not recreate the typo. Starter/reference data was also hardened with fail-fast drift checks for canonical fixed IDs.
+
+CodeRabbit later identified more imported Library identifier drift: embedded spaces in `teacher and_student_questions` and an MYP table using a DP unit column name. Those were corrected in the real target and To Quran-owned replay artifacts. The framework index correction patch was also hardened with orphan checks before adding Spatie foreign keys.

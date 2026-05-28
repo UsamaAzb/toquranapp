@@ -1,16 +1,16 @@
--- To Quran real app DB framework infrastructure index correction
+-- To Quran local dry-run DB framework infrastructure index correction
 -- Date: 2026-05-28
--- Target DB: u504065335_to_quran
+-- Target DB: toquranapp_local
 -- Purpose: restore Laravel / Sanctum / Spatie infrastructure keys and indexes
--- after the real-name baseline import.
+-- after the local dry-run baseline import.
 --
 -- Required execution guard:
---   SET @toquran_confirm_real_db_target = 'u504065335_to_quran';
+--   SET @toquran_confirm_local_db_target = 'toquranapp_local';
 --
 -- This patch is idempotent for the added keys/indexes/constraints. It does
 -- not create or drop databases, and it does not insert application data.
 
-USE `u504065335_to_quran`;
+USE `toquranapp_local`;
 
 DELIMITER $$
 
@@ -19,14 +19,14 @@ CREATE PROCEDURE `_toquran_framework_index_preflight`()
 BEGIN
     DECLARE v_table_count INT DEFAULT 0;
 
-    IF COALESCE(@toquran_confirm_real_db_target, '') <> 'u504065335_to_quran' THEN
+    IF COALESCE(@toquran_confirm_local_db_target, '') <> 'toquranapp_local' THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'ABORTED: set @toquran_confirm_real_db_target = ''u504065335_to_quran'' before running this patch.';
+            SET MESSAGE_TEXT = 'ABORTED: set @toquran_confirm_local_db_target = ''toquranapp_local'' before running this patch.';
     END IF;
 
-    IF DATABASE() <> 'u504065335_to_quran' THEN
+    IF DATABASE() <> 'toquranapp_local' THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'ABORTED: wrong database selected for To Quran framework index correction.';
+            SET MESSAGE_TEXT = 'ABORTED: wrong database selected for To Quran local framework index correction.';
     END IF;
 
     SELECT COUNT(*)

@@ -1,0 +1,26 @@
+-- To Quran local dry-run baseline corrections execution note
+-- Date: 2026-05-28
+-- Target DB: toquranapp_local
+--
+-- Purpose:
+-- Keep the historical local dry-run baseline replay path operationally aligned
+-- with the real-target correction path.
+--
+-- Patches executed locally:
+-- - database/manual/patches/2026-05-28-add-framework-infrastructure-indexes-toquranapp-local.sql
+-- - database/manual/patches/2026-05-28-fix-library-dp-global-context-column-toquranapp-local.sql
+-- - database/manual/patches/2026-05-28-fix-library-schema-identifier-drift-toquranapp-local.sql
+--
+-- Execution:
+-- - Set the required operator confirmation variable:
+--   @toquran_confirm_local_db_target = 'toquranapp_local'
+-- - Replayed the local framework infrastructure key/index correction.
+-- - Replayed the local Library column-name corrections.
+-- - No rows were inserted, deleted, or truncated.
+--
+-- Snapshot after correction:
+-- - database/manual/baseline/2026-05-28-toquranapp-local-schema.sql
+--
+-- Note:
+-- `toquranapp_local` remains the dry-run/proof target. The accelerated
+-- deployment target is `u504065335_to_quran`.

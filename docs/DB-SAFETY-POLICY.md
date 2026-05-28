@@ -31,6 +31,7 @@ As of 2026-05-28:
 - On branch `tq-real-db-transition`, the real-name local target `u504065335_to_quran` was created from a guarded structure-only baseline, then starter/reference data was inserted intentionally. The target has 352 tables, 7 roles, 5 service values, 3 To Quran subjects, 12 grade-level subject mappings, and 0 users.
 - A follow-up framework infrastructure correction restored Laravel/Sanctum/Spatie keys and indexes in `u504065335_to_quran`. Evidence is recorded in `database/manual/patches/2026-05-28-framework-infrastructure-indexes-execution-note.sql`.
 - A follow-up Library column correction renamed the malformed imported column ` general_library_dp_unit_id` to `general_library_dp_unit_id` in `u504065335_to_quran`. Evidence is recorded in `database/manual/patches/2026-05-28-library-column-correction-execution-note.sql`.
+- A follow-up Library identifier correction renamed `teacher and_student_questions` to `teacher_and_student_questions` and corrected the MYP local/global challenges unit column to `general_library_myp_unit_id`. Evidence is recorded in `database/manual/patches/2026-05-28-library-schema-identifier-drift-execution-note.sql`.
 
 ## Allowed Without Separate Owner Approval
 

@@ -43,12 +43,24 @@ database/manual/
   - execution and verification notes for the starter/reference data patch
 - `patches/2026-05-28-add-framework-infrastructure-indexes.sql`
   - guarded real-target correction patch for Laravel cache/session/job/password reset, Sanctum token, and Spatie role/permission keys and indexes
+- `patches/2026-05-28-add-framework-infrastructure-indexes-toquranapp-local.sql`
+  - guarded local dry-run correction patch for the same framework infrastructure keys and indexes
 - `patches/2026-05-28-framework-infrastructure-indexes-execution-note.sql`
   - execution and verification notes for the framework infrastructure index correction
 - `patches/2026-05-28-fix-library-dp-global-context-column.sql`
   - guarded real-target correction patch for the malformed Library DP/global-context column name imported from Week14 source evidence
+- `patches/2026-05-28-fix-library-dp-global-context-column-toquranapp-local.sql`
+  - guarded local dry-run version of the Library DP/global-context column correction
 - `patches/2026-05-28-library-column-correction-execution-note.sql`
   - execution and verification notes for the Library column-name correction
+- `patches/2026-05-28-fix-library-schema-identifier-drift.sql`
+  - guarded real-target correction patch for remaining malformed Library identifiers from the imported Week14 source schema
+- `patches/2026-05-28-fix-library-schema-identifier-drift-toquranapp-local.sql`
+  - guarded local dry-run version of the remaining Library identifier correction
+- `patches/2026-05-28-library-schema-identifier-drift-execution-note.sql`
+  - execution and verification notes for the remaining Library identifier correction
+- `patches/2026-05-28-toquranapp-local-corrections-execution-note.sql`
+  - execution and verification notes for applying the correction patches to the local dry-run target
 
 ## Current Local App Target
 
@@ -66,9 +78,21 @@ For a fresh accelerated To Quran app DB target, use the documented real-target a
 1. `patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql`
 2. `patches/2026-05-28-add-framework-infrastructure-indexes.sql`
 3. `patches/2026-05-28-fix-library-dp-global-context-column.sql`
-4. `patches/2026-05-28-toquran-starter-reference-data.sql`
+4. `patches/2026-05-28-fix-library-schema-identifier-drift.sql`
+5. `patches/2026-05-28-toquran-starter-reference-data.sql`
 
 The framework infrastructure correction is part of the current real-target baseline shape even though it is stored as a follow-up patch, because the original structure dump omitted several Laravel/Sanctum/Spatie runtime keys and indexes. The Library column correction is also part of the current real-target baseline shape; the To Quran-owned baseline replay files have been corrected, and the follow-up patch remains idempotent for already-created targets.
+
+## Current Local Dry-Run Replay Order
+
+`toquranapp_local` is not the deployment target, but if the local dry-run path must be recreated, use:
+
+1. `patches/2026-05-28-create-toquranapp-local-baseline.sql`
+2. `patches/2026-05-28-add-framework-infrastructure-indexes-toquranapp-local.sql`
+3. `patches/2026-05-28-fix-library-dp-global-context-column-toquranapp-local.sql`
+4. `patches/2026-05-28-fix-library-schema-identifier-drift-toquranapp-local.sql`
+
+This hard-wires the framework and Library correction patches for the exact local bootstrap path instead of relying on the historical baseline patch alone.
 
 ## Rules
 
@@ -84,7 +108,7 @@ The framework infrastructure correction is part of the current real-target basel
 Before a DB artifact is review-ready:
 
 - Confirm Laravel/Sanctum/Spatie infrastructure tables have expected runtime keys and indexes.
-- Search SQL artifacts for malformed quoted identifiers such as leading spaces inside backticks.
+- Search SQL artifacts for malformed quoted identifiers such as leading/trailing spaces or accidental embedded spaces inside backticks.
 - Add fail-fast drift checks for canonical fixed-ID starter/reference rows.
 - Keep preservation-only SQL inert by default when practical.
 - Verify idempotent patches can be re-run safely, and verify real-target guards fail when the operator confirmation is missing.

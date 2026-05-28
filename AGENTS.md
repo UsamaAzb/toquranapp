@@ -78,7 +78,7 @@ On branch `tq-real-db-transition`, the real-name local target has been created a
 - table count: 352
 - starter/reference rows: roles, services, current operating year, program, learner levels, To Quran subjects, and grade-level subject mappings
 - framework infrastructure keys/indexes corrected for Laravel/Sanctum/Spatie runtime tables
-- malformed imported Library column ` general_library_dp_unit_id` corrected to `general_library_dp_unit_id`
+- malformed imported Library identifiers corrected, including ` general_library_dp_unit_id`, `teacher and_student_questions`, and the MYP local/global challenges unit column
 - no user/client rows imported; `users` remains 0
 - Quran YouTube/video list preserved separately at `database/manual/backups/2026-05-28-u504065335_to_quran-quran-video-preservation.sql`
 - next work: TQ2 intake/service adaptation, first admin/teacher account decision, public website handoff, and pre-deployment security hardening

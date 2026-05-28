@@ -23,6 +23,7 @@ Track database and runtime items that affect both To Quran repos.
 | 2026-05-28 | Starter/reference rows were created intentionally in `u504065335_to_quran`: roles, service catalog values, operating year, program, learner levels, To Quran subjects, and grade-level subject mappings | Manual starter patch | `toquranapp` | Complete locally; pending review before commit |
 | 2026-05-28 | Framework infrastructure keys/indexes were corrected in `u504065335_to_quran` for Laravel cache/session/job/password reset tables, Sanctum tokens, and Spatie role/permission pivots | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
 | 2026-05-28 | Malformed Library column ` general_library_dp_unit_id` was corrected to `general_library_dp_unit_id` in `u504065335_to_quran`; To Quran replay artifacts were corrected so fresh targets do not recreate the typo | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
+| 2026-05-28 | Remaining imported Library identifier drift was corrected in `u504065335_to_quran`: `teacher and_student_questions` to `teacher_and_student_questions`, and the MYP local/global challenges table now uses `general_library_myp_unit_id` | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
 
 ## Current Backup/Baseline Evidence
 
@@ -45,6 +46,9 @@ Track database and runtime items that affect both To Quran repos.
 - Framework infrastructure index execution note: `database/manual/patches/2026-05-28-framework-infrastructure-indexes-execution-note.sql`
 - Library column correction patch: `database/manual/patches/2026-05-28-fix-library-dp-global-context-column.sql`
 - Library column correction execution note: `database/manual/patches/2026-05-28-library-column-correction-execution-note.sql`
+- Library schema identifier drift correction patch: `database/manual/patches/2026-05-28-fix-library-schema-identifier-drift.sql`
+- Library schema identifier drift execution note: `database/manual/patches/2026-05-28-library-schema-identifier-drift-execution-note.sql`
+- Local dry-run correction execution note: `database/manual/patches/2026-05-28-toquranapp-local-corrections-execution-note.sql`
 - Real target schema snapshot after DB corrections: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
 
 ## Schema Comparison Summary
