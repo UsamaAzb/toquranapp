@@ -375,11 +375,13 @@ class AdminIntakeFormTest extends TestCase
             ->assertSee('IB System')
             ->assertSee('American System')
             ->assertSee('British System')
+            ->assertSee('Egyptian System')
             ->assertSee('Other')
-            ->assertSee('Help Me Study')
-            ->assertSee('IB Private Tutoring')
-            ->assertSee('SAT / ACT Preparation')
+            ->assertSee('Quranic Arabic')
             ->assertSee('Custom Coaching')
+            ->assertDontSee('Help Me Study')
+            ->assertDontSee('IB Private Tutoring')
+            ->assertDontSee('SAT / ACT Preparation')
             ->assertDontSee('Help Me Read')
             ->assertDontSee('Not Sure');
     }
@@ -416,6 +418,9 @@ class AdminIntakeFormTest extends TestCase
             ->assertDontSee('Help Me Read')
             ->assertDontSee('IB Private Tutoring')
             ->assertDontSee('SAT / ACT Preparation')
+            ->assertDontSee('Quran Memorization')
+            ->assertDontSee('Quranic Arabic')
+            ->assertDontSee('My Deen Journey')
             ->assertDontSee('(Parents) Course')
             ->assertDontSee('Not Sure');
     }
@@ -477,16 +482,16 @@ class AdminIntakeFormTest extends TestCase
         if (DB::table('services_types')->count() === 0) {
             DB::table('services_types')->insert([
                 [
-                    'title' => 'Help Me Study',
-                    'value' => 'Help Me Study',
+                    'title' => 'My Deen Journey',
+                    'value' => 'My Deen Journey',
                     'info' => null,
                     'active' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
-                    'title' => 'IB Private Tutoring',
-                    'value' => 'IB Private Tutoring',
+                    'title' => 'Quran Memorization',
+                    'value' => 'Quran Memorization',
                     'info' => null,
                     'active' => 1,
                     'created_at' => now(),

@@ -101,7 +101,7 @@ class BookingIntakeEntrypointTest extends TestCase
 
         $this->assertSame('Amina Salem', $booking->parent_name);
         $this->assertSame(['Sara'], $booking->children->pluck('child_name')->all());
-        $this->assertSame(['IB Private Tutoring'], $booking->children->first()->service_interests);
+        $this->assertSame(['Quran Memorization'], $booking->children->first()->service_interests);
         $this->assertSame(1, \Illuminate\Support\Facades\DB::table('booking_intake_submission_locks')->count());
     }
 

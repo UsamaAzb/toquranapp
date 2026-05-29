@@ -19,6 +19,11 @@ Track database and runtime items that affect both To Quran repos.
 | 2026-05-28 | Phase 1 app skeleton import is complete in commit `270e832`; Phase 2 local app DB target is `toquranapp_local` | TQ1/TQ1.5 plan | `toquranapp` | Complete |
 | 2026-05-28 | Local app schema baseline was created in `toquranapp_local` with 352 tables and no imported rows | Manual baseline patch | `toquranapp` | Complete |
 | 2026-05-28 | Owner directed accelerated deployment work to target real app DB name `u504065335_to_quran`; `toquranapp_local` remains the dry-run baseline | Owner clarification | `toquranapp` | Active |
+| 2026-05-28 | Real-target app schema baseline was created locally in `u504065335_to_quran` with 352 tables and no imported rows; `/login` and focused tests passed | Manual baseline patch | `toquranapp` | Complete locally; pending review before commit |
+| 2026-05-28 | Starter/reference rows were created intentionally in `u504065335_to_quran`: roles, service catalog values, operating year, program, learner levels, To Quran subjects, and grade-level subject mappings | Manual starter patch | `toquranapp` | Complete locally; pending review before commit |
+| 2026-05-28 | Framework infrastructure keys/indexes were corrected in `u504065335_to_quran` for Laravel cache/session/job/password reset tables, Sanctum tokens, and Spatie role/permission pivots | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
+| 2026-05-28 | Malformed Library column ` general_library_dp_unit_id` was corrected to `general_library_dp_unit_id` in `u504065335_to_quran`; To Quran replay artifacts were corrected so fresh targets do not recreate the typo | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
+| 2026-05-28 | Remaining imported Library identifier drift was corrected in `u504065335_to_quran`: `teacher and_student_questions` to `teacher_and_student_questions`, and the MYP local/global challenges table now uses `general_library_myp_unit_id` | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
 
 ## Current Backup/Baseline Evidence
 
@@ -31,6 +36,20 @@ Track database and runtime items that affect both To Quran repos.
 - To Quran baseline patch: `database/manual/patches/2026-05-28-create-toquranapp-local-baseline.sql`
 - To Quran baseline execution note: `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`
 - Real target transition plan: `docs/plans/active/2026-05-28-real-db-transition-and-starter-data-plan.md`
+- Quran video preservation extract: `database/manual/backups/2026-05-28-u504065335_to_quran-quran-video-preservation.sql`
+- Real target baseline patch: `database/manual/patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql`
+- Real target baseline execution note: `database/manual/patches/2026-05-28-u504065335_to_quran-baseline-execution-note.sql`
+- Real target schema snapshot: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema.sql`
+- Starter/reference data patch: `database/manual/patches/2026-05-28-toquran-starter-reference-data.sql`
+- Starter/reference data execution note: `database/manual/patches/2026-05-28-toquran-starter-reference-data-execution-note.sql`
+- Framework infrastructure index correction patch: `database/manual/patches/2026-05-28-add-framework-infrastructure-indexes.sql`
+- Framework infrastructure index execution note: `database/manual/patches/2026-05-28-framework-infrastructure-indexes-execution-note.sql`
+- Library column correction patch: `database/manual/patches/2026-05-28-fix-library-dp-global-context-column.sql`
+- Library column correction execution note: `database/manual/patches/2026-05-28-library-column-correction-execution-note.sql`
+- Library schema identifier drift correction patch: `database/manual/patches/2026-05-28-fix-library-schema-identifier-drift.sql`
+- Library schema identifier drift execution note: `database/manual/patches/2026-05-28-library-schema-identifier-drift-execution-note.sql`
+- Local dry-run correction execution note: `database/manual/patches/2026-05-28-toquranapp-local-corrections-execution-note.sql`
+- Real target schema snapshot after DB corrections: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
 
 ## Schema Comparison Summary
 
@@ -40,6 +59,7 @@ Track database and runtime items that affect both To Quran repos.
 - To Quran Phase 2 local app target: `toquranapp_local`
 - To Quran local app schema table count: 352
 - Real accelerated app DB target: `u504065335_to_quran`
+- Real app DB schema table count: 352
 - To Quran-only tables include `employees`, `employees_course`, `employee_quizzes_old`, `quran_courses`, `quran_course_translations`, `surahs`, `surahs_old`, `surh_videos`, old Laratrust-style `role_user`/`permission_user` tables, and old course/lesson tables.
 - Week14-only tables include modern `parents`, `booking_children`, `booking_intake_review`, `booking_intake_submission_locks`, `account_histories`, Spatie permission tables, automation tables, reward ledger tables, Library tables, and vocabulary wrapper tables.
 
@@ -66,7 +86,8 @@ Document before destructive cleanup:
 1. Treat Phase 1 app skeleton import as complete in `toquranapp`.
 2. Treat `toquranapp_local` as the completed dry-run app DB baseline.
 3. Use the matched Week14 schema snapshot as structural source evidence.
-4. Target the real app DB name `u504065335_to_quran` for accelerated deployment after fresh backup/export confirmation.
-5. Create To Quran starter/reference data intentionally in a later patch.
-6. Preserve the Quran YouTube/video list later through a Library/content migration.
-7. Keep destructive cleanup documented before execution.
+4. Target the real app DB name `u504065335_to_quran` for accelerated deployment with backup/export evidence and guarded manual SQL.
+5. Treat the executed starter/reference data patch as the current app reference baseline.
+6. Treat the framework infrastructure index correction and Library column-name correction as part of the current real-target baseline for deployment planning.
+7. Preserve the Quran YouTube/video list later through a Library/content migration.
+8. Keep destructive cleanup documented before execution.

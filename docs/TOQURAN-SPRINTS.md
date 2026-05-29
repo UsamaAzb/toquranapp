@@ -50,31 +50,47 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Current artifact: `docs/plans/active/2026-05-28-schema-baseline-data-mapping-plan.md`
 - DB artifact: `database/manual/patches/2026-05-28-create-toquranapp-local-baseline.sql`
 - Execution artifact: `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`
-- Verification: local `toquranapp_local` has 352 tables; `/login` renders as `To Quran`.
+- Real-target artifact: `database/manual/patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql`
+- Starter artifact: `database/manual/patches/2026-05-28-toquran-starter-reference-data.sql`
+- Verification: local `toquranapp_local` has 352 tables; real target `u504065335_to_quran` has 352 tables; `/login` renders as `To Quran`.
 - Website action: none yet; public website handoff waits until app-side target/schema is approved.
-- DB action: local/app schema baseline created; owner then requested accelerated real DB target `u504065335_to_quran`; starter/reference data remains a later explicit patch.
+- DB action: local/app schema baseline created; real target `u504065335_to_quran` baseline and starter/reference data created intentionally.
 
 ### TQ2. To Quran Service Catalog And Intake Foundation
 
-- Status: `pending`
+- Status: `active`
 - Depends on: TQ1.5
 - Goal: Adapt Week14 family/intake model to Quran Memorization, Quranic Arabic, My Deen Journey, Paid Parental Consultation, and Sanad Ijazah service interests.
+- Current artifact: first app-side service/intake adaptation implemented locally on branch `tq-real-db-transition`; broad booking/family verification passed locally with 235 tests and 1203 assertions.
+- Launch scope: keep consultation scheduling, finance, class assignment detail, and teacher management manual for first deployment. Do not build those workflows before launch unless explicitly reopened.
 - Website action: align public form values and reference prefix after app target is approved.
-- DB action: first create the real-target transition patch for `u504065335_to_quran`, then manual SQL/map plan for service tables and intake rows.
+- DB action: real-target transition and starter/reference data are complete; app-side service aliases now normalize old Week14 labels and To Quran website labels to the five starter service values.
 
-### TQ3. Family Workspace And Account Lifecycle
+### TQ3. Family Workspace And Account Lifecycle Launch Verification
 
 - Status: `pending`
 - Depends on: TQ1/TQ2
-- Goal: Reuse Week14 Family Workspace, lifecycle gates, activation emails, and account history with To Quran language.
+- Goal: Verify the reused Week14 Family Workspace, lifecycle gates, activation emails, account history, parent login, and student login are launch-ready for To Quran.
+- Launch scope: this is a verification/adaptation gate, not a large rebuild. Fix only blockers that prevent intake review, transfer, activation, and parent/student account access from working.
+- Launch gate: complete this verification before public website intake is connected.
 - Website action: public copy must avoid immediate-login promises.
 - DB action: no old To Quran user/student preservation dependency; keep the export as evidence and preserve only the Quran YouTube/video list later through Library planning.
+
+### TQ3.5. Superadmin Staff User Management
+
+- Status: `pending`
+- Depends on: TQ2/TQ3 access checks
+- Goal: Provide a superadmin-owned screen/workflow to create, edit, activate/deactivate, and role-manage internal staff users: admins, customer support, and teachers.
+- Launch scope: this is required before deployment. It is staff account administration only, not finance, HR, payroll, automated scheduling, or full teacher assignment management.
+- Website action: none directly, but public intake should not go live until app staff can manage the people who will process it.
+- DB action: use existing `users`, Spatie roles, and teacher profile tables where possible; add only minimal guarded DB changes if the imported Week14 user-management surface is missing a required To Quran field.
 
 ### TQ4. Core Tutoring Sessions And Tasks
 
 - Status: `pending`
 - Depends on: TQ1/TQ2
 - Goal: Reuse Week14 teacher/student/parent sessions, normal tasks, task approvals, protected attachments, and class/subject foundations for Quran/Arabic tutoring.
+- Launch scope: smoke-test only before deployment: teacher login, student login, parent visibility, core session/task pages render, and basic assignment/visibility paths do not crash. Full tutoring workflow polish can continue after launch.
 - Website action: none unless public service claims change.
 
 ### TQ5. My Deen Journey V1
@@ -104,3 +120,13 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Depends on: post-deployment owner approval
 - Goal: Plan Arabic vocabulary games using Week14 P7 architecture as reference, not first-import English content.
 - Website action: do not promise until scoped.
+
+### TQ9. Deployment Readiness And Public Website Handoff
+
+- Status: `pending`
+- Depends on: TQ2, TQ3 launch verification, TQ3.5, and TQ4 launch smoke.
+- Goal: Complete the final deployment gate and coordinate the public `toquran` website handoff.
+- App action: resolve Composer security advisories, confirm production `.env`, build assets, storage link, queue/mail behavior, first superadmin/admin/teacher access, and final app smoke.
+- Website action: update booking form values, Contact Us behavior, reference prefix, sign-in link, and app handoff path; do not promise automated scheduling, finance, or class management.
+- DB action: confirm real server backup/export, execute only reviewed manual SQL, verify starter/reference data, and preserve Quran YouTube/video extract for later Library migration.
+- Done when: public form to app intake/review/transfer/login smoke passes on the deployment target or a production-equivalent environment.

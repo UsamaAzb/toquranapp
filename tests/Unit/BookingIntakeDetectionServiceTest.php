@@ -83,9 +83,9 @@ class BookingIntakeDetectionServiceTest extends TestCase
 
         $review = $this->service->writeReviewRecord($payload, $this->service->analyze($payload));
 
-        $this->assertSame(['IB Private Tutoring'], $review->children_payload[0]['service_interests']);
+        $this->assertSame(['Quran Memorization'], $review->children_payload[0]['service_interests']);
         $this->assertArrayNotHasKey('type', $review->children_payload[0]);
-        $this->assertSame(['IB Private Tutoring'], $review->reviewChildren->first()->service_interests);
+        $this->assertSame(['Quran Memorization'], $review->reviewChildren->first()->service_interests);
     }
 
     public function test_resolve_existing_family_booking_prefers_most_recent_active_family_container(): void

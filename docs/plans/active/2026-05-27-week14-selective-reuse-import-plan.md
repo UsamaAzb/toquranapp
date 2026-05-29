@@ -1,6 +1,6 @@
 # Week14 Selective Reuse Import Plan
 
-Status: Phase 2 complete locally; real DB transition and starter/reference data pending
+Status: Phase 2 real DB transition and starter/reference data complete locally; TQ2 adaptation pending
 Date: 2026-05-27; updated 2026-05-28
 
 ## Objective
@@ -113,11 +113,12 @@ Use this table when coordinating the import plan with `docs/TOQURAN-SPRINTS.md`.
 | Phase 0.5 - Week14 Schema Freshness Gate | TQ0.5 | Complete; schema snapshot freshness is verified. |
 | Phase 1 - App Skeleton Import | TQ1 | Complete in commit `270e832`. |
 | Phase 2 - Schema Baseline And Data Mapping Plan | TQ1.5 / TQ1 exit gate before TQ2 | Establish the app DB target and schema plan before intake/family adaptation. |
-| Phase 3 - Intake And Family Foundation | TQ2 and TQ3 | Split implementation work by service catalog/intake first, then family lifecycle. |
-| Phase 4 - Core Tutoring LMS | TQ4 | Sessions, task flows, protected attachments, approval, rewards, and behavior/consequence foundations. |
+| Phase 3 - Intake And Family Foundation | TQ2, TQ3, and TQ3.5 | Split implementation work by service catalog/intake first, then family lifecycle launch verification and superadmin staff-user management. |
+| Phase 4 - Core Tutoring LMS | TQ4 | Launch smoke for sessions/task surfaces first; deeper tutoring workflow adaptation can continue after deployment. |
 | Phase 5 - My Deen Journey | TQ5 | Service-specific adaptation after core tutoring surfaces exist. |
 | Phase 6 - Library And Automation | TQ6 and TQ7 | Split implementation work by Library/content foundation first, then routine/series automation. |
 | Phase 7 - Deferred Arabic Vocabulary Games | TQ8 | Post-deployment planning item. |
+| Deployment Readiness | TQ9 | Production hardening, public website handoff, and end-to-end smoke. |
 
 ### Phase 0 - Owner Review
 
@@ -203,7 +204,12 @@ Result:
 - local app DB: `toquranapp_local`
 - table count: 352
 - data imported: none
-- next DB work: guarded transition patch for real app DB `u504065335_to_quran`, then To Quran starter/reference data patch before TQ2 intake/family adaptation
+- accelerated real-target DB: `u504065335_to_quran`
+- real-target starter/reference data: complete
+- real-target framework infrastructure key/index correction: complete
+- real-target malformed Library column-name and identifier-drift corrections: complete
+- current real-target schema evidence: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
+- next DB/code work: TQ2 intake/service adaptation, superadmin staff-user management for admins/teachers, public website handoff, and pre-deployment hardening
 
 ### Phase 3 - Intake And Family Foundation
 
@@ -215,9 +221,21 @@ Adapt Week14 booking/intake/family lifecycle:
 - Family Workspace
 - activation and account history
 
+Launch verification boundary:
+
+- verify parent/student login and activation before website intake is connected
+- verify Family Workspace and transfer flows with To Quran service values
+- avoid broad rebuilds unless a blocker prevents launch
+
 Website follow-up:
 
 - plan public form write-path changes after app target exists
+
+Launch access follow-up:
+
+- confirm or add a superadmin staff-user management surface before public intake goes live
+- superadmin must be able to create/manage admins, customer support, and teachers
+- keep this scoped to staff accounts and roles; class assignment, scheduling, and finance remain manual for launch
 
 ### Phase 4 - Core Tutoring LMS
 
@@ -228,6 +246,11 @@ Adapt Week14:
 - protected attachments
 - task approval
 - rewards/behavior/consequence agreements
+
+Launch boundary:
+
+- smoke-test teacher login, student login, parent visibility, session/task pages, and basic assignment visibility
+- deeper tutoring workflow polish may continue after deployment
 
 ### Phase 5 - My Deen Journey
 
@@ -259,12 +282,12 @@ Plan after deployment:
 
 ## DB Plan
 
-Do not execute real-target mutation without a scoped manual patch. Codex may execute To Quran app DB setup and schema work without separate owner approval when `docs/DB-SAFETY-POLICY.md` target checks pass.
+Real-target mutation was executed locally with scoped manual patches on branch `tq-real-db-transition`. Future DB work must continue to use manual SQL and `docs/DB-SAFETY-POLICY.md` target checks.
 
 1. Keep `u504065335_to_quran` export as preservation source.
 2. Treat the matched Week14 live schema snapshot as source schema evidence after the completed Phase 0.5 freshness gate.
 3. Treat `toquranapp_local` as the completed dry-run baseline.
-4. Create a guarded real-target transition patch for `u504065335_to_quran`, including fresh backup/export evidence and Quran YouTube/video-list preservation notes.
+4. Use the guarded real-target transition patch for `u504065335_to_quran`, including backup/export evidence and Quran YouTube/video-list preservation notes.
 5. Map old data:
    - Quran YouTube/video list -> later Library/content migration candidate
    - old bookings/contact/users/students -> no intentional preservation currently required

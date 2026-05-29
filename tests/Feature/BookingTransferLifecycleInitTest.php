@@ -36,8 +36,8 @@ class BookingTransferLifecycleInitTest extends TestCase
         Role::findOrCreate('student');
 
         Services_type::create([
-            'title' => 'Help Me Study',
-            'value' => 'Help Me Study',
+            'title' => 'My Deen Journey',
+            'value' => 'My Deen Journey',
             'active' => true,
         ]);
         \Illuminate\Support\Facades\DB::table('grade_levels')->insert([
@@ -50,7 +50,7 @@ class BookingTransferLifecycleInitTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        foreach ([1 => 'Language and Literature', 15 => 'Well Being'] as $subjectId => $title) {
+        foreach ([1 => 'Quran Memorization', 2 => 'Quranic Arabic', 15 => 'My Deen Journey'] as $subjectId => $title) {
             \Illuminate\Support\Facades\DB::table('subjects')->insert([
                 'id' => $subjectId,
                 'title' => $title,
@@ -93,8 +93,8 @@ class BookingTransferLifecycleInitTest extends TestCase
         $this->assertSame('inactive', $student->user?->status);
         $this->assertNotNull($parent->user?->recoverable_password_encrypted);
         $this->assertNotNull($student->user?->recoverable_password_encrypted);
-        $this->assertSame('To Quran', $student->user?->recoverable_password_encrypted);
-        $this->assertSame($student->user?->name.'@toquran.org', $student->user?->email);
+        $this->assertSame('ToQuran', $student->user?->recoverable_password_encrypted);
+        $this->assertSame($student->user?->name.'@app.toquran.org', $student->user?->email);
         $this->assertNull($parent->user?->decryp_password);
         $this->assertNull($student->user?->decryp_password);
         $this->assertArrayNotHasKey('parent_temp_password', $result);
@@ -366,7 +366,7 @@ class BookingTransferLifecycleInitTest extends TestCase
             'booking_reference' => 'BK-LIFE-1001',
             'current_school' => 'Legacy School',
             'school_system' => 'British',
-            'service_interest' => 'Help Me Study',
+            'service_interest' => 'My Deen Journey',
             'status' => 'confirmed',
         ], $bookingOverrides));
 
@@ -376,7 +376,7 @@ class BookingTransferLifecycleInitTest extends TestCase
             'child_age' => 11,
             'child_grade' => 1,
             'school_system' => 'British',
-            'service_interests' => ['Help Me Study'],
+            'service_interests' => ['My Deen Journey'],
             'consultation_status' => 'confirmed',
             'workflow_status' => 'confirmed',
             'meeting_disposition' => 'completed',

@@ -1,0 +1,41 @@
+-- To Quran Library schema identifier drift correction execution note
+-- Date: 2026-05-28
+-- Target DB: u504065335_to_quran
+-- Patch: database/manual/patches/2026-05-28-fix-library-schema-identifier-drift.sql
+--
+-- Reason:
+-- CodeRabbit identified additional imported Library/IB-era identifier drift in
+-- the post-correction snapshot:
+-- - `teacher and_student_questions` still had an embedded space in four tables.
+-- - `general_library_unit_myp_local_global_challenges_opportunities` used
+--   `general_library_dp_unit_id` even though adjacent MYP tables use
+--   `general_library_myp_unit_id`.
+--
+-- Execution:
+-- - Ran the guarded correction patch against local MySQL target
+--   `u504065335_to_quran`.
+-- - Set the required operator confirmation variable:
+--   @toquran_confirm_real_db_target = 'u504065335_to_quran'
+-- - Renamed the affected columns in place.
+-- - No rows were inserted, deleted, or truncated.
+--
+-- Tables corrected:
+-- - general_library_units_dp.teacher_and_student_questions
+-- - general_library_units_pyp.teacher_and_student_questions
+-- - units_dp.teacher_and_student_questions
+-- - units_pyp.teacher_and_student_questions
+-- - general_library_unit_myp_local_global_challenges_opportunities.general_library_myp_unit_id
+--
+-- Replay artifact update:
+-- The To Quran-owned baseline replay files were also corrected so future fresh
+-- imports do not recreate the malformed identifiers:
+-- - database/manual/patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql
+-- - database/manual/patches/2026-05-28-create-toquranapp-local-baseline.sql
+-- - database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema.sql
+-- - database/manual/baseline/2026-05-28-toquranapp-local-schema.sql
+--
+-- Week14 source snapshots remain evidence of the source schema and were not
+-- changed.
+--
+-- Snapshot after correction:
+-- - database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql

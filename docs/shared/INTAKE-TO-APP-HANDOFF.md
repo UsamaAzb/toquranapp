@@ -51,6 +51,22 @@ The public website should remain a light consultation entry point. The app shoul
 | `Quranic Arabic` | Arabic/Quranic Arabic tutoring subject/service | Adapt subject/service catalogs |
 | `Sanad Ijazah Program` | advanced Quran recitation/certification path | New To Quran-specific service metadata likely needed |
 
+## App-Side Alias Handling
+
+The app now accepts both the current public To Quran values and the inherited Week14 service labels during intake normalization:
+
+| Incoming value family | Canonical app value |
+| --- | --- |
+| `IB Private Classes`, `IB Private Tutoring`, `Quran`, `Hifz`, `Memorization` | `Quran Memorization` |
+| `Help Me Read`, `SAT / ACT Preparation`, `Arabic`, `Arabic Language` | `Quranic Arabic` |
+| `Help Me Study`, `My Deen Journey (Parenting System)` | `My Deen Journey` |
+| `Paid Consultation`, `Parental Consultation`, `Paid Parental Consultation` | `Paid Parental Consultation` |
+| `Sanad`, `Ijazah`, `Sanad Ijazah`, `Sanad Ijazah Program` | `Sanad Ijazah` |
+
+## Launch Scope
+
+For first deployment, To Quran follows the current Week14 operating model: intake, admin/customer-support review, family/student account transfer, and LMS access are app-supported; consultation scheduling, finance, detailed class management, and teacher assignment decisions remain manual until later sprints.
+
 ## Immediate Gaps
 
 - Current public reference prefix `W14-` should become To Quran-specific later.

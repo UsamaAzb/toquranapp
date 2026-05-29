@@ -1493,7 +1493,7 @@ DROP TABLE IF EXISTS `general_library_unit_dp_global_context`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `general_library_unit_dp_global_context` (
   `id` int(10) NOT NULL,
-  ` general_library_dp_unit_id` int(10) NOT NULL,
+  `general_library_dp_unit_id` int(10) NOT NULL,
   `global_context_id` int(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1646,7 +1646,7 @@ DROP TABLE IF EXISTS `general_library_unit_myp_local_global_challenges_opportuni
 CREATE TABLE `general_library_unit_myp_local_global_challenges_opportunities` (
   `id` int(10) NOT NULL,
   `local_global_challenges_opportunities_type_id` int(10) NOT NULL,
-  `general_library_dp_unit_id` int(10) NOT NULL,
+  `general_library_myp_unit_id` int(10) NOT NULL,
   `description` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1793,7 +1793,7 @@ CREATE TABLE `general_library_units_dp` (
   `designing_engaging_learning_experiences` text DEFAULT NULL,
   `learning_environment_and_spaces` text DEFAULT NULL,
   `supporting_student_agency` text DEFAULT NULL,
-  `teacher and_student_questions` text DEFAULT NULL,
+  `teacher_and_student_questions` text DEFAULT NULL,
   `formative_assessment` text DEFAULT NULL,
   `differentiation` text DEFAULT NULL,
   `service_as_action` text DEFAULT NULL,
@@ -1856,7 +1856,7 @@ CREATE TABLE `general_library_units_pyp` (
   `designing_engaging_learning_experiences` text DEFAULT NULL,
   `learning_environment_and_spaces` text DEFAULT NULL,
   `supporting_student_agency` text DEFAULT NULL,
-  `teacher and_student_questions` text DEFAULT NULL,
+  `teacher_and_student_questions` text DEFAULT NULL,
   `formative_assessment` text DEFAULT NULL,
   `differentiation` text DEFAULT NULL,
   `service_as_action` text DEFAULT NULL,
@@ -5144,7 +5144,7 @@ CREATE TABLE `units_dp` (
   `designing_engaging_learning_experiences` text DEFAULT NULL,
   `learning_environment_and_spaces` text DEFAULT NULL,
   `supporting_student_agency` text DEFAULT NULL,
-  `teacher and_student_questions` text DEFAULT NULL,
+  `teacher_and_student_questions` text DEFAULT NULL,
   `formative_assessment` text DEFAULT NULL,
   `differentiation` text DEFAULT NULL,
   `service_as_action` text DEFAULT NULL,
@@ -5207,7 +5207,7 @@ CREATE TABLE `units_pyp` (
   `designing_engaging_learning_experiences` text DEFAULT NULL,
   `learning_environment_and_spaces` text DEFAULT NULL,
   `supporting_student_agency` text DEFAULT NULL,
-  `teacher and_student_questions` text DEFAULT NULL,
+  `teacher_and_student_questions` text DEFAULT NULL,
   `formative_assessment` text DEFAULT NULL,
   `differentiation` text DEFAULT NULL,
   `service_as_action` text DEFAULT NULL,
@@ -5375,4 +5375,3 @@ CREATE TABLE `vocabulary_source_access` (
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-

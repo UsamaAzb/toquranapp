@@ -243,7 +243,7 @@ trait InteractsWithBookingIntakeTables
             'parent_phone' => '201000111222',
             'booking_reference' => 'BK-INTAKE-1001',
             'status' => 'pending',
-            'service_interest' => 'Help Me Study',
+            'service_interest' => 'My Deen Journey',
         ], $bookingOverrides));
 
         return BookingChild::create(array_merge([
@@ -252,7 +252,7 @@ trait InteractsWithBookingIntakeTables
             'child_age' => '11',
             'child_grade' => 6,
             'school_system' => 'British',
-            'service_interests' => ['Help Me Study'],
+            'service_interests' => ['My Deen Journey'],
             'consultation_status' => 'pending',
             'workflow_status' => 'pending',
             'meeting_disposition' => null,
@@ -283,7 +283,7 @@ trait InteractsWithBookingIntakeTables
                 'child_age' => '11',
                 'child_grade' => '6',
                 'school_system' => 'British',
-                'service_interests' => ['Help Me Study'],
+                'service_interests' => ['My Deen Journey'],
                 'review_reason' => 'duplicate_child',
                 'review_detail' => 'Matches an existing child.',
                 'matched_booking_id' => null,

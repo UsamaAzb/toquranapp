@@ -1471,7 +1471,7 @@ class BookingMilestoneTest extends TestCase
         ]);
 
         Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
-            ->assertSet('serviceInterests', ['IB Private Tutoring'])
+            ->assertSet('serviceInterests', ['Quran Memorization'])
             ->assertDontSee('checked value="Help Me Study"', false);
     }
 
@@ -2150,16 +2150,40 @@ class BookingMilestoneTest extends TestCase
         if (DB::table('services_types')->count() === 0) {
             DB::table('services_types')->insert([
                 [
-                    'title' => 'Help Me Study',
-                    'value' => 'Help Me Study',
+                    'title' => 'Quran Memorization',
+                    'value' => 'Quran Memorization',
                     'info' => null,
                     'active' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
-                    'title' => 'SAT / ACT Preparation',
-                    'value' => 'SAT / ACT Preparation',
+                    'title' => 'Quranic Arabic',
+                    'value' => 'Quranic Arabic',
+                    'info' => null,
+                    'active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'title' => 'My Deen Journey',
+                    'value' => 'My Deen Journey',
+                    'info' => null,
+                    'active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'title' => 'Paid Parental Consultation',
+                    'value' => 'Paid Parental Consultation',
+                    'info' => null,
+                    'active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'title' => 'Sanad Ijazah',
+                    'value' => 'Sanad Ijazah',
                     'info' => null,
                     'active' => 1,
                     'created_at' => now(),
@@ -2169,8 +2193,9 @@ class BookingMilestoneTest extends TestCase
         }
 
         foreach ([
-            1 => ['title' => 'Language and Literature', 'code' => 'lang'],
-            15 => ['title' => 'Well Being', 'code' => 'well-being'],
+            1 => ['title' => 'Quran Memorization', 'code' => 'quran-memorization'],
+            2 => ['title' => 'Quranic Arabic', 'code' => 'quranic-arabic'],
+            15 => ['title' => 'My Deen Journey', 'code' => 'my-deen-journey'],
         ] as $subjectId => $subject) {
             DB::table('subjects')->updateOrInsert(
                 ['id' => $subjectId],

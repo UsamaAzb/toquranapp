@@ -1,0 +1,69 @@
+-- To Quran framework infrastructure index correction execution note
+-- Date: 2026-05-28
+-- Target DB: u504065335_to_quran
+-- Patch: database/manual/patches/2026-05-28-add-framework-infrastructure-indexes.sql
+--
+-- Reason:
+-- The real-name baseline was generated from the Week14 structure snapshot, but
+-- several framework infrastructure tables were missing the keys/indexes that
+-- Laravel, Sanctum, and Spatie expect at runtime. This was confirmed against
+-- the live local target with SHOW CREATE TABLE before the patch.
+--
+-- Backup / baseline evidence:
+-- - original To Quran export backup:
+--   database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql
+-- - real-target structure snapshot before this correction:
+--   database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema.sql
+--
+-- Execution:
+-- - Ran the patch against local MySQL target u504065335_to_quran.
+-- - Set the required operator confirmation variable:
+--   @toquran_confirm_real_db_target = 'u504065335_to_quran'
+-- - No app data rows were inserted, deleted, or truncated.
+--
+-- Corrected framework shape:
+-- - cache: PRIMARY KEY (key)
+-- - cache_locks: PRIMARY KEY (key)
+-- - failed_jobs: PRIMARY KEY (id), UNIQUE KEY failed_jobs_uuid_unique (uuid),
+--   id restored as AUTO_INCREMENT
+-- - job_batches: PRIMARY KEY (id)
+-- - migrations: PRIMARY KEY (id), id restored as AUTO_INCREMENT
+-- - model_has_permissions: PRIMARY KEY (permission_id, model_id, model_type),
+--   model lookup index, permission FK
+-- - model_has_roles: PRIMARY KEY (role_id, model_id, model_type), model
+--   lookup index, role FK
+-- - password_reset_tokens: PRIMARY KEY (email)
+-- - personal_access_tokens: PRIMARY KEY (id), UNIQUE KEY token, morph lookup
+--   index, id restored as AUTO_INCREMENT
+-- - role_has_permissions: permission FK and role FK added; existing composite
+--   primary key preserved
+-- - sessions: PRIMARY KEY (id), user_id index, last_activity index
+--
+-- Guard verification:
+-- Re-running the patch without @toquran_confirm_real_db_target aborts before
+-- applying changes:
+--   ERROR 1644 (45000): ABORTED: set @toquran_confirm_real_db_target = 'u504065335_to_quran' before running this patch.
+--
+-- Post-execution verification:
+-- - information_schema.statistics shows the expected keys and indexes.
+-- - information_schema.table_constraints shows the expected Spatie foreign
+--   keys for model_has_permissions, model_has_roles, and role_has_permissions.
+-- - Post-review hardening added orphan preflight checks before the Spatie
+--   foreign-key ALTER statements. Re-running the hardened patch against the
+--   current target completed cleanly.
+-- - Focused tests passed:
+--   php artisan test tests/Feature/AuthenticationTest.php tests/Feature/PwaInstallabilityTest.php tests/Feature/CredentialRevealTest.php
+--   Result: 32 passed, 129 assertions.
+--
+-- Snapshot after correction:
+-- - database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql
+-- - Encoding check: no UTF-8 BOM and no NUL bytes.
+--
+-- Credential-column review note:
+-- The CodeRabbit credential comment was not applied as a schema drop in this
+-- patch. `decryp_password` is legacy nullable plaintext and should remain
+-- unwritten or be removed in a focused hardening pass. `recoverable_password_encrypted`
+-- is intentionally encrypted through the Laravel encrypted cast and is used by
+-- current credential-reveal/reset workflows. `pin_unhash` is a plaintext PIN
+-- compatibility field still used by admin PIN screens and requires app-code
+-- changes before removal.

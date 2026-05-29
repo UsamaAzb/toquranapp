@@ -58,8 +58,20 @@ Do not use the web port as DB-target evidence. DB target checks must come from `
 
 Owner direction on 2026-05-28: target the real To Quran app DB name `u504065335_to_quran` instead of spending more time on disposable local-only targets. The completed `toquranapp_local` baseline remains useful as the safe proof run.
 
-Before mutating `u504065335_to_quran`, create/confirm a fresh backup/export, preserve the Quran YouTube/video list as the only intentional legacy data, and use guarded manual SQL that states the real-target intent.
+Current local branch result: `u504065335_to_quran` has been created locally with the app schema baseline and intentional starter/reference data. The Quran YouTube/video list is preserved separately for a later Library migration.
+
+Before server deployment, confirm the destination host/database backup, run only reviewed manual SQL, and coordinate public website changes because the public site previously used the same DB name/export source.
+
+## Launch Order
+
+1. Finish and review the current TQ2 app-side service/intake adaptation.
+2. Complete TQ3 launch verification: intake review, transfer, Family Workspace, activation, parent login, and student login.
+3. Add or confirm a superadmin staff-user management surface for admins, customer support, and teachers.
+4. Complete TQ4 launch smoke: teacher login, student login, parent visibility, and core session/task pages render without crashes.
+5. Start the public `toquran` repo handoff: booking form values, reference prefix, Contact Us behavior, sign-in link, and app handoff path.
+6. Run end-to-end public form to app intake/review/transfer/login smoke tests.
+7. Complete deployment hardening: backup/export, queue/mail/storage/build assets, and Composer security advisories.
 
 ## Open Follow-Up
 
-Create a To Quran deployment checklist equivalent to Week14's server push checklist, including the real DB transition, starter/reference data, queue/mail requirements, and public website handoff.
+Create a To Quran deployment checklist equivalent to Week14's server push checklist, including real server DB backup/restore, starter/reference data verification, queue/mail requirements, public website handoff, and Composer security hardening. Track that work under `TQ9. Deployment Readiness And Public Website Handoff`.

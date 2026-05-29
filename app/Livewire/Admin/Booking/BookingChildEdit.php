@@ -1017,13 +1017,7 @@ class BookingChildEdit extends Component
             ->filter()
             ->values();
 
-        $fallback = collect([
-            ['value' => 'Quran Memorization', 'label' => 'Quran Memorization'],
-            ['value' => 'Quranic Arabic', 'label' => 'Quranic Arabic'],
-            ['value' => 'My Deen Journey', 'label' => 'My Deen Journey'],
-            ['value' => 'Paid Parental Consultation', 'label' => 'Paid Parental Consultation'],
-            ['value' => 'Sanad Ijazah', 'label' => 'Sanad Ijazah'],
-        ]);
+        $fallback = collect(BookingServiceInterest::fallbackOptions());
 
         if (Schema::hasTable('services_types')) {
             $hasConfiguredServices = Services_type::query()->exists();
@@ -1037,10 +1031,15 @@ class BookingChildEdit extends Component
             }
 
             $options = $query->orderBy('title')->get(['title', 'value'])
-                ->map(fn (Services_type $service) => [
-                    'value' => BookingServiceInterest::normalize($service->value) ?? $service->value,
-                    'label' => $service->title,
-                ]);
+                ->map(function (Services_type $service): array {
+                    $value = BookingServiceInterest::normalize($service->value)
+                        ?? BookingServiceInterest::normalize($service->title);
+
+                    return [
+                        'value' => $value,
+                        'label' => BookingServiceInterest::display($value ?? $service->title),
+                    ];
+                });
 
             $missingCurrentValues = $currentValues
                 ->reject(fn (string $value) => $options->contains(fn (array $option) => $option['value'] === $value))

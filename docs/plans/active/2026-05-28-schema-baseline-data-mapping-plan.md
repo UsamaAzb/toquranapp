@@ -154,6 +154,8 @@ Next real-target direction:
 - real app DB target: `u504065335_to_quran`
 - reason: owner requested accelerated deployment within two days
 - required before mutation: fresh backup/export confirmation, real-target guarded patch, and explicit Quran YouTube/video-list preservation note
+- result: real-target baseline executed locally with 352 tables and no imported rows; see `database/manual/patches/2026-05-28-u504065335_to_quran-baseline-execution-note.sql`
+- starter/reference data result: executed locally; see `database/manual/patches/2026-05-28-toquran-starter-reference-data-execution-note.sql`
 
 ## Open Caveats
 

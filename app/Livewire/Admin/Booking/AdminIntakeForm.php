@@ -309,13 +309,7 @@ class AdminIntakeForm extends Component
 
     protected function serviceOptions(): Collection
     {
-        $fallback = collect([
-            ['value' => 'Quran Memorization', 'label' => 'Quran Memorization'],
-            ['value' => 'Quranic Arabic', 'label' => 'Quranic Arabic'],
-            ['value' => 'My Deen Journey', 'label' => 'My Deen Journey'],
-            ['value' => 'Paid Parental Consultation', 'label' => 'Paid Parental Consultation'],
-            ['value' => 'Sanad Ijazah', 'label' => 'Sanad Ijazah'],
-        ]);
+        $fallback = collect(BookingServiceInterest::fallbackOptions());
 
         if (! Schema::hasTable('services_types')) {
             return $fallback;
@@ -335,11 +329,12 @@ class AdminIntakeForm extends Component
             ->orderBy('title')
             ->get(['title', 'value'])
             ->map(function (Services_type $service): array {
-                $value = BookingServiceInterest::normalize($service->value) ?? $service->value;
+                $value = BookingServiceInterest::normalize($service->value)
+                    ?? BookingServiceInterest::normalize($service->title);
 
                 return [
                     'value' => $value,
-                    'label' => $service->title,
+                    'label' => BookingServiceInterest::display($value ?? $service->title),
                 ];
             })
             ->filter(fn (array $option) => filled($option['value'] ?? null))

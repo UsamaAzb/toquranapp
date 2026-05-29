@@ -165,7 +165,7 @@ class BookingTransferGatingTest extends TestCase
         $this->assertNotNull($child->student_id);
     }
 
-    public function test_transfer_creates_all_grade_level_subjects_with_only_language_and_literature_and_well_being_active(): void
+    public function test_transfer_creates_all_grade_level_subjects_with_to_quran_core_subjects_active(): void
     {
         $child = $this->createBookingChild([], [
             'evaluation_outcome' => 'fit',
@@ -201,7 +201,7 @@ class BookingTransferGatingTest extends TestCase
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
             'grade_level_subject_id' => $gradeLevelSubjects[2],
-            'status' => 'inactive',
+            'status' => 'active',
         ]);
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
@@ -216,12 +216,17 @@ class BookingTransferGatingTest extends TestCase
 
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 1,
-            'subject_name' => 'Language and Literature',
+            'subject_name' => 'Quran Memorization',
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('teacher_subject_classes', [
+            'subject_id' => 2,
+            'subject_name' => 'Quranic Arabic',
             'status' => 'active',
         ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 15,
-            'subject_name' => 'Well Being',
+            'subject_name' => 'My Deen Journey',
             'status' => 'active',
         ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
@@ -1526,16 +1531,40 @@ class BookingTransferGatingTest extends TestCase
         if (DB::table('services_types')->count() === 0) {
             DB::table('services_types')->insert([
                 [
-                    'title' => 'Help Me Study',
-                    'value' => 'Help Me Study',
+                    'title' => 'Quran Memorization',
+                    'value' => 'Quran Memorization',
                     'info' => null,
                     'active' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ],
                 [
-                    'title' => 'SAT / ACT Preparation',
-                    'value' => 'SAT / ACT Preparation',
+                    'title' => 'Quranic Arabic',
+                    'value' => 'Quranic Arabic',
+                    'info' => null,
+                    'active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'title' => 'My Deen Journey',
+                    'value' => 'My Deen Journey',
+                    'info' => null,
+                    'active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'title' => 'Paid Parental Consultation',
+                    'value' => 'Paid Parental Consultation',
+                    'info' => null,
+                    'active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'title' => 'Sanad Ijazah',
+                    'value' => 'Sanad Ijazah',
                     'info' => null,
                     'active' => 1,
                     'created_at' => now(),
@@ -1545,9 +1574,9 @@ class BookingTransferGatingTest extends TestCase
         }
 
         foreach ([
-            1 => ['title' => 'Language and Literature', 'code' => 'lang'],
-            2 => ['title' => 'Math', 'code' => 'math'],
-            15 => ['title' => 'Well Being', 'code' => 'well-being'],
+            1 => ['title' => 'Quran Memorization', 'code' => 'quran-memorization'],
+            2 => ['title' => 'Quranic Arabic', 'code' => 'quranic-arabic'],
+            15 => ['title' => 'My Deen Journey', 'code' => 'my-deen-journey'],
             18 => ['title' => 'WTA', 'code' => 'wta'],
         ] as $subjectId => $subject) {
             DB::table('subjects')->updateOrInsert(
