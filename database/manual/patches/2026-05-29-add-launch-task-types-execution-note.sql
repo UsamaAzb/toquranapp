@@ -1,0 +1,30 @@
+-- To Quran launch task-type reference execution note
+-- Date: 2026-05-29
+-- Target DB: u504065335_to_quran
+-- Patch: database/manual/patches/2026-05-29-add-launch-task-types.sql
+-- Backup: database/manual/backups/2026-05-29-172119-u504065335_to_quran-before-task-types.sql
+--
+-- Reason:
+-- During TQ4 manual smoke, the teacher "Add Task to Session" modal rendered with an empty
+-- Type dropdown because `task_types` had zero rows. The teacher-facing launch types are:
+-- - 7 = Assignment (default when adding a normal task)
+-- - 3 = Lesson
+-- - 2 = Quiz
+-- - 4 = Project
+--
+-- Execution:
+-- SET @toquran_confirm_real_db_target = 'u504065335_to_quran';
+-- SOURCE database/manual/patches/2026-05-29-add-launch-task-types.sql;
+--
+-- Result:
+-- - `task_types` now has Assignment, Lesson, Quiz, and Project launch rows.
+-- - The patch is guarded by explicit real-target confirmation, DATABASE() check,
+--   schema table-count sanity check, and fixed-ID drift detection.
+-- - An earlier same-day draft mistakenly seeded Activity/File/YouTube/Link. It was corrected
+--   by `database/manual/patches/2026-05-29-correct-launch-task-types.sql` before commit.
+--
+-- Verification:
+-- - DB check: `task_types` returned 4 rows: Assignment, Lesson, Project, Quiz.
+-- - `php artisan test tests/Feature/CoreLms/TeacherAttachmentStateTest.php --filter="show_session_task|show_daily_session_task|uploads"`
+--   - 22 passed, 74 assertions.
+-- - TQ4 broader launch-access suite should be re-run after execution.

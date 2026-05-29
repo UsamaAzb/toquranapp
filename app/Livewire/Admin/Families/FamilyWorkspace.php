@@ -79,6 +79,8 @@ class FamilyWorkspace extends Component
 
     private array $authorizationAbilityCache = [];
 
+    private const FAMILY_VIEW_ROLES = ['admin', 'super_admin', 'customer_support'];
+
     public function mount(ParentModel $parent): void
     {
         $this->authorizeWorkspaceAbility('families.view_workspace');
@@ -662,13 +664,13 @@ class FamilyWorkspace extends Component
     public function familyCanActivate(): bool
     {
         return $this->parent->lifecycle_status === FamilyLifecycleStatus::PendingActivation->value
-            && auth()->user()?->can('families.activate');
+            && $this->userCan('families.activate');
     }
 
     public function childCanActivate(Student $child): bool
     {
         return $child->account_status === ChildAccountStatus::PendingActivation->value
-            && auth()->user()?->can('families.children.activate');
+            && $this->userCan('families.children.activate');
     }
 
     public function familyLifecycleActions(): array
@@ -1070,6 +1072,14 @@ class FamilyWorkspace extends Component
 
         if (! $user) {
             return $this->authorizationAbilityCache[$ability] = false;
+        }
+
+        if ($ability === 'families.view_workspace' && $user->hasAnyRole(self::FAMILY_VIEW_ROLES)) {
+            return $this->authorizationAbilityCache[$ability] = true;
+        }
+
+        if ($user->hasRole('super_admin')) {
+            return $this->authorizationAbilityCache[$ability] = true;
         }
 
         try {

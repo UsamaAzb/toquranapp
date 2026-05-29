@@ -103,7 +103,7 @@ class ParentBehaviorSubjectResolver
     /** @return array<int, int> */
     private function wellBeingSubjectIdsForStudent(int $studentId): array
     {
-        $configuredSubjectId = (int) Config::get('toquran.parent_behavior_subject_id', 15);
+        $configuredSubjectId = (int) Config::get('toquran.parent_behavior_subject_id', 16);
         $subjectIds = [];
 
         if ($configuredSubjectId > 0 && $this->subjectLooksLikeWellBeing($configuredSubjectId)) {

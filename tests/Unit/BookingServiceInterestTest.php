@@ -18,7 +18,9 @@ class BookingServiceInterestTest extends TestCase
     public function test_to_quran_public_aliases_normalize_to_canonical_services(): void
     {
         $this->assertSame('Quran Memorization', BookingServiceInterest::normalize('hifz'));
-        $this->assertSame('Quranic Arabic', BookingServiceInterest::normalize('Arabic Language'));
+        $this->assertSame('Arabic Language', BookingServiceInterest::normalize('Arabic Language'));
+        $this->assertSame('Arabic Language', BookingServiceInterest::normalize('Arabic'));
+        $this->assertSame('Quranic Arabic', BookingServiceInterest::normalize('Quranic Arabic'));
         $this->assertSame('My Deen Journey', BookingServiceInterest::normalize('My Deen Journey (Parenting System)'));
         $this->assertSame('Paid Parental Consultation', BookingServiceInterest::normalize('consultation'));
         $this->assertSame('Sanad Ijazah', BookingServiceInterest::normalize('ijazah'));

@@ -1,0 +1,36 @@
+-- To Quran default teacher bootstrap execution note
+-- Date: 2026-05-29
+-- Target DB: u504065335_to_quran
+-- Status: executed locally for launch default teacher assignment.
+--
+-- Backup before change:
+-- database/manual/backups/2026-05-29-160244-u504065335_to_quran-before-default-teacher.sql
+--
+-- Purpose:
+-- - Create or update the real launch teacher account used by transfer provisioning.
+-- - Configure app code to resolve default teacher assignment by email instead of the inherited
+--   Week14 hardcoded teacher id/name fallback.
+--
+-- Account created/updated:
+-- - user id: 36
+-- - name: Dr Osama Qandil
+-- - email: drosamaqandil@gmail.com
+-- - phone: +201146004550
+-- - status: active
+-- - role: teacher
+-- - local launch password was set and stored through CredentialService.
+-- - password value intentionally omitted from durable repo docs.
+--
+-- App config:
+-- - TOQURAN_DEFAULT_TEACHER_EMAIL=drosamaqandil@gmail.com
+-- - Transfer provisioning and Student Account subject sync resolve the default teacher through
+--   App\Support\DefaultTeacherResolver.
+-- - Existing Student Account teacher assignment remains editable per subject/class after transfer.
+--
+-- Verification:
+-- - DefaultTeacherResolver returned user_teacher_coteacher_id 36 and teacher_name "Dr Osama Qandil".
+-- - Laravel caches were cleared after .env/config updates.
+--
+-- Deployment reminder:
+-- - Set TOQURAN_DEFAULT_TEACHER_EMAIL on production before first transfer smoke.
+-- - Replace the temporary launch password with a private credential before real client use.

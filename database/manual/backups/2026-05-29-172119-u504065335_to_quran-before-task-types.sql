@@ -1,0 +1,14 @@
+-- To Quran real-target backup evidence note
+-- Original filename: 2026-05-29-172119-u504065335_to_quran-before-task-types.sql
+-- Purpose: before adding/correcting launch task-type reference rows.
+-- Original bytes: 410057
+-- Original last write: 2026-05-29 17:21:26
+-- Original SHA256: B69ADDC8256F927059534983D4D9DF55E86635D4593F1922F8C89D49368C3835
+--
+-- Repository policy:
+-- The raw dump is intentionally not stored in Git because it included users,
+-- parent/student records, recoverable credential material, sessions, and
+-- audit events from local launch smoke testing.
+--
+-- Keep full-fidelity restore dumps in secured local/offline storage only.
+-- This file is evidence only and is not executable restore SQL.

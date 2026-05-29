@@ -1,0 +1,30 @@
+-- To Quran Arabic Language service reference execution note
+-- Date: 2026-05-29
+-- Target DB: u504065335_to_quran
+-- Patch: database/manual/patches/2026-05-29-add-arabic-language-service-reference.sql
+-- Backup: database/manual/backups/2026-05-29-165938-u504065335_to_quran-before-arabic-language-service.sql
+--
+-- Reason:
+-- The public website handoff needs multi-child, multi-service intake where a child can select
+-- one or more of Quran Memorization, Quranic Arabic, Arabic Language, Sanad Ijazah Program,
+-- and My Deen Journey. The app already has Arabic Language as an LMS class subject, but
+-- BookingServiceInterest previously normalized public `Arabic Language` into `Quranic Arabic`.
+--
+-- Execution:
+-- SET @toquran_confirm_real_db_target = 'u504065335_to_quran';
+-- SOURCE database/manual/patches/2026-05-29-add-arabic-language-service-reference.sql;
+--
+-- Result:
+-- - `services_types` now includes active value/title `Arabic Language`.
+-- - `services` now includes id 6 / name `Arabic Language`.
+-- - The patch is guarded by the real-target confirmation variable, DATABASE() check,
+--   schema table-count sanity check, and fixed-id drift check.
+--
+-- Verification:
+-- - DB check:
+--   - services_types includes value `Arabic Language` at local id 6.
+--   - services includes id 6 / name `Arabic Language`.
+-- - `php artisan test tests/Unit/BookingServiceInterestTest.php tests/Feature/BookingIntakeEntrypointTest.php tests/Feature/BookingIntakeDetectionTest.php tests/Feature/AdminIntakeFormTest.php`
+--   - 42 passed, 232 assertions.
+-- - Broad launch-access suite after this correction:
+--   - 162 passed, 816 assertions.

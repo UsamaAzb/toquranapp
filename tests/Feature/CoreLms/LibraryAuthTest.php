@@ -39,7 +39,7 @@ class LibraryAuthTest extends TestCase
             ->assertOk()
             ->assertSee('Teaching library')
             ->assertSee('Add or edit My Library')
-            ->assertSee('Daily Sessions')
+            ->assertSee('Versioned Routines')
             ->assertSee('href="'.url('tutriols/level-up').'"', false);
     }
 
@@ -52,7 +52,7 @@ class LibraryAuthTest extends TestCase
             ->get(route('teacher.get_library'))
             ->assertOk()
             ->assertSee('Teaching library')
-            ->assertDontSee('Daily Sessions')
+            ->assertDontSee('Versioned Routines')
             ->assertSee('Private legacy Library source')
             ->assertDontSee('href="'.url('course/radio').'"', false)
             ->assertDontSee('href="'.url('course/notice-note').'"', false);

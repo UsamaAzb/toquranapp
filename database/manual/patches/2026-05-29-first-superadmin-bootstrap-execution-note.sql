@@ -1,0 +1,21 @@
+-- First superadmin bootstrap execution note
+-- Date: 2026-05-29
+-- Target DB: u504065335_to_quran
+-- Action type: guarded Artisan command, not manual SQL
+-- Command shape:
+--   php artisan toquran:bootstrap-superadmin --confirm-db=u504065335_to_quran --email="..." --name="..." --phone="..."
+--
+-- Result:
+-- - Created/repaired user #1 as the first launch superadmin.
+-- - Name: Osama Qandil
+-- - Email: osama.elazab22@gmail.com
+-- - Phone: +201146004550
+-- - Status: active
+-- - Role: super_admin
+-- - Recoverable credential payload: present
+--
+-- Password intentionally omitted from this durable note.
+--
+-- Verification:
+-- - Laravel DB connection was verified as u504065335_to_quran before execution.
+-- - Post-execution lookup confirmed id, name, phone, status, role, and recoverable credential presence.

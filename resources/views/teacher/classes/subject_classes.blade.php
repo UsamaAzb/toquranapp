@@ -109,6 +109,15 @@
       line-height: 1.25;
     }
 
+    .w14-teacher-class-meta {
+      display: block;
+      margin-top: 0.2rem;
+      color: var(--bs-secondary-color, #6c757d);
+      font-size: 0.82rem;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+
     .w14-subject-tone-language { --w14-subject-accent: #2092ec; }
     .w14-subject-tone-wellbeing { --w14-subject-accent: #22b573; }
     .w14-subject-tone-math { --w14-subject-accent: #ff9f1c; }
@@ -146,7 +155,7 @@
   <h6 class="pb-1 mb-4 text-body-secondary">Active Classes</h6>
   <div class="row g-3 g-sm-4 mb-6 w14-teacher-class-grid">
     @foreach ($TeacherSubjectClass as $k => $subjectclass)
-      @if ($subjectclass->status == 'active')
+      @if (in_array($subjectclass->status, ['active', 'current'], true))
         @php
           $subjectDisplay = \App\Support\BookingSubjectProvisioning::displayPayloadForSubject(
               (int) ($subjectclass->subject_id ?? 0),
@@ -156,17 +165,43 @@
           $subjectVisual = $subjectDisplay['visual'] ?? ['icon' => 'ti tabler-school', 'tone' => 'default'];
           $subjectIcon = (string) ($subjectVisual['icon'] ?? 'ti tabler-school');
           $subjectTone = (string) ($subjectVisual['tone'] ?? 'default');
+          $activeStudents = $subjectclass->classSubject?->studentsSubjects
+              ?->filter(function ($studentSubject) {
+                  $student = $studentSubject->student;
+
+                  return $student
+                      && $studentSubject->status === 'active'
+                      && in_array((string) ($student->account_status ?? 'active'), ['', 'active'], true);
+              })
+              ->pluck('student')
+              ->unique('id')
+              ->values() ?? collect();
+          $teacherClassTitle = (string) $subjectclass->class_name;
+          $teacherClassMeta = null;
+
+          if ($activeStudents->count() === 1) {
+              $student = $activeStudents->first();
+              $studentName = trim(implode(' ', array_filter([$student->first_name, $student->last_name])));
+              $teacherClassTitle = $studentName !== '' ? $studentName : ($student->student_email ?: $teacherClassTitle);
+              $teacherClassMeta = (string) $subjectclass->class_name;
+          } elseif ($activeStudents->count() > 1) {
+              $teacherClassTitle = __(':count students', ['count' => $activeStudents->count()]);
+              $teacherClassMeta = (string) $subjectclass->class_name;
+          }
         @endphp
 
         <div class="col-12 col-md-6 col-xl-4">
           <div class="card mb-0 w14-teacher-class-card w14-subject-tone-{{ $subjectTone }}">
-            <a href="{{ route('teacher.sessions', ['teachersubjectid' => $subjectclass->id]) }}" class="w14-teacher-class-card-link" aria-label="{{ __('Open :class :subject sessions', ['class' => $subjectclass->class_name, 'subject' => $subjectName]) }}">
+            <a href="{{ route('teacher.sessions', ['teachersubjectid' => $subjectclass->id]) }}" class="w14-teacher-class-card-link" aria-label="{{ __('Open :class :subject sessions', ['class' => $teacherClassTitle, 'subject' => $subjectName]) }}">
               <div class="card-body">
                 <span class="w14-teacher-class-icon" aria-hidden="true">
                   <i class="{{ $subjectIcon }}"></i>
                 </span>
                 <div class="min-w-0">
-                  <h5 class="w14-teacher-class-title">{{ $subjectclass->class_name }}</h5>
+                  <h5 class="w14-teacher-class-title">{{ $teacherClassTitle }}</h5>
+                  @if ($teacherClassMeta && $teacherClassMeta !== $teacherClassTitle)
+                    <span class="w14-teacher-class-meta">{{ $teacherClassMeta }}</span>
+                  @endif
                   <span class="w14-teacher-class-subject">{{ $subjectName }}</span>
                 </div>
               </div>

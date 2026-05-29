@@ -7,9 +7,15 @@ namespace App\Support;
 class BookingServiceInterest
 {
     public const QURAN_MEMORIZATION = 'Quran Memorization';
+
     public const QURANIC_ARABIC = 'Quranic Arabic';
+
+    public const ARABIC_LANGUAGE = 'Arabic Language';
+
     public const MY_DEEN_JOURNEY = 'My Deen Journey';
+
     public const PAID_PARENTAL_CONSULTATION = 'Paid Parental Consultation';
+
     public const SANAD_IJAZAH = 'Sanad Ijazah';
 
     public static function canonicalValues(): array
@@ -17,6 +23,7 @@ class BookingServiceInterest
         return [
             self::QURAN_MEMORIZATION,
             self::QURANIC_ARABIC,
+            self::ARABIC_LANGUAGE,
             self::MY_DEEN_JOURNEY,
             self::PAID_PARENTAL_CONSULTATION,
             self::SANAD_IJAZAH,
@@ -58,9 +65,10 @@ class BookingServiceInterest
             'sat or act preparation',
             'sat act preparation',
             'help me read',
-            'arabic',
-            'arabic language',
             'quranic arabic' => self::QURANIC_ARABIC,
+
+            'arabic',
+            'arabic language' => self::ARABIC_LANGUAGE,
 
             'help me study',
             'my deen journey',
@@ -86,6 +94,7 @@ class BookingServiceInterest
         return match (self::normalize($value)) {
             self::QURAN_MEMORIZATION => self::QURAN_MEMORIZATION,
             self::QURANIC_ARABIC => self::QURANIC_ARABIC,
+            self::ARABIC_LANGUAGE => self::ARABIC_LANGUAGE,
             self::MY_DEEN_JOURNEY => self::MY_DEEN_JOURNEY,
             self::PAID_PARENTAL_CONSULTATION => self::PAID_PARENTAL_CONSULTATION,
             self::SANAD_IJAZAH => self::SANAD_IJAZAH,

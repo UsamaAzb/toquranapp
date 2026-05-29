@@ -1,0 +1,32 @@
+-- To Quran local test password reset execution note
+-- Date: 2026-05-29
+-- Target DB: u504065335_to_quran
+-- Status: executed locally for launch testing only.
+--
+-- Before-backup:
+-- No dedicated raw before-backup is committed because the operation touched
+-- auth/runtime data and repo policy now excludes full-fidelity credential dumps.
+-- Existing restore/evidence artifacts were present for the real-target baseline;
+-- final deployment requires rotating all real staff/teacher credentials.
+--
+-- Purpose:
+-- Set every current local app user to the same short smoke password so admin,
+-- support, teacher, parent, and student flows can be tested quickly.
+--
+-- Guard evidence:
+-- - Script: one-off local guarded PHP snippet executed from the shell; not retained
+--   as a reusable patch because it was a local testing shortcut, not deployable data.
+-- - Aborted unless DB::connection()->getDatabaseName() was u504065335_to_quran.
+--
+-- Runtime changes:
+-- - users updated: 18
+-- - parents legacy password fields updated: 4
+-- - students legacy password fields updated: 6
+--
+-- Password:
+-- - intentionally omitted from this durable note.
+-- - this is a local testing shortcut and must not be deployed as production credentials.
+--
+-- Before deployment:
+-- - remove smoke users/families/classes with the smoke cleanup plan; and
+-- - set real staff/owner credentials individually.

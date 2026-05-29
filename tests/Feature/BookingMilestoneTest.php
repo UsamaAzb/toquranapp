@@ -2195,7 +2195,10 @@ class BookingMilestoneTest extends TestCase
         foreach ([
             1 => ['title' => 'Quran Memorization', 'code' => 'quran-memorization'],
             2 => ['title' => 'Quranic Arabic', 'code' => 'quranic-arabic'],
+            3 => ['title' => 'Arabic Language', 'code' => 'arabic-language'],
+            4 => ['title' => 'Sanad Program', 'code' => 'sanad-program'],
             15 => ['title' => 'My Deen Journey', 'code' => 'my-deen-journey'],
+            16 => ['title' => 'Well Being', 'code' => 'well-being'],
         ] as $subjectId => $subject) {
             DB::table('subjects')->updateOrInsert(
                 ['id' => $subjectId],

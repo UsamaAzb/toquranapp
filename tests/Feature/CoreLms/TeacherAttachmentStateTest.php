@@ -644,7 +644,7 @@ class TeacherAttachmentStateTest extends TestCase
         ]);
     }
 
-    public function test_show_session_task_switching_to_link_clears_pending_file_uploads(): void
+    public function test_show_session_task_switching_type_keeps_pending_attachments(): void
     {
         $teacher = $this->createTeacher();
 
@@ -661,13 +661,14 @@ class TeacherAttachmentStateTest extends TestCase
             ->set('youtubes', [
                 ['title' => 'Clip', 'url' => 'https://www.youtube.com/watch?v=abc123'],
             ])
-            ->set('task_type_id', 9)
-            ->assertSet('finalFiles', [])
-            ->assertSet('youtubes', [])
-            ->assertSet('youtube', null);
+            ->set('task_type_id', 3)
+            ->assertSet('finalFiles', fn (array $files): bool => count($files) === 1)
+            ->assertSet('youtubes', [
+                ['title' => 'Clip', 'url' => 'https://www.youtube.com/watch?v=abc123'],
+            ]);
     }
 
-    public function test_show_daily_session_task_switching_to_file_clears_stale_link_inputs_and_uploads(): void
+    public function test_show_daily_session_task_switching_type_keeps_pending_attachments(): void
     {
         $teacher = $this->createTeacher();
 
@@ -687,10 +688,12 @@ class TeacherAttachmentStateTest extends TestCase
             ->set('link_title_input', 'Pending title')
             ->set('link_url_input', 'https://pending.example.com')
             ->set('task_type_id', 7)
-            ->assertSet('finalFiles', [])
-            ->assertSet('links', [])
-            ->assertSet('link_title_input', '')
-            ->assertSet('link_url_input', '');
+            ->assertSet('finalFiles', fn (array $files): bool => count($files) === 1)
+            ->assertSet('links', [
+                ['title' => 'Docs', 'url' => 'https://example.com'],
+            ])
+            ->assertSet('link_title_input', 'Pending title')
+            ->assertSet('link_url_input', 'https://pending.example.com');
     }
 
     public function test_teacher_can_delete_unpublished_session_task(): void
@@ -903,7 +906,7 @@ class TeacherAttachmentStateTest extends TestCase
         $this->assertDatabaseHas('daily_sessions', [
             'main_daily_session_id' => 302,
             'subject_id' => 9,
-            'title' => 'New Daily Session',
+            'title' => 'New Automated Task Set',
         ]);
     }
 
@@ -916,23 +919,30 @@ class TeacherAttachmentStateTest extends TestCase
     {
         DB::table('task_types')->insert([
             [
+                'id' => 2,
+                'title' => 'Quiz',
+                'table_name' => 'teacher_classes_quizzes_and_exams',
+                'default_points' => 5,
+                'max_points' => 10,
+            ],
+            [
+                'id' => 3,
+                'title' => 'Lesson',
+                'table_name' => 'teacher_classes_lessons',
+                'default_points' => 5,
+                'max_points' => 10,
+            ],
+            [
+                'id' => 4,
+                'title' => 'Project',
+                'table_name' => 'teacher_classes_projects',
+                'default_points' => 5,
+                'max_points' => 10,
+            ],
+            [
                 'id' => 7,
-                'title' => 'File',
-                'table_name' => 'attachment_files',
-                'default_points' => 5,
-                'max_points' => 10,
-            ],
-            [
-                'id' => 8,
-                'title' => 'Youtube',
-                'table_name' => 'attachment_files',
-                'default_points' => 5,
-                'max_points' => 10,
-            ],
-            [
-                'id' => 9,
-                'title' => 'Link',
-                'table_name' => 'attachment_files',
+                'title' => 'Assignment',
+                'table_name' => 'teacher_classes_assignments',
                 'default_points' => 5,
                 'max_points' => 10,
             ],
@@ -1072,7 +1082,7 @@ class TeacherAttachmentStateTest extends TestCase
             'id' => 31,
             'subject_id' => 9,
             'main_daily_session_id' => 1,
-            'title' => 'Daily Session',
+            'title' => 'Automated Task Set',
         ]);
 
         DB::table('daily_session_tasks')->insert([

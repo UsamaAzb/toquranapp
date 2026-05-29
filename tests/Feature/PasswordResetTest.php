@@ -195,7 +195,7 @@ class PasswordResetTest extends TestCase
         $response = $this->get('/reset-password/'.$token.'?email='.rawurlencode($user->email));
 
         $response->assertStatus(200);
-        $response->assertSee('assets/img/logo/logo.webp', false);
+        $response->assertSee('assets/img/logo/logo.png', false);
         $response->assertDontSee('app-brand-text demo', false);
         $response->assertSee('Choose a password you can remember, then confirm it below.');
         $response->assertDontSee('previously used passwords');

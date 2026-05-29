@@ -24,11 +24,14 @@ Track database and runtime items that affect both To Quran repos.
 | 2026-05-28 | Framework infrastructure keys/indexes were corrected in `u504065335_to_quran` for Laravel cache/session/job/password reset tables, Sanctum tokens, and Spatie role/permission pivots | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
 | 2026-05-28 | Malformed Library column ` general_library_dp_unit_id` was corrected to `general_library_dp_unit_id` in `u504065335_to_quran`; To Quran replay artifacts were corrected so fresh targets do not recreate the typo | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
 | 2026-05-28 | Remaining imported Library identifier drift was corrected in `u504065335_to_quran`: `teacher and_student_questions` to `teacher_and_student_questions`, and the MYP local/global challenges table now uses `general_library_myp_unit_id` | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
+| 2026-05-29 | Arabic Language was added as a distinct app/public service reference value in `u504065335_to_quran` so the public website can send it separately from Quranic Arabic | Manual reference-data patch | `toquranapp` | Complete locally; pending review before commit |
+| 2026-05-29 | Launch task-type rows were added to `task_types` for Assignment, Lesson, Project, and Quiz so teacher session tasks can be created during TQ4 smoke | Manual reference-data patch | `toquranapp` | Complete locally; pending review before commit |
+| 2026-05-29 | Same-day task-type reference rows were corrected after review: attachment-kind rows were removed and id 7 was restored to Assignment/default | Manual correction patch | `toquranapp` | Complete locally; pending review before commit |
 
 ## Current Backup/Baseline Evidence
 
 - Public To Quran export source: `D:\xampp\htdocs\toquran\u504065335_to_quran.sql`
-- Backup copy in this repo: `database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql`
+- Redacted backup evidence note in this repo: `database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql`
 - Week14 live schema snapshot: `database/manual/baseline/2026-05-27-235118-week14-live-schema.sql`
 - Week14 fresh schema export: `database/manual/baseline/2026-05-28-001530-week14-fresh-schema.sql`
 - Week14 freshness report: `docs/audits/2026-05-28-week14-schema-freshness-check.md`
@@ -50,6 +53,15 @@ Track database and runtime items that affect both To Quran repos.
 - Library schema identifier drift execution note: `database/manual/patches/2026-05-28-library-schema-identifier-drift-execution-note.sql`
 - Local dry-run correction execution note: `database/manual/patches/2026-05-28-toquranapp-local-corrections-execution-note.sql`
 - Real target schema snapshot after DB corrections: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
+- Arabic Language service reference backup evidence: `database/manual/backups/2026-05-29-165938-u504065335_to_quran-before-arabic-language-service.sql`
+- Arabic Language service reference patch: `database/manual/patches/2026-05-29-add-arabic-language-service-reference.sql`
+- Arabic Language service reference execution note: `database/manual/patches/2026-05-29-add-arabic-language-service-reference-execution-note.sql`
+- Launch task types backup evidence: `database/manual/backups/2026-05-29-172119-u504065335_to_quran-before-task-types.sql`
+- Launch task types patch: `database/manual/patches/2026-05-29-add-launch-task-types.sql`
+- Launch task types execution note: `database/manual/patches/2026-05-29-add-launch-task-types-execution-note.sql`
+- Launch task type correction restore-only focused backup: `database/manual/backups/2026-05-29-173241-u504065335_to_quran-before-task-type-correction.sql`
+- Launch task type correction patch: `database/manual/patches/2026-05-29-correct-launch-task-types.sql`
+- Launch task type correction execution note: `database/manual/patches/2026-05-29-correct-launch-task-types-execution-note.sql`
 
 ## Schema Comparison Summary
 
@@ -89,5 +101,7 @@ Document before destructive cleanup:
 4. Target the real app DB name `u504065335_to_quran` for accelerated deployment with backup/export evidence and guarded manual SQL.
 5. Treat the executed starter/reference data patch as the current app reference baseline.
 6. Treat the framework infrastructure index correction and Library column-name correction as part of the current real-target baseline for deployment planning.
-7. Preserve the Quran YouTube/video list later through a Library/content migration.
-8. Keep destructive cleanup documented before execution.
+7. Treat Arabic Language as a distinct public/app service value for website intake; do not collapse it into Quranic Arabic during the public handoff.
+8. Treat launch task types as required reference data for TQ4 teacher session/task smoke.
+9. Preserve the Quran YouTube/video list later through a Library/content migration.
+10. Keep destructive cleanup documented before execution.

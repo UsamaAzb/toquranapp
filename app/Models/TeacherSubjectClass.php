@@ -104,7 +104,10 @@ class TeacherSubjectClass extends Model
     public function scopeWithActiveStudentSubject($q, ?int $studentId = null)
     {
         return $q->whereHas('classSubject.studentsSubjects', function ($query) use ($studentId) {
-            $query->where('status', 'active');
+            $query->where('status', 'active')
+                ->whereHas('student', function ($studentQuery): void {
+                    $studentQuery->visibleToTeacher();
+                });
 
             if ($studentId) {
                 $query->where('student_id', $studentId);

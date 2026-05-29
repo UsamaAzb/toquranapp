@@ -24,9 +24,10 @@
       margin: 0;
       min-height: 100vh;
       min-height: 100dvh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(20px, 4vh, 48px) 24px;
       background: radial-gradient(circle at top left, #fff7ed 0, transparent 34%), var(--soft);
       color: var(--ink);
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;

@@ -16,7 +16,7 @@ As of 2026-05-27:
 - The public site `.env` points to database `u504065335_to_quran`.
 - That schema is not present in the local XAMPP MySQL data directory.
 - A SQL export exists at `D:\xampp\htdocs\toquran\u504065335_to_quran.sql`.
-- A backup copy was created at `database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql`.
+- A redacted backup evidence note was created at `database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql`; the raw export is excluded from Git because it contains legacy auth/contact data.
 - Week14 live schema was exported read-only to `database/manual/baseline/2026-05-27-235118-week14-live-schema.sql`.
 - Owner clarified on 2026-05-28 that the old `u504065335_to_quran` export has no client data requiring preservation. The only intentionally preserved legacy data is the Quran YouTube/video list, planned for a later Library migration.
 - A Week14 schema freshness check confirmed the 2026-05-27 Week14 snapshot matches a fresh read-only export from local `u504065335_vuexy_week14`: `docs/audits/2026-05-28-week14-schema-freshness-check.md`.
@@ -72,9 +72,10 @@ This permission covers dry-run schema creation, real app baseline setup, schema 
 ## Baseline/Patch Convention
 
 - Structure snapshots live in `database/manual/baseline/`.
-- Data exports/backups live in `database/manual/backups/`.
+- Redacted data export/backup evidence notes live in `database/manual/backups/`.
 - Manual SQL patches live in `database/manual/patches/`.
 - Cleanup plans belong in docs first. They become SQL only after cleanup intent, target data, backup evidence, and target DB checks are documented.
+- Do not commit full-fidelity dumps that include users, sessions, credentials, tokens, account histories, or real-looking contact data. Keep raw restore artifacts in secured local/offline storage and commit only redacted evidence/checksum notes.
 
 ## Immediate DB Direction
 

@@ -1,0 +1,14 @@
+-- To Quran real-target backup evidence note
+-- Original filename: 2026-05-29-114724-u504065335_to_quran-before-learning-catalog.sql
+-- Purpose: before adding remaining To Quran LMS class-subject catalog rows.
+-- Original bytes: 391527
+-- Original last write: 2026-05-29 11:47:33
+-- Original SHA256: 687FCDA451F01099531F8D6C5A258E67C1A115283BA976827395A0EDDDF05524
+--
+-- Repository policy:
+-- The raw dump is intentionally not stored in Git because it included users,
+-- parent/student records, recoverable credential material, sessions, and
+-- audit events from local launch smoke testing.
+--
+-- Keep full-fidelity restore dumps in secured local/offline storage only.
+-- This file is evidence only and is not executable restore SQL.

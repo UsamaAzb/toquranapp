@@ -13,6 +13,7 @@ The public site currently:
 - writes `Booking` rows with parent contact, country, child name/age, `service_interest`, preferred date/time, main concerns, status, terms, and meeting link
 - uses booking references with `W14-` prefix in `BookingController`
 - stores the hidden `type` value as `Quran`
+- is still single-child in the visible form
 - offers service interests:
   - `My Deen Journey (Parenting System)`
   - `Paid Parental Consultation`
@@ -29,6 +30,8 @@ The public website should remain a light consultation entry point. The app shoul
 - public service copy and pricing copy
 - basic form UX
 - initial parent/child contact submission
+- multi-child public intake UX
+- child-level service-interest selection, allowing one or more services per child
 - public confirmation/review-received messaging
 
 ### App Owns
@@ -40,6 +43,23 @@ The public website should remain a light consultation entry point. The app shoul
 - transfer into parent/student accounts
 - Family Workspace and activation
 - tasks, sessions, My Deen Journey, rewards, behavior/accountability, consequence agreements, Library
+- initial teacher assignment after transfer, using the app-configured default teacher until staff edit the Student Account subject rows
+
+## Launch Public Form Contract
+
+Before the public website handoff is implemented, the booking form should submit a children payload compatible with the app's review-first intake model:
+
+- one parent/contact block per booking
+- one or more child blocks
+- each child has name, age, school/grade where available, and `service_interests`
+- `service_interests` is an array with one or more of the launch child-facing values:
+  - `Quran Memorization`
+  - `Quranic Arabic`
+  - `Arabic Language`
+  - `Sanad Ijazah Program`
+  - `My Deen Journey`
+
+`Paid Parental Consultation` remains an app-supported service value, but it is not part of the owner-confirmed child-facing multi-service selector for this launch pass unless the owner reopens the public form scope.
 
 ## Service Interest Mapping
 
@@ -49,6 +69,7 @@ The public website should remain a light consultation entry point. The app shoul
 | `Paid Parental Consultation` | parent/support consultation, not necessarily child LMS enrollment | New To Quran-specific service workflow may be needed |
 | `Quran Memorization` | Quran tutoring subject/service | Adapt subject/service catalogs |
 | `Quranic Arabic` | Arabic/Quranic Arabic tutoring subject/service | Adapt subject/service catalogs |
+| `Arabic Language` | Broader Arabic language tutoring subject/service, distinct from Quranic Arabic | App service row added 2026-05-29; public website may send it as a distinct child service |
 | `Sanad Ijazah Program` | advanced Quran recitation/certification path | New To Quran-specific service metadata likely needed |
 
 ## App-Side Alias Handling
@@ -58,19 +79,23 @@ The app now accepts both the current public To Quran values and the inherited We
 | Incoming value family | Canonical app value |
 | --- | --- |
 | `IB Private Classes`, `IB Private Tutoring`, `Quran`, `Hifz`, `Memorization` | `Quran Memorization` |
-| `Help Me Read`, `SAT / ACT Preparation`, `Arabic`, `Arabic Language` | `Quranic Arabic` |
+| `Help Me Read`, `SAT / ACT Preparation`, `Quranic Arabic` | `Quranic Arabic` |
+| `Arabic`, `Arabic Language` | `Arabic Language` |
 | `Help Me Study`, `My Deen Journey (Parenting System)` | `My Deen Journey` |
 | `Paid Consultation`, `Parental Consultation`, `Paid Parental Consultation` | `Paid Parental Consultation` |
 | `Sanad`, `Ijazah`, `Sanad Ijazah`, `Sanad Ijazah Program` | `Sanad Ijazah` |
 
 ## Launch Scope
 
-For first deployment, To Quran follows the current Week14 operating model: intake, admin/customer-support review, family/student account transfer, and LMS access are app-supported; consultation scheduling, finance, detailed class management, and teacher assignment decisions remain manual until later sprints.
+For first deployment, To Quran follows the current Week14 operating model: intake, admin/customer-support review, family/student account transfer, and LMS access are app-supported; consultation scheduling, finance, and detailed class management remain manual until later sprints.
+
+Upcoming transferred students receive initial class-subject teacher assignments from the app-side default teacher configured by `TOQURAN_DEFAULT_TEACHER_EMAIL` (`drosamaqandil@gmail.com` for launch). Admin/superadmin can edit the teacher later from Student Account > Subject Access.
 
 ## Immediate Gaps
 
 - Current public reference prefix `W14-` should become To Quran-specific later.
 - Current public booking table is legacy single-child style and does not include Week14's modern `booking_children` and review-first workflow.
+- Current public booking form is single-service; it must become per-child multi-service before app connection.
 - Public code hardcodes a meeting link; app should own confirmed meeting details.
 - Public `.env` points to a DB schema not present locally; current schema evidence comes from the SQL export.
 

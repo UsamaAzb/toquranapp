@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 use Livewire\Livewire;
 use Mockery;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class BookingTransferGatingTest extends TestCase
@@ -183,10 +185,10 @@ class BookingTransferGatingTest extends TestCase
 
         $gradeLevelSubjects = DB::table('grade_level_subjects')
             ->where('grade_level_id', 1)
-            ->whereIn('subject_id', [1, 2, 15, 18])
+            ->whereIn('subject_id', [1, 2, 3, 4, 15, 16, 18])
             ->pluck('id', 'subject_id');
 
-        $this->assertCount(4, $gradeLevelSubjects);
+        $this->assertCount(7, $gradeLevelSubjects);
 
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
@@ -200,8 +202,23 @@ class BookingTransferGatingTest extends TestCase
         ]);
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[16],
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
             'grade_level_subject_id' => $gradeLevelSubjects[2],
             'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[3],
+            'status' => 'inactive',
+        ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[4],
+            'status' => 'inactive',
         ]);
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
@@ -210,7 +227,7 @@ class BookingTransferGatingTest extends TestCase
         ]);
 
         $this->assertSame(
-            4,
+            7,
             DB::table('students_subjects')->where('student_id', $studentId)->count()
         );
 
@@ -227,6 +244,11 @@ class BookingTransferGatingTest extends TestCase
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 15,
             'subject_name' => 'My Deen Journey',
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('teacher_subject_classes', [
+            'subject_id' => 16,
+            'subject_name' => 'Well Being',
             'status' => 'active',
         ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
@@ -261,7 +283,7 @@ class BookingTransferGatingTest extends TestCase
             'id' => DB::table('students')->where('id', $studentId)->value('current_class_id'),
             'academic_year_id' => 2,
         ]);
-        $this->assertSame(4, DB::table('students_subjects')->where('student_id', $studentId)->where('academic_year_id', 2)->count());
+        $this->assertSame(7, DB::table('students_subjects')->where('student_id', $studentId)->where('academic_year_id', 2)->count());
         $this->assertSame(10, DB::table('student_gifts')->where('student_id', $studentId)->where('academic_year_id', 2)->count());
     }
 
@@ -317,7 +339,7 @@ class BookingTransferGatingTest extends TestCase
         $child->refresh();
         $gradeLevelSubjects = DB::table('grade_level_subjects')
             ->where('grade_level_id', 1)
-            ->whereIn('subject_id', [1, 2, 15, 18])
+            ->whereIn('subject_id', [1, 2, 3, 4, 15, 16, 18])
             ->pluck('id', 'subject_id');
 
         $this->assertSame($studentId, (int) $child->student_id);
@@ -325,7 +347,7 @@ class BookingTransferGatingTest extends TestCase
             'id' => $studentId,
             'current_class_id' => $classId,
         ]);
-        $this->assertSame(4, DB::table('students_subjects')->where('student_id', $studentId)->count());
+        $this->assertSame(7, DB::table('students_subjects')->where('student_id', $studentId)->count());
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
             'grade_level_subject_id' => $gradeLevelSubjects[1],
@@ -338,9 +360,56 @@ class BookingTransferGatingTest extends TestCase
         ]);
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[16],
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
             'grade_level_subject_id' => $gradeLevelSubjects[18],
             'status' => 'inactive',
         ]);
+    }
+
+    public function test_transfer_assigns_configured_default_teacher_to_new_subject_classes(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        Role::findOrCreate('teacher', 'web');
+
+        $defaultTeacher = User::factory()->create([
+            'name' => 'Launch Default Teacher',
+            'email' => 'drosamaqandil@gmail.com',
+            'status' => 'active',
+        ]);
+        $defaultTeacher->assignRole('teacher');
+        config(['toquran.default_teacher_email' => $defaultTeacher->email]);
+
+        $child = $this->createBookingChild([], [
+            'evaluation_outcome' => 'fit',
+            'meeting_disposition' => 'completed',
+            'transfer_status' => 'not_transferred',
+        ]);
+
+        $this->makeTransferServiceDoubleWithRealClassProvisioning()->transferChild($child);
+
+        $studentId = (int) $child->fresh()->student_id;
+        $classId = (int) DB::table('students')->where('id', $studentId)->value('current_class_id');
+
+        $this->assertDatabaseHas('teacher_subject_classes', [
+            'user_teacher_coteacher_id' => $defaultTeacher->id,
+            'teacher_name' => 'Launch Default Teacher',
+            'class_id' => $classId,
+            'subject_id' => 1,
+            'subject_name' => 'Quran Memorization',
+            'status' => 'active',
+        ]);
+
+        $this->assertSame(
+            7,
+            DB::table('teacher_subject_classes')
+                ->where('user_teacher_coteacher_id', $defaultTeacher->id)
+                ->where('class_id', $classId)
+                ->count()
+        );
     }
 
     public function test_transfer_blocks_same_name_legacy_student_without_explicit_student_link(): void
@@ -414,7 +483,7 @@ class BookingTransferGatingTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        foreach ([1, 2, 15, 18] as $subjectId) {
+        foreach ([1, 2, 3, 4, 15, 16, 18] as $subjectId) {
             DB::table('grade_level_subjects')->insert([
                 'grade_level_id' => 2,
                 'subject_id' => $subjectId,
@@ -538,7 +607,8 @@ class BookingTransferGatingTest extends TestCase
             'status' => 'inactive',
         ]);
 
-        Livewire::test(SubjectManager::class, ['studentId' => $studentId])
+        Livewire::actingAs($this->subjectManagerAdmin())
+            ->test(SubjectManager::class, ['studentId' => $studentId])
             ->call('toggleSubject', $wtaStudentSubject->id)
             ->assertHasNoErrors();
 
@@ -551,6 +621,10 @@ class BookingTransferGatingTest extends TestCase
             'status' => 'active',
         ]);
 
+        DB::table('students')
+            ->where('id', $studentId)
+            ->update(['account_status' => 'active']);
+
         $visibleTeacherSubjectIds = TeacherSubjectClass::query()
             ->where('user_teacher_coteacher_id', 3)
             ->availableForTeacher()
@@ -561,7 +635,8 @@ class BookingTransferGatingTest extends TestCase
 
         $this->assertContains(18, $visibleTeacherSubjectIds);
 
-        Livewire::test(SubjectManager::class, ['studentId' => $studentId])
+        Livewire::actingAs($this->subjectManagerAdmin())
+            ->test(SubjectManager::class, ['studentId' => $studentId])
             ->call('toggleSubject', $wtaStudentSubject->id)
             ->assertHasNoErrors();
 
@@ -634,7 +709,8 @@ class BookingTransferGatingTest extends TestCase
 
         DB::table('subjects')->where('id', 21)->update(['active' => 1]);
 
-        Livewire::test(SubjectManager::class, ['studentId' => $studentId])
+        Livewire::actingAs($this->subjectManagerAdmin())
+            ->test(SubjectManager::class, ['studentId' => $studentId])
             ->assertSee('Newly Active Subject');
 
         $this->assertDatabaseHas('students_subjects', [
@@ -1506,6 +1582,28 @@ class BookingTransferGatingTest extends TestCase
 
     protected function seedTransferReferenceTables(): void
     {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        Role::findOrCreate('teacher', 'web');
+        Role::findOrCreate('admin', 'web');
+
+        $defaultTeacherEmail = 'default.teacher@example.test';
+        if (! User::query()->whereKey(3)->exists()) {
+            DB::table('users')->insert([
+                'id' => 3,
+                'name' => 'Default Test Teacher',
+                'email' => $defaultTeacherEmail,
+                'email_verified_at' => now(),
+                'password' => bcrypt('password'),
+                'status' => 'active',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $defaultTeacher = User::query()->findOrFail(3);
+        $defaultTeacher->assignRole('teacher');
+        config(['toquran.default_teacher_email' => $defaultTeacher->email]);
+
         if (! DB::table('academic_years')->where('is_current', 1)->exists()) {
             DB::table('academic_years')->insert([
                 'id' => 1,
@@ -1576,7 +1674,10 @@ class BookingTransferGatingTest extends TestCase
         foreach ([
             1 => ['title' => 'Quran Memorization', 'code' => 'quran-memorization'],
             2 => ['title' => 'Quranic Arabic', 'code' => 'quranic-arabic'],
+            3 => ['title' => 'Arabic Language', 'code' => 'arabic-language'],
+            4 => ['title' => 'Sanad Program', 'code' => 'sanad-program'],
             15 => ['title' => 'My Deen Journey', 'code' => 'my-deen-journey'],
+            16 => ['title' => 'Well Being', 'code' => 'well-being'],
             18 => ['title' => 'WTA', 'code' => 'wta'],
         ] as $subjectId => $subject) {
             DB::table('subjects')->updateOrInsert(
@@ -1608,5 +1709,16 @@ class BookingTransferGatingTest extends TestCase
                 ]
             );
         }
+    }
+
+    private function subjectManagerAdmin(): User
+    {
+        $admin = User::factory()->create([
+            'status' => 'active',
+        ]);
+
+        $admin->assignRole('admin');
+
+        return $admin;
     }
 }

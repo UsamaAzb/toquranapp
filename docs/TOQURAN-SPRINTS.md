@@ -60,39 +60,46 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 
 - Status: `done`
 - Depends on: TQ1.5
-- Goal: Adapt Week14 family/intake model to Quran Memorization, Quranic Arabic, My Deen Journey, Paid Parental Consultation, and Sanad Ijazah service interests.
+- Goal: Adapt Week14 family/intake model to To Quran service interests. App launch supports Quran Memorization, Quranic Arabic, Arabic Language, My Deen Journey, Paid Parental Consultation, and Sanad Ijazah; public child-facing intake should expose the owner-approved child services listed under TQ9.
 - Current artifact: app-side service/intake adaptation committed in `124756b` and merged to `main` in `0b99741`; focused booking/family suite passed before merge.
 - Launch scope: keep consultation scheduling, finance, class assignment detail, and teacher management manual for first deployment. Do not build those workflows before launch unless explicitly reopened.
 - Website action: align public form values and reference prefix during TQ9 public website handoff.
-- DB action: real-target transition and starter/reference data are complete; app-side service aliases now normalize old Week14 labels and To Quran website labels to the five starter service values.
+- DB action: real-target transition and starter/reference data are complete; app-side service aliases now normalize old Week14 labels and To Quran website labels to the app service values. On 2026-05-29 Arabic Language was added as a distinct app/public service reference row so the website can send it separately from Quranic Arabic.
 
 ### TQ3. Family Workspace And Account Lifecycle Launch Verification
 
-- Status: `pending`
+- Status: `implementation-review`
 - Depends on: TQ1/TQ2
 - Goal: Verify the reused Week14 Family Workspace, lifecycle gates, activation emails, account history, parent login, and student login are launch-ready for To Quran.
 - Launch scope: this is a verification/adaptation gate, not a large rebuild. Fix only blockers that prevent intake review, transfer, activation, and parent/student account access from working.
 - Launch gate: complete this verification before public website intake is connected.
+- Current verification: automated family lifecycle, credential, transfer, and booking milestone suites pass locally; owner manual smoke confirmed launch access surfaces are working on 2026-05-29.
 - Website action: public copy must avoid immediate-login promises.
 - DB action: no old To Quran user/student preservation dependency; keep the export as evidence and preserve only the Quran YouTube/video list later through Library planning.
 
 ### TQ3.5. Superadmin Staff User Management
 
-- Status: `pending`
+- Status: `implementation-review`
 - Depends on: TQ2/TQ3 access checks
 - Goal: Provide a superadmin-owned screen/workflow to create, edit, activate/deactivate, and role-manage internal staff users: admins, customer support, and teachers.
-- Launch scope: this is required before deployment. It includes creating the first superadmin account who can manage everything after launch, then using that account to manage staff users. It is staff account administration only, not finance, HR, payroll, automated scheduling, or full teacher assignment management.
+- Current artifact: `docs/plans/active/2026-05-29-superadmin-staff-user-management.md`
+- Related launch-access plan: `docs/plans/active/2026-05-29-launch-access-teacher-class-management-plan.md`
+- Launch scope: this is required before deployment. It includes creating the first superadmin account who can manage everything after launch, using that account to manage staff users, assigning transferred families to customer support owners, and providing a launch-ready admin teacher/class assignment screen. It is staff account/support/class access administration only, not finance, HR, payroll, automated scheduling, or a full class-management product.
 - Week14 reuse reference: inspect `D:\xampp\htdocs\week14-app-lms\docs\plans\active\2026-05-27-customer-support-phase1-native-task-workflow.md` before implementation. That plan treats staff/user management as a prerequisite for customer-support workflows and should inform To Quran launch sequencing.
 - Website action: none directly, but public intake should not go live until app staff can manage the people who will process it.
-- DB action: use existing `users`, Spatie roles, and teacher profile tables where possible; add only minimal guarded DB changes if the imported Week14 user-management surface is missing a required To Quran field. First superadmin creation must be documented with backup/target evidence and should prefer the app workflow or a narrowly guarded manual SQL patch over ad hoc database edits.
+- DB action: no schema change; first superadmin creation uses the guarded `toquran:bootstrap-superadmin` command with explicit `--confirm-db`. First real superadmin was created in `u504065335_to_quran`; execution evidence is in `database/manual/patches/2026-05-29-first-superadmin-bootstrap-execution-note.sql`. Support ownership uses existing `parents.family_support_id`; n8n/automation may read that assignment later but must not directly overwrite it during launch. Teacher/class assignment uses existing `teacher_subject_classes`, `class_subjects`, and `grade_level_subjects`. The LMS learning catalog was extended by guarded data patch `database/manual/patches/2026-05-29-toquran-learning-catalog-reference-data.sql` so the app has Quran Memorization, Arabic Language, Quranic Arabic, Sanad Program, MDJ, and Well Being. The launch default teacher account `drosamaqandil@gmail.com` was created in `u504065335_to_quran`; upcoming transfer-created class subjects resolve through `TOQURAN_DEFAULT_TEACHER_EMAIL` and remain editable per student subject. Local launch smoke data exists under `@toquran-smoke.test` / `[SMOKE]`, with active, pending, suspended, and archived family/child states, and must be removed before deployment using `database/manual/patches/2026-05-29-launch-smoke-data-cleanup-plan.sql`.
 
 ### TQ4. Core Tutoring Sessions And Tasks
 
-- Status: `pending`
+- Status: `implementation-review`
 - Depends on: TQ1/TQ2
 - Goal: Reuse Week14 teacher/student/parent sessions, normal tasks, task approvals, protected attachments, and class/subject foundations for Quran/Arabic tutoring.
+- Current launch-access artifact: `docs/plans/active/2026-05-29-launch-access-teacher-class-management-plan.md`
 - Launch scope: smoke-test only before deployment: teacher login, student login, parent visibility, core session/task pages render, and basic assignment/visibility paths do not crash. Full tutoring workflow polish can continue after launch.
+- Current verification: owner manual smoke confirmed teacher task creation, student visibility, parent visibility, and admin launch access flows are working on 2026-05-29. Automated focused task attachment tests and broader launch-access tests pass locally.
+- Launch assumption: keep one current/active student per class for first deployment. Multi-student classes can be adapted later, but require a deliberate UX pass for per-student teacher actions such as Points Lab, rewards, behavior points, and task review.
 - Website action: none unless public service claims change.
+- DB action: launch task-type reference rows were added locally for Assignment, Lesson, Project, and Quiz so reused teacher session-task modals have selectable types during smoke testing.
 
 ### TQ5. My Deen Journey V1
 
@@ -128,6 +135,6 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Depends on: TQ2, TQ3 launch verification, TQ3.5, and TQ4 launch smoke.
 - Goal: Complete the final deployment gate and coordinate the public `toquran` website handoff.
 - App action: resolve Composer security advisories, confirm production `.env`, build assets, storage link, queue/mail behavior, first superadmin/admin/teacher access, and final app smoke.
-- Website action: update booking form values, Contact Us behavior, reference prefix, sign-in link, app handoff path, and public contact phone number to `+201091051913`; do not promise automated scheduling, finance, or class management.
+- Website action: update booking form values, Contact Us behavior, reference prefix, sign-in link, app handoff path, and public contact phone number to `+201091051913`; do not promise automated scheduling, finance, or class management. Public booking must become multi-child and each child must be able to select one or more child-facing services: Quran Memorization, Quranic Arabic, Arabic Language, Sanad Ijazah Program, and My Deen Journey.
 - DB action: confirm real server backup/export, execute only reviewed manual SQL, verify starter/reference data, and preserve Quran YouTube/video extract for later Library migration.
 - Done when: public form to app intake/review/transfer/login smoke passes on the deployment target or a production-equivalent environment.

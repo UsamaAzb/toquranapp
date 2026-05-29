@@ -14,7 +14,7 @@
     <div class="card shadow-lg">
       <div class="card-body p-3 mt-2 daily-sessions-board-shell">
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <div class="fw-semibold session-section-title">Main Daily Sessions</div>
+          <div class="fw-semibold session-section-title">Automated Task Groups</div>
           <livewire:teacher.add-main-daily-session :subject-id="$subjectId" />
         </div>
 
@@ -144,8 +144,8 @@
                                 class="session-add-task-strip d-flex align-items-center gap-2 px-3 py-2"
                                 role="button"
                                 tabindex="0"
-                                title="Add task to this daily session"
-                                aria-label="Add task to this daily session"
+                                title="Add task to this automated task set"
+                                aria-label="Add task to this automated task set"
                                 x-on:click.stop="Livewire.dispatch('open-daily-session-task-modal', { dailySessionId: {{ $dailyId }} })"
                                 x-on:keydown.enter.prevent.stop="Livewire.dispatch('open-daily-session-task-modal', { dailySessionId: {{ $dailyId }} })"
                                 x-on:keydown.space.prevent.stop="Livewire.dispatch('open-daily-session-task-modal', { dailySessionId: {{ $dailyId }} })">
@@ -234,12 +234,12 @@
                     @endforeach
                   </div>
                 @else
-                  <div class="text-muted">No daily sessions yet.</div>
+                  <div class="text-muted">No automated task sets yet.</div>
                 @endif
               </div>
             </div>
           @empty
-            <div class="text-muted">No main daily sessions yet.</div>
+            <div class="text-muted">No automated task groups yet.</div>
           @endforelse
         </div>
       </div>

@@ -50,7 +50,14 @@ class BookingTransferLifecycleInitTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        foreach ([1 => 'Quran Memorization', 2 => 'Quranic Arabic', 15 => 'My Deen Journey'] as $subjectId => $title) {
+        foreach ([
+            1 => 'Quran Memorization',
+            2 => 'Quranic Arabic',
+            3 => 'Arabic Language',
+            4 => 'Sanad Program',
+            15 => 'My Deen Journey',
+            16 => 'Well Being',
+        ] as $subjectId => $title) {
             \Illuminate\Support\Facades\DB::table('subjects')->insert([
                 'id' => $subjectId,
                 'title' => $title,

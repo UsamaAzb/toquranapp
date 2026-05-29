@@ -106,7 +106,7 @@ class AssignDailySession extends Component
         $tasks = $daily->daily_session_tasks;
 
         if ($tasks->isEmpty()) {
-            $this->addError('selected', 'Add at least one task before assigning this daily session to students.');
+            $this->addError('selected', 'Add at least one task before assigning this automated task set to students.');
 
             return;
         }

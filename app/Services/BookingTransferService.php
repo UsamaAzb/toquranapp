@@ -28,6 +28,7 @@ use App\Models\User;
 use App\Support\BookingServiceInterest;
 use App\Support\BookingSubjectProvisioning;
 use App\Support\BookingTransferReadiness;
+use App\Support\DefaultTeacherResolver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -495,6 +496,7 @@ class BookingTransferService
         array $subjectPlan
     ): void {
         $academicYearId = $this->currentAcademicYearId();
+        $defaultTeacher = app(DefaultTeacherResolver::class)->assignmentPayload();
 
         foreach ($subjectPlan as $subject) {
             $classSubject = ClassSubject::firstOrCreate([
@@ -522,13 +524,13 @@ class BookingTransferService
 
             TeacherSubjectClass::firstOrCreate(
                 [
-                    'user_teacher_coteacher_id' => 3,
+                    'user_teacher_coteacher_id' => $defaultTeacher['user_teacher_coteacher_id'],
                     'class_id' => $class->id,
                     'subject_id' => $subject['subject_id'],
                     'class_subject_id' => $classSubject->id,
                 ],
                 [
-                    'teacher_name' => 'Dr.Osama',
+                    'teacher_name' => $defaultTeacher['teacher_name'],
                     'grade_id' => $gradeLevelId,
                     'grade_name' => $gradeName,
                     'class_name' => $class->title,

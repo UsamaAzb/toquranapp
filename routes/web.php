@@ -192,7 +192,7 @@ Route::middleware(['auth', 'role:teacher|student|parent|admin|super_admin|owner'
 //     ->name('hangman.word');
 
 Route::prefix('admin/families')
-    ->middleware(['auth', 'can:families.view_workspace'])
+    ->middleware(['auth', 'role:admin|super_admin|customer_support'])
     ->name('admin.')
     ->group(function (): void {
         Route::get('{parent}', '\\'.\App\Livewire\Admin\Families\FamilyWorkspace::class)
@@ -236,6 +236,14 @@ Route::namespace('App\Http\Controllers\Admin')->middleware(['auth', 'role:admin|
 
     Route::get('booking', fn () => redirect()->route('admin.bookings.livewire'))
         ->name('admin.booking');
+
+    Route::get('staff', '\\'.\App\Livewire\Admin\StaffUsers::class)
+        ->middleware('role:super_admin')
+        ->name('admin.staff.index');
+
+    Route::get('teacher-class-assignments', '\\'.\App\Livewire\Admin\TeacherClassAssignments::class)
+        ->middleware('role:super_admin|admin')
+        ->name('admin.teacher-class-assignments.index');
 
     Route::prefix('booking')->name('admin.booking.')->group(function () use ($retiredBookingEndpointResponse) {
 

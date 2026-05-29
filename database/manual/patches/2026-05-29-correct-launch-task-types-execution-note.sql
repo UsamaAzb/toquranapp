@@ -1,0 +1,31 @@
+-- To Quran launch task-type correction execution note
+-- Date: 2026-05-29
+-- Target DB: u504065335_to_quran
+-- Patch: database/manual/patches/2026-05-29-correct-launch-task-types.sql
+-- Backup: database/manual/backups/2026-05-29-173241-u504065335_to_quran-before-task-type-correction.sql
+--
+-- Reason:
+-- A first same-day task-type reference patch incorrectly treated attachment kinds
+-- (File, YouTube, Link) as teacher-facing task types. The teacher task modal should use
+-- Week14-style pedagogical task types:
+-- - Assignment (default; id 7)
+-- - Lesson (id 3)
+-- - Project (id 4)
+-- - Quiz (id 2)
+--
+-- Execution:
+-- SET @toquran_confirm_real_db_target = 'u504065335_to_quran';
+-- SOURCE database/manual/patches/2026-05-29-correct-launch-task-types.sql;
+--
+-- Result:
+-- - Removed stale same-day rows for Activity, YouTube, and Link.
+-- - Updated id 7 from File to Assignment.
+-- - Inserted/confirmed ids 2, 3, 4, and 7 with Week14 table names.
+-- - No existing session tasks used the stale task type IDs at correction time.
+--
+-- Verification:
+-- - DB check returned:
+--   - 7 Assignment teacher_classes_assignments
+--   - 3 Lesson teacher_classes_lessons
+--   - 4 Project teacher_classes_projects
+--   - 2 Quiz teacher_classes_quizzes_and_exams

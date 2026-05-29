@@ -26,7 +26,7 @@ class ParentStudentController extends Controller
                 ->orderBy('last_name')
                 ->orderBy('students.id')
                 ->get();
-            $subjectId = (int) config('toquran.parent_behavior_subject_id', 15);
+            $subjectId = (int) config('toquran.parent_behavior_subject_id', 16);
             $parentFirstName = $user->parent_user?->first_name
                 ?? Str::before((string) ($user->name ?? ''), ' ');
             $parentFirstName = trim((string) $parentFirstName) !== '' ? $parentFirstName : 'there';

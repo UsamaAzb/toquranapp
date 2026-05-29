@@ -158,7 +158,7 @@ class DailySessionsController extends Controller
         ]).'?'.http_build_query(['open_daily' => $dailySessionId]).'#task-'.$attachment->daily_session_task_id;
         $breadcrumb_links = [
             'Versioned Routines' => route('daily-sessions.get_subjects', ['auth_role' => 'teacher']),
-            $dailySession->title ?? 'Daily Session' => $sessionUrl,
+            $dailySession->title ?? 'Automated Task Set' => $sessionUrl,
         ];
 
         return view('teacher.DailySession.attachment-show', [
@@ -171,7 +171,7 @@ class DailySessionsController extends Controller
             'subjectid' => $subjectid,
             'dailySessionId' => $dailySessionId,
             'sessionUrl' => $sessionUrl,
-            'backButtonLabel' => 'Back to Daily Session Tasks',
+            'backButtonLabel' => 'Back to Automated Tasks',
             'breadcrumb_links' => $breadcrumb_links,
         ]
 

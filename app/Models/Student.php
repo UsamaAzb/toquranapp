@@ -177,6 +177,15 @@ class Student extends Model
         return $query->where('status', 'active');
     }
 
+    public function scopeVisibleToTeacher($query)
+    {
+        return $query->where(function ($statusQuery): void {
+            $statusQuery->whereNull('account_status')
+                ->orWhere('account_status', '')
+                ->orWhere('account_status', 'active');
+        });
+    }
+
     /**
      * Scope to filter by grade level.
      */

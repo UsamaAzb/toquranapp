@@ -1,0 +1,14 @@
+-- To Quran real-target backup evidence note
+-- Original filename: 2026-05-29-165938-u504065335_to_quran-before-arabic-language-service.sql
+-- Purpose: before adding Arabic Language as a distinct app/public service value.
+-- Original bytes: 408965
+-- Original last write: 2026-05-29 16:59:44
+-- Original SHA256: AED4680C7FF3941339BC7A606FDAC3CEDBC6E930FF8469E63DD6CDAE3DB08619
+--
+-- Repository policy:
+-- The raw dump is intentionally not stored in Git because it included users,
+-- parent/student records, recoverable credential material, sessions, and
+-- audit events from local launch smoke testing.
+--
+-- Keep full-fidelity restore dumps in secured local/offline storage only.
+-- This file is evidence only and is not executable restore SQL.

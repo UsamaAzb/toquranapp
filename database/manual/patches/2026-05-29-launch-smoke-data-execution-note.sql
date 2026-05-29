@@ -1,0 +1,73 @@
+-- To Quran launch smoke data execution note
+-- Date: 2026-05-29
+-- Target DB: u504065335_to_quran
+-- Status: executed locally for launch-path testing; remove before deployment.
+--
+-- Command:
+-- php artisan toquran:bootstrap-smoke-data --confirm-db=u504065335_to_quran
+--
+-- Guard evidence:
+-- - command verifies the active DB name matches --confirm-db
+-- - command refuses to run outside u504065335_to_quran
+-- - command verifies the target has at least 300 tables
+--
+-- Smoke marker:
+-- - user emails end with @toquran-smoke.test
+-- - class title starts with [SMOKE]
+-- - booking reference is SMOKE-TQ-0001
+--
+-- Created or verified current smoke shape:
+-- users: 14 total smoke users under @toquran-smoke.test
+-- - #20 admin.smoke@toquran-smoke.test              role: admin
+-- - #21 support.smoke@toquran-smoke.test            role: customer_support
+-- - #27 support.two.smoke@toquran-smoke.test        role: customer_support
+-- - #22 teacher.smoke@toquran-smoke.test            role: teacher
+-- - 4 parent users and 6 student users for the smoke families below
+--
+-- class / teacher assignment:
+-- - classes #4, [SMOKE] Quran Beginner Cohort
+-- - class_subjects #4
+-- - teacher_subject_classes #4, teacher #22, Quran Memorization
+-- - one-student-per-class launch shape:
+--   - student #2 Omar is the only current/active teacher-visible smoke student in class_subjects #4
+--   - students #3, #4, #5, #6, and #7 have inactive class/subject links for lifecycle/state testing
+--
+-- families / intake:
+-- - active mixed family: parents #4, booking #1 / SMOKE-TQ-0001
+--   - students #2 active, #3 suspended
+--   - assigned support user #21
+-- - pending activation family: parents #5, booking #2 / SMOKE-TQ-0002
+--   - student #4 pending_activation
+--   - assigned support user #27
+-- - suspended family: parents #6, booking #3 / SMOKE-TQ-0003
+--   - students #5 active child under suspended family, #6 suspended
+--   - assigned support user #21
+-- - archived family: parents #7, booking #4 / SMOKE-TQ-0004
+--   - student #7 archived
+--   - assigned support user #27
+--
+-- Password:
+-- - smoke accounts share the command default smoke password for local testing.
+-- - do not deploy these accounts.
+--
+-- Follow-up correction:
+-- - Date: 2026-05-29
+-- - Backup before correction:
+--   database/manual/backups/2026-05-29-121601-u504065335_to_quran-before-smoke-one-student-correction.sql
+-- - Command re-run after BootstrapSmokeData one-student-per-class correction:
+--   php artisan toquran:bootstrap-smoke-data --confirm-db=u504065335_to_quran
+-- - Verification query confirmed:
+--   - 1 distinct assigned launch teacher in current/active teacher_subject_classes
+--   - only student #2 Omar has current class history and active students_subjects for the smoke Quran class
+--
+-- Additional manual smoke:
+-- - Student Account > Subject Access was manually smoke-tested by assigning Smoke Quran Teacher to
+--   Smoke Student Nour's Quranic Arabic class subject through the searchable teacher dropdown.
+-- - Follow-up teacher visibility work now filters teacher-facing classes by active child lifecycle,
+--   so Nour's archived account remains useful as negative smoke data and does not appear in
+--   /teacher/classes as a live class.
+-- - This remains launch smoke data and is covered by the scoped smoke cleanup plan.
+--
+-- Cleanup:
+-- - cleanup plan is documented in:
+--   database/manual/patches/2026-05-29-launch-smoke-data-cleanup-plan.sql

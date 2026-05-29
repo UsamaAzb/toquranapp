@@ -1,6 +1,7 @@
 -- To Quran legacy Quran video preservation extract
 -- Date: 2026-05-28
--- Source: database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql
+-- Original source: secured raw export referenced by
+-- database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql
 -- Purpose: preserve old Quran surah/video list before real app DB transition.
 -- Tables included: surahs, surahs_old, surh_videos
 -- Status: preservation evidence only; do not execute into app schema without a Library migration plan.

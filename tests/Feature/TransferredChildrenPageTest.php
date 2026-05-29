@@ -107,6 +107,91 @@ class TransferredChildrenPageTest extends TestCase
             ->assertDontSee(route('admin.calendar.view', ['student' => $transferredChild->student_id, 'source' => 'transferred-children']));
     }
 
+    public function test_admin_can_assign_customer_support_owner_to_transferred_family(): void
+    {
+        $this->actingAs($this->createStaffUser('admin'));
+
+        $supportUser = $this->createStaffUser('customer_support', [
+            'name' => 'Support One',
+            'email' => 'support.one@example.test',
+        ]);
+        $transferredChild = $this->createTransferredChild();
+        $parentId = (int) $transferredChild->student->parent_id;
+
+        Livewire::test(TransferredChildren::class)
+            ->assertSee('Support: Unassigned')
+            ->call('assignFamilySupport', $parentId, $supportUser->id)
+            ->assertHasNoErrors()
+            ->assertSee('Family support owner assigned to Support One.')
+            ->assertSee('Support: Support One');
+
+        $this->assertSame($supportUser->id, ParentModel::find($parentId)->family_support_id);
+    }
+
+    public function test_customer_support_user_cannot_assign_family_support_owner(): void
+    {
+        $actor = $this->createStaffUser('customer_support');
+        $otherSupportUser = $this->createStaffUser('customer_support', [
+            'name' => 'Support Two',
+            'email' => 'support.two@example.test',
+        ]);
+        $transferredChild = $this->createTransferredChild();
+        $parentId = (int) $transferredChild->student->parent_id;
+
+        Livewire::actingAs($actor)
+            ->test(TransferredChildren::class)
+            ->call('assignFamilySupport', $parentId, $otherSupportUser->id)
+            ->assertHasErrors(['familySupport'])
+            ->assertSee('Only admin or superadmin can assign family support ownership.');
+
+        $this->assertNull(ParentModel::find($parentId)->family_support_id);
+    }
+
+    public function test_family_support_assignment_rejects_non_support_staff(): void
+    {
+        $this->actingAs($this->createStaffUser('super_admin'));
+
+        $teacher = $this->createStaffUser('teacher', [
+            'name' => 'Teacher One',
+            'email' => 'teacher.one@example.test',
+        ]);
+        $transferredChild = $this->createTransferredChild();
+        $parentId = (int) $transferredChild->student->parent_id;
+
+        Livewire::test(TransferredChildren::class)
+            ->call('assignFamilySupport', $parentId, $teacher->id)
+            ->assertHasErrors(['familySupport'])
+            ->assertSee('Choose an active customer support user.');
+
+        $this->assertNull(ParentModel::find($parentId)->family_support_id);
+    }
+
+    public function test_family_support_assignment_rejects_parent_without_transferred_child(): void
+    {
+        $this->actingAs($this->createStaffUser('admin'));
+
+        $this->createTransferredChild();
+        $supportUser = $this->createStaffUser('customer_support', [
+            'name' => 'Support Three',
+            'email' => 'support.three@example.test',
+        ]);
+        $orphanParent = ParentModel::create([
+            'first_name' => 'Non',
+            'last_name' => 'Transferred',
+            'email' => 'non.transferred.parent@example.test',
+            'phone' => '201099999999',
+            'active' => true,
+            'lifecycle_status' => 'active',
+        ]);
+
+        Livewire::test(TransferredChildren::class)
+            ->call('assignFamilySupport', $orphanParent->id, $supportUser->id)
+            ->assertHasErrors(['familySupport'])
+            ->assertSee('Choose a transferred family from this page.');
+
+        $this->assertNull($orphanParent->fresh()->family_support_id);
+    }
+
     public function test_customer_support_layout_includes_transferred_families_sidebar_link(): void
     {
         $this->actingAs($this->createStaffUser('customer_support'));
@@ -409,12 +494,12 @@ class TransferredChildrenPageTest extends TestCase
         ], $childOverrides));
     }
 
-    private function createStaffUser(string $roleName): User
+    private function createStaffUser(string $roleName, array $attributes = []): User
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $role = Role::findOrCreate($roleName, 'web');
-        $user = User::factory()->create(['status' => 'active']);
+        $user = User::factory()->create(array_merge(['status' => 'active'], $attributes));
         $user->assignRole($role);
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

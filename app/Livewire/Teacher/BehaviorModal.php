@@ -103,7 +103,7 @@ class BehaviorModal extends Component
             return TeacherSubjectClass::query()
                 ->whereKey($this->teacherSubjectClassesId)
                 // Match the current parent student mapping in ParentStudentController.
-                ->where('subject_id', (int) config('toquran.parent_behavior_subject_id', 15))
+                ->where('subject_id', (int) config('toquran.parent_behavior_subject_id', 16))
                 ->where('class_id', $student->current_class_id)
                 ->where('grade_id', $student->grade_level_id)
                 ->availableForTeacher()

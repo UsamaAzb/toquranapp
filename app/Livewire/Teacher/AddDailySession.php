@@ -38,7 +38,7 @@ class AddDailySession extends Component
     {
         try {
             $mainDailySession = $this->resolveOwnedMainDailySessionOrFail();
-            $defaultTitle = 'New Daily Session';
+            $defaultTitle = 'New Automated Task Set';
 
             $daily = DailySession::create([
                 'main_daily_session_id' => $mainDailySession->id,
@@ -49,7 +49,7 @@ class AddDailySession extends Component
             $this->dispatch('daily-session-added', dailySessionId: (int) $daily->id);
         } catch (\Throwable $e) {
             report($e);
-            $this->dispatch('toast', type: 'danger', message: 'Failed to add daily session.');
+            $this->dispatch('toast', type: 'danger', message: 'Failed to add automated task set.');
         }
     }
 

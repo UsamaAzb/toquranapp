@@ -129,7 +129,10 @@
         <h5 class="mb-1">Student quick actions</h5>
         <p class="mb-0 text-muted">Review tasks or add behavior points from the active subject context.</p>
       </div>
-      <span class="badge bg-label-primary">{{ ($teacher_students ?? collect())->count() }} students</span>
+      @php
+        $teacherStudentCount = ($teacher_students ?? collect())->count();
+      @endphp
+      <span class="badge bg-label-primary">{{ $teacherStudentCount }} student{{ $teacherStudentCount === 1 ? '' : 's' }}</span>
     </div>
     <div class="card-body">
       <div class="d-flex flex-column gap-2">

@@ -62,7 +62,7 @@ Because `u504065335_to_quran` is also the public website DB name/export source, 
 Minimum website follow-up before launch:
 
 - update public sign-in links to `https://app.toquran.org/login`;
-- align service interest values with the app service catalog;
+- align service interest values with the app service catalog, including Arabic Language as a distinct public/app service value when the website handoff starts;
 - decide whether public intake writes directly to app-owned tables or calls an app-owned endpoint;
 - preserve or replace public Quran video display using the later Library migration path.
 

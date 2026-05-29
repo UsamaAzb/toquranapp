@@ -1,5 +1,5 @@
 <div>
   <button type="button" class="btn btn-primary" wire:click="addMainDailySession">
-    + Add New main Session
+    + Add Automated Task Group
   </button>
 </div>

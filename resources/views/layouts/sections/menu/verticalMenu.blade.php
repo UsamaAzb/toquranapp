@@ -14,16 +14,13 @@ $canAccessTransferredFamilies = auth()->check() && $user?->hasAnyRole(['admin', 
     font-weight: 600!important;
 }
 
-.w14-brand-logo-dark {
-    display: none;
-}
-
-[data-bs-theme="dark"] #layout-menu .w14-brand-logo-light {
-    display: none;
-}
-
-[data-bs-theme="dark"] #layout-menu .w14-brand-logo-dark {
-    display: inline-block;
+.tq-brand-logo {
+    display: block;
+    height: auto;
+    max-height: 3.5rem;
+    max-width: 11rem;
+    object-fit: contain;
+    width: 100%;
 }
 </style>
 <aside id="layout-menu" class="layout-menu menu-vertical menu"
@@ -35,8 +32,7 @@ $canAccessTransferredFamilies = auth()->check() && $user?->hasAnyRole(['admin', 
   @if (!isset($navbarFull))
     <div class="app-brand demo">
         <span class="app-brand-logo demo">
-          <img class="w14-brand-logo-light" src="{{ asset('assets/img/logo/logo.png') }}" width="169" height="32" style="width:60%;height:auto" alt="To Quran">
-          <img class="w14-brand-logo-dark" src="{{ asset('assets/img/logo/logo-dark.png') }}" width="169" height="32" style="width:60%;height:auto" alt="To Quran">
+          <img class="tq-brand-logo" src="{{ asset('assets/img/logo/logo.png') }}" width="169" height="56" alt="To Quran">
         </span>
         <!--<span class="app-brand-text demo menu-text fw-bold ms-3">{{ config('variables.templateName') }}</span>-->
       
@@ -64,13 +60,31 @@ $canAccessTransferredFamilies = auth()->check() && $user?->hasAnyRole(['admin', 
           
              
           
-              <li class="menu-item {{ $currentRouteName === 'admin.bookings.livewire' ? 'active' : '' }}">
+          <li class="menu-item {{ $currentRouteName === 'admin.bookings.livewire' ? 'active' : '' }}">
             <a href="{{url('admin/bookings')}}"
                class="menu-link"
                
             >
                 <i class="menu-icon icon-base ti tabler-clipboard-list"></i>
               <div>Booking</div>
+            </a>
+          </li>
+          @role('super_admin')
+            <li class="menu-item {{ $currentRouteName === 'admin.staff.index' ? 'active' : '' }}">
+              <a href="{{ route('admin.staff.index') }}"
+                 class="menu-link"
+              >
+                <i class="menu-icon icon-base ti tabler-user-cog"></i>
+                <div>Staff Users</div>
+              </a>
+            </li>
+          @endrole
+          <li class="menu-item {{ $currentRouteName === 'admin.teacher-class-assignments.index' ? 'active' : '' }}">
+            <a href="{{ route('admin.teacher-class-assignments.index') }}"
+               class="menu-link"
+            >
+              <i class="menu-icon icon-base ti tabler-school"></i>
+              <div>Teacher Assignments</div>
             </a>
           </li>
            <li class="menu-item {{ str_starts_with($currentPath, 'admin/calendar') ? 'active' : '' }}">

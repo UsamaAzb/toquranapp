@@ -98,14 +98,11 @@
              <div class="invalid-feedback" data-error-for="student.service_type_id"></div>
            </div>
            <div class="col-12 col-md-6">
-             <label class="form-label" for="student_status">Status</label>
-             <select id="student_status" name="student[status]" class="form-select" aria-label="Default select example">
-               <option selected>Status</option>
-               <option value="active" {{ $student->status  == 'active' ? 'selected' : '' }}>Active</option>
-        <option value="inactive" {{  $student->status  == 'inactive' ? 'selected' : '' }}>Inactive</option>
-   </select>
-             <div class="invalid-feedback" data-error-for="student.status"></div>
-
+             <label class="form-label">Account Status</label>
+             <div class="form-control-plaintext border rounded px-3 py-2 bg-lighter">
+               <span class="badge bg-label-{{ $student->lifecycleStatusTone() }}">{{ $student->lifecycleStatusLabel() }}</span>
+             </div>
+             <small class="text-body-secondary d-block mt-1">Use Family Workspace lifecycle actions to activate, suspend, or restore a student.</small>
            </div>
 
           <div class="col-12 text-center">

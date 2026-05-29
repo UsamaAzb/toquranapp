@@ -283,17 +283,17 @@ class ShowSessionTask extends Component
 
     public function getIsFileTypeProperty(): bool
     {
-        return (int) $this->task_type_id === 7;
+        return true;
     }
 
     public function getIsLinkTypeProperty(): bool
     {
-        return (int) $this->task_type_id === 9;
+        return true;
     }
 
     public function getIsYoutubeTypeProperty(): bool
     {
-        return (int) $this->task_type_id === 8;
+        return true;
     }
 
     // 1) ارجعي النوع المختار كـ array أو null
@@ -351,36 +351,7 @@ class ShowSessionTask extends Component
         $this->max_points = is_null($mp) ? 10 : (int) $mp;
 
         // نظّف مدخلات النوع الآخر
-        if ($this->isFileType) {
-            $this->files = [];
-            $this->finalFiles = [];
-            $this->link = null;
-            $this->youtube = null;
-            $this->links = [];
-            $this->youtubes = [];
-        } elseif ($this->isLinkType) {
-            $this->files = [];
-            $this->finalFiles = [];
-            $this->youtube = null;
-            $this->youtubes = [];
-            $this->youtube_title_input = '';
-            $this->youtube_url_input = '';
-        } elseif ($this->isYoutubeType) {
-            $this->files = [];
-            $this->finalFiles = [];
-            $this->link = null;
-            $this->links = [];
-            $this->link_title_input = '';
-            $this->link_url_input = '';
-        } else {
-            $this->files = [];
-            $this->finalFiles = [];
-            $this->links = [];
-            $this->youtubes = [];
-            $this->link = null;
-            $this->youtube = null;
-        }
-
+        // Attachments are independent from the launch task type.
         $this->rebuildAttachmentState();
     }
 
@@ -862,15 +833,18 @@ class ShowSessionTask extends Component
             'default_points' => ['required', 'integer', 'min:0', 'lte:max_points'], // default ≤ max
 
             // ملفات
-            'finalFiles.*' => ['nullable', 'file', 'max:'.self::MAX_ATTACHMENT_FILE_KB],
+            'finalFiles' => ['nullable', 'array'],
+            'finalFiles.*' => ['file', 'max:'.self::MAX_ATTACHMENT_FILE_KB, 'extensions:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,webp,gif,mp4,mov,m4v,webm,ogg,mp3,wav'],
 
             // لينكات
-            'links.*.title' => ['nullable', 'string', 'max:255'],
-            'links.*.url' => ['nullable', 'url', 'max:2048'],
+            'links' => ['nullable', 'array'],
+            'links.*.title' => ['required', 'string', 'max:255'],
+            'links.*.url' => ['required', 'url', 'max:2048'],
 
             // يوتيوب
-            'youtubes.*.title' => ['nullable', 'string', 'max:255'],
-            'youtubes.*.url' => ['nullable', 'url', 'max:2048'],
+            'youtubes' => ['nullable', 'array'],
+            'youtubes.*.title' => ['required', 'string', 'max:255'],
+            'youtubes.*.url' => ['required', 'url', 'max:2048'],
             'vocabularyGameSetIds' => ['array'],
             'vocabularyGameSetIds.*' => ['integer'],
             'vocabularyAllowedGames' => ['array'],
@@ -878,29 +852,6 @@ class ShowSessionTask extends Component
             'vocabularyDifficultyPolicy' => ['required', 'in:student_choice,sprout,climber,champion'],
 
         ]; // قواعد Laravel للـ integer/min/lte. :contentReference[oaicite:2]{index=2}
-
-        // لو النوع ملفات: فعّل قواعد الرفع
-        $selected = collect($this->taskTypes)->firstWhere('id', $this->task_type_id);
-        $isFileType = $selected && (strtolower($selected['title'] ?? '') === 'file');
-        $isLinkType = $selected && (strtolower($selected['title'] ?? '') === 'link');
-        $isYoutubeType = $selected && (strtolower($selected['title'] ?? '') === 'youtube');
-
-        if ($isFileType) {
-            $rules['finalFiles'] = ['nullable', 'array'];
-            $rules['finalFiles.*'] = ['file', 'max:'.self::MAX_ATTACHMENT_FILE_KB, 'extensions:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,webp,gif,mp4,mov,m4v,webm,ogg,mp3,wav'];
-        }
-        if ($isLinkType) {
-            $rules['links'] = ['nullable', 'array'];
-            $rules['links.*.title'] = ['required', 'string', 'max:255'];
-            $rules['links.*.url'] = ['required', 'url', 'max:2048'];
-        }
-
-        // قواعد نوع "يوتيوب"
-        if ($isYoutubeType) {
-            $rules['youtubes'] = ['nullable', 'array'];
-            $rules['youtubes.*.title'] = ['required', 'string', 'max:255'];
-            $rules['youtubes.*.url'] = ['required', 'url', 'max:2048'];
-        }
 
         return $rules;
     }

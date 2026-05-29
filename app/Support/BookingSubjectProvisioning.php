@@ -15,7 +15,13 @@ final class BookingSubjectProvisioning
 
     public const SUBJECT_QURANIC_ARABIC = 2;
 
+    public const SUBJECT_ARABIC_LANGUAGE = 3;
+
+    public const SUBJECT_SANAD_PROGRAM = 4;
+
     public const SUBJECT_MY_DEEN_JOURNEY = 15;
+
+    public const SUBJECT_WELL_BEING = 16;
 
     /** @deprecated Use SUBJECT_QURAN_MEMORIZATION. */
     public const SUBJECT_LANGUAGE_AND_LITERATURE = self::SUBJECT_QURAN_MEMORIZATION;
@@ -25,9 +31,6 @@ final class BookingSubjectProvisioning
 
     /** @deprecated Use SUBJECT_QURANIC_ARABIC. */
     public const SUBJECT_MATH = self::SUBJECT_QURANIC_ARABIC;
-
-    /** @deprecated Use SUBJECT_MY_DEEN_JOURNEY. */
-    public const SUBJECT_WELL_BEING = self::SUBJECT_MY_DEEN_JOURNEY;
 
     public static function planForGradeLevel(?int $gradeLevelId): array
     {
@@ -100,6 +103,7 @@ final class BookingSubjectProvisioning
             self::SUBJECT_QURAN_MEMORIZATION,
             self::SUBJECT_QURANIC_ARABIC,
             self::SUBJECT_MY_DEEN_JOURNEY,
+            self::SUBJECT_WELL_BEING,
         ];
     }
 
@@ -108,7 +112,10 @@ final class BookingSubjectProvisioning
         return match ($subjectId) {
             self::SUBJECT_QURAN_MEMORIZATION => 'Quran Memorization',
             self::SUBJECT_QURANIC_ARABIC => 'Quranic Arabic',
+            self::SUBJECT_ARABIC_LANGUAGE => 'Arabic Language',
+            self::SUBJECT_SANAD_PROGRAM => 'Sanad Program',
             self::SUBJECT_MY_DEEN_JOURNEY => 'My Deen Journey',
+            self::SUBJECT_WELL_BEING => 'Well Being',
             default => 'Subject '.$subjectId,
         };
     }
@@ -125,7 +132,10 @@ final class BookingSubjectProvisioning
         return match ($subjectId) {
             self::SUBJECT_QURAN_MEMORIZATION => 'Quran',
             self::SUBJECT_QURANIC_ARABIC => 'Arabic',
+            self::SUBJECT_ARABIC_LANGUAGE => 'Arabic Language',
+            self::SUBJECT_SANAD_PROGRAM => 'Sanad',
             self::SUBJECT_MY_DEEN_JOURNEY => 'Deen Journey',
+            self::SUBJECT_WELL_BEING => 'Well Being',
             default => self::displaySubjectName($subjectId, $storedTitle),
         };
     }
@@ -201,7 +211,19 @@ final class BookingSubjectProvisioning
             return ['icon' => 'ti tabler-books', 'tone' => 'language'];
         }
 
+        if ($subjectId === self::SUBJECT_ARABIC_LANGUAGE) {
+            return ['icon' => 'ti tabler-language', 'tone' => 'language'];
+        }
+
+        if ($subjectId === self::SUBJECT_SANAD_PROGRAM) {
+            return ['icon' => 'ti tabler-certificate', 'tone' => 'quran'];
+        }
+
         if ($subjectId === self::SUBJECT_MY_DEEN_JOURNEY) {
+            return ['icon' => 'ti tabler-route', 'tone' => 'wellbeing'];
+        }
+
+        if ($subjectId === self::SUBJECT_WELL_BEING) {
             return ['icon' => 'ti tabler-heart-handshake', 'tone' => 'wellbeing'];
         }
 

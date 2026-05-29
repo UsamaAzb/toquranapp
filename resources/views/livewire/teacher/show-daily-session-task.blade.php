@@ -13,7 +13,7 @@
 
         <div class="modal-header">
           <h5 class="modal-title">
-            {{ $isEdit ? 'Edit Task' : 'Add Task to daily Session #' . $dailySessionId }}
+            {{ $isEdit ? 'Edit Task' : 'Add Task to Automated Task Set #' . $dailySessionId }}
           </h5>
           <button type="button" class="btn-close" wire:click="$set('show', false)"
                   wire:loading.attr="disabled" wire:target="save,updateTask,addLink,addYoutube,files"></button>

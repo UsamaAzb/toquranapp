@@ -1,7 +1,7 @@
 @extends('layouts/layoutMaster')
 
 @section('title', $attachment->title ?? 'Attachment')
-@section('meta_description', 'Preview this protected daily session attachment.')
+@section('meta_description', 'Preview this protected automated task attachment.')
 
 @section('content')
 <style>
@@ -98,7 +98,7 @@
         @if(!empty($sessionUrl))
           <a href="{{ $sessionUrl }}" class="btn btn-outline-primary teacher-daily-back-button">
             <i class="ti tabler-arrow-left"></i>
-            <span>{{ $backButtonLabel ?? 'Back to Daily Session Tasks' }}</span>
+            <span>{{ $backButtonLabel ?? 'Back to Automated Tasks' }}</span>
           </a>
         @endif
       </div>

@@ -99,6 +99,76 @@ class FamilyWorkspaceLifecycleTest extends TestCase
         $this->assertDatabaseCount('account_histories', 0);
     }
 
+    public function test_student_account_edit_modal_keeps_lifecycle_status_read_only(): void
+    {
+        $this->createStudentModalReferenceTables();
+        [$parent] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        [$child] = $this->createChild($parent, ChildAccountStatus::Archived->value);
+        $child->forceFill([
+            'age' => 13,
+            'grade_level_id' => 1,
+            'program_id' => 1,
+            'school_system' => 'Egyptian',
+            'service_type_id' => 1,
+            'status' => 'inactive',
+        ])->save();
+
+        $html = view('_partials._modals.modal-edit-user', [
+            'student' => $child->load('parent'),
+            'programs' => DB::table('school_program')->get(),
+            'grade_levels' => DB::table('grade_levels')->get(),
+            'services_types' => DB::table('services_types')->get(),
+        ])->render();
+
+        $this->assertStringContainsString('Account Status', $html);
+        $this->assertStringContainsString('Archived', $html);
+        $this->assertStringContainsString('Use Family Workspace lifecycle actions', $html);
+        $this->assertStringNotContainsString('name="student[status]"', $html);
+    }
+
+    public function test_student_modal_update_does_not_change_lifecycle_status_from_legacy_status_field(): void
+    {
+        $this->createStudentModalReferenceTables();
+        [$parent] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        [$child] = $this->createChild($parent, ChildAccountStatus::Archived->value);
+        $child->forceFill([
+            'age' => 13,
+            'grade_level_id' => 1,
+            'program_id' => 1,
+            'school_system' => 'Egyptian',
+            'service_type_id' => 1,
+            'status' => 'inactive',
+        ])->save();
+
+        $admin = $this->createWorkspaceStaff('admin', []);
+
+        $this->actingAs($admin)
+            ->putJson(route('admin.students.modal-update', $child->id), [
+                'parent' => [
+                    'first_name' => 'Mariam',
+                    'last_name' => 'Hany',
+                    'email' => 'mariam.updated@example.test',
+                    'phone' => '01000000002',
+                ],
+                'student' => [
+                    'first_name' => 'Youssef',
+                    'last_name' => 'Hany',
+                    'age' => 13,
+                    'school_system' => 'Egyptian',
+                    'program_id' => 1,
+                    'grade_level_id' => 1,
+                    'service_type_id' => 1,
+                    'status' => 'active',
+                ],
+            ])
+            ->assertOk();
+
+        $child->refresh();
+
+        $this->assertSame(ChildAccountStatus::Archived->value, $child->account_status);
+        $this->assertSame('inactive', $child->status);
+    }
+
     public function test_lifecycle_confirmation_without_reason_is_rejected_without_history(): void
     {
         [$parent] = $this->createFamily(FamilyLifecycleStatus::Active->value);
@@ -189,6 +259,18 @@ class FamilyWorkspaceLifecycleTest extends TestCase
         $this->assertSame($originalChildPasswordHash, $childUser->fresh()->password);
         $this->assertSame(ChildAccountStatus::Active->value, $child->fresh()->account_status);
         $this->assertDatabaseCount('account_histories', 0);
+    }
+
+    public function test_launch_staff_roles_can_open_family_workspace_without_seeded_permission_rows(): void
+    {
+        [$parent] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+
+        foreach (['super_admin', 'admin', 'customer_support'] as $role) {
+            $this->actingAs($this->createWorkspaceStaff($role, []));
+
+            $this->get(route('admin.families.show', $parent))
+                ->assertOk();
+        }
     }
 
     public function test_account_history_blocks_eloquent_bulk_mutation_paths(): void
@@ -609,6 +691,72 @@ class FamilyWorkspaceLifecycleTest extends TestCase
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         return $user->fresh();
+    }
+
+    private function createStudentModalReferenceTables(): void
+    {
+        if (! Schema::hasTable('grade_levels')) {
+            Schema::create('grade_levels', function ($table): void {
+                $table->id();
+                $table->string('title');
+                $table->boolean('active')->default(true);
+                $table->unsignedInteger('level_order')->default(1);
+                $table->timestamps();
+            });
+        }
+
+        if (! DB::table('grade_levels')->where('id', 1)->exists()) {
+            DB::table('grade_levels')->insert([
+                'id' => 1,
+                'title' => 'Beginner',
+                'active' => 1,
+                'level_order' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        if (! Schema::hasTable('school_program')) {
+            Schema::create('school_program', function ($table): void {
+                $table->id();
+                $table->string('title');
+                $table->string('code')->nullable();
+                $table->boolean('active')->default(true);
+                $table->timestamps();
+            });
+        }
+
+        if (! DB::table('school_program')->where('id', 1)->exists()) {
+            DB::table('school_program')->insert([
+                'id' => 1,
+                'title' => 'To Quran Private Tutoring',
+                'code' => 'TQ',
+                'active' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        if (! Schema::hasTable('services_types')) {
+            Schema::create('services_types', function ($table): void {
+                $table->id();
+                $table->string('title');
+                $table->string('value')->nullable();
+                $table->boolean('active')->default(true);
+                $table->timestamps();
+            });
+        }
+
+        if (! DB::table('services_types')->where('id', 1)->exists()) {
+            DB::table('services_types')->insert([
+                'id' => 1,
+                'title' => 'Quran Memorization',
+                'value' => 'Quran Memorization',
+                'active' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 
     private function createClassHistoryTables(): void

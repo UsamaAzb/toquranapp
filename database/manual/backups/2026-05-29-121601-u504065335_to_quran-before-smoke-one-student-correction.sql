@@ -1,0 +1,14 @@
+-- To Quran real-target backup evidence note
+-- Original filename: 2026-05-29-121601-u504065335_to_quran-before-smoke-one-student-correction.sql
+-- Purpose: before correcting launch smoke data to one active student per class.
+-- Original bytes: 394464
+-- Original last write: 2026-05-29 12:16:14
+-- Original SHA256: 867E952C247CA2DF07ED6FD82D6FF8A162D01FDC59ADE03477EC00AEAD2AA114
+--
+-- Repository policy:
+-- The raw dump is intentionally not stored in Git because it included users,
+-- parent/student records, recoverable credential material, sessions, and
+-- audit events from local launch smoke testing.
+--
+-- Keep full-fidelity restore dumps in secured local/offline storage only.
+-- This file is evidence only and is not executable restore SQL.

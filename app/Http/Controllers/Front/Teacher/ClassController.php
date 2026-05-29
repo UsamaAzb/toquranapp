@@ -69,6 +69,13 @@ class ClassController extends Controller
                 ->where('user_teacher_coteacher_id', $user_id)
                 ->availableForTeacher()
                 ->withActiveStudentSubject()
+                ->with(['classSubject.studentsSubjects' => function ($query): void {
+                    $query->where('status', 'active')
+                        ->whereHas('student', function ($studentQuery): void {
+                            $studentQuery->visibleToTeacher();
+                        })
+                        ->with('student:id,first_name,last_name,student_email,account_status');
+                }])
                 ->get();
 
             return view('teacher.classes.subject_classes', compact('TeacherSubjectClass'));
@@ -101,6 +108,9 @@ class ClassController extends Controller
             ->with('student:id,first_name,last_name,student_email')
             ->where('class_subject_id', $class_subject_id)
             ->where('status', 'active')
+            ->whereHas('student', function ($studentQuery): void {
+                $studentQuery->visibleToTeacher();
+            })
             ->get()
             ->pluck('student')
             ->filter()
@@ -151,7 +161,10 @@ class ClassController extends Controller
                 ->availableForTeacher()
                 ->whereHas('classSubject.studentsSubjects', function ($query) use ($student): void {
                     $query->where('student_id', $student)
-                        ->where('status', 'active');
+                        ->where('status', 'active')
+                        ->whereHas('student', function ($studentQuery): void {
+                            $studentQuery->visibleToTeacher();
+                        });
                 })
                 ->exists(),
             403

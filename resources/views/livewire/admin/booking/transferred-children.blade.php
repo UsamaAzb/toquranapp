@@ -70,6 +70,12 @@
     </div>
   @endif
 
+  @error('familySupport')
+    <div class="col-12">
+      <div class="alert alert-danger mb-0" role="alert">{{ $message }}</div>
+    </div>
+  @enderror
+
   <div class="col-12">
     <div class="card">
       <div class="card-header border-bottom">
@@ -143,6 +149,8 @@
                     $nextAction = $this->nextActionMeta($booking);
                     $statusMeta = $this->parentStatusMeta($booking);
                     $menuActions = $this->accountMenuActions($booking);
+                    $familySupportId = $this->familySupportId($booking);
+                    $familySupportName = $this->familySupportName($booking);
                   @endphp
                   <tr class="bg-lighter" wire:key="booking-{{ $booking->id }}-header">
                     <td class="py-3 text-center">
@@ -174,6 +182,23 @@
                           </div>
                           <div class="small text-body-secondary">
                             {{ $this->parentContactPhone($booking) }}
+                          </div>
+                          <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="badge bg-label-info">Support: {{ $familySupportName }}</span>
+                            @if ($canManageBookingAdmin && $familyWorkspaceTargetId)
+                              <select
+                                class="form-select form-select-sm w-auto"
+                                wire:change="assignFamilySupport({{ $familyWorkspaceTargetId }}, $event.target.value)"
+                                aria-label="Assign support owner for {{ $this->parentDisplayName($booking) }}"
+                              >
+                                <option value="">Unassigned</option>
+                                @foreach ($supportUsers as $supportUser)
+                                  <option value="{{ $supportUser->id }}" @selected($familySupportId === $supportUser->id)>
+                                    {{ $supportUser->name }}
+                                  </option>
+                                @endforeach
+                              </select>
+                            @endif
                           </div>
                         </div>
                       </div>
@@ -389,6 +414,8 @@
                     $nextAction = $this->nextActionMeta($booking);
                   $statusMeta = $this->parentStatusMeta($booking);
                   $menuActions = $this->accountMenuActions($booking);
+                  $familySupportId = $this->familySupportId($booking);
+                  $familySupportName = $this->familySupportName($booking);
                 @endphp
 
                 <div class="border rounded-3 overflow-hidden mobile-family-card" :class="{ 'mobile-family-card--open': open }" wire:key="mobile-booking-{{ $booking->id }}" x-data="{ open: true }">
@@ -418,6 +445,23 @@
                           @endif
                           <div class="small text-body-secondary text-break">{{ $this->parentContactEmail($booking) }}</div>
                           <div class="small text-body-secondary">{{ $this->parentContactPhone($booking) }}</div>
+                          <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+                            <span class="badge bg-label-info">Support: {{ $familySupportName }}</span>
+                            @if ($canManageBookingAdmin && $familyWorkspaceTargetId)
+                              <select
+                                class="form-select form-select-sm w-auto"
+                                wire:change="assignFamilySupport({{ $familyWorkspaceTargetId }}, $event.target.value)"
+                                aria-label="Assign support owner for {{ $this->parentDisplayName($booking) }}"
+                              >
+                                <option value="">Unassigned</option>
+                                @foreach ($supportUsers as $supportUser)
+                                  <option value="{{ $supportUser->id }}" @selected($familySupportId === $supportUser->id)>
+                                    {{ $supportUser->name }}
+                                  </option>
+                                @endforeach
+                              </select>
+                            @endif
+                          </div>
                         </div>
                       </div>
 

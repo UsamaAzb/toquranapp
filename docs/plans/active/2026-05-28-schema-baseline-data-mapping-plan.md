@@ -14,7 +14,7 @@ Create the Phase 2 DB strategy for the private To Quran LMS after the Week14 app
 - The imported app boots locally and `/login` renders as `To Quran`.
 - Current local `.env` is ignored and points to `toquranapp_local` for smoke testing.
 - Owner direction on 2026-05-28 changed the deployment posture: target the real To Quran app DB name `u504065335_to_quran` for the accelerated deployment path.
-- The old public To Quran export is backed up at `database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql`.
+- The old public To Quran export is represented by a redacted backup evidence note at `database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql`; the raw export is kept out of Git.
 - The matched Week14 schema evidence is:
   - `database/manual/baseline/2026-05-27-235118-week14-live-schema.sql`
   - `database/manual/baseline/2026-05-28-001530-week14-fresh-schema.sql`

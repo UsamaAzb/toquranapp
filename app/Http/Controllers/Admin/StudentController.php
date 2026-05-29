@@ -53,7 +53,6 @@ class StudentController extends Controller
             'student.last_name' => ['nullable', 'string', 'max:100'],
             'student.age' => ['required', 'integer', 'min:1', 'max:30'],
             'student.school_system' => ['required', Rule::in(SchoolSystemOptions::values())],
-            'student.status' => ['required', 'in:active,inactive'],
             'student.program_id' => ['nullable', 'integer', 'exists:school_program,id'],
             'student.grade_level_id' => ['nullable', 'integer', 'exists:grade_levels,id'],
             'student.service_type_id' => ['required', 'integer', Rule::exists('services_types', 'id')],

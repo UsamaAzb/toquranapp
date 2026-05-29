@@ -36,7 +36,7 @@
   <div>{{ $s['student_label'] ?? $s['name'] }}</div>
 
   @if(!empty($s['assigned_elsewhere']))
-    <div class="text-primary small">assigned to other daily session</div>
+    <div class="text-primary small">assigned to another automated task set</div>
   @endif
 
   @if(!empty($s['is_assigned_current']))

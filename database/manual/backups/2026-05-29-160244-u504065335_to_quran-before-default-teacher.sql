@@ -1,0 +1,14 @@
+-- To Quran real-target backup evidence note
+-- Original filename: 2026-05-29-160244-u504065335_to_quran-before-default-teacher.sql
+-- Purpose: before creating/updating the launch default teacher account.
+-- Original bytes: 398266
+-- Original last write: 2026-05-29 16:02:52
+-- Original SHA256: 6913FBCF8A0F1345665BA0794E4F6ADA857D171D1758F015B24CC44328DAF666
+--
+-- Repository policy:
+-- The raw dump is intentionally not stored in Git because it included users,
+-- parent/student records, recoverable credential material, sessions, and
+-- audit events from local launch smoke testing.
+--
+-- Keep full-fidelity restore dumps in secured local/offline storage only.
+-- This file is evidence only and is not executable restore SQL.

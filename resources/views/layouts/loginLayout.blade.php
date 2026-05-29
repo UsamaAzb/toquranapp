@@ -12,7 +12,7 @@
     content="To Quran, login" />
   <meta property="og:title" content="{{ config('variables.templateName', 'To Quran') }} | @yield('title', 'Login')" />
   <meta property="og:url" content="{{ url()->current() }}" />
-  <meta property="og:image" content="{{ asset('assets/img/logo/logo.webp') }}" />
+  <meta property="og:image" content="{{ asset('assets/img/logo/logo.png') }}" />
   <meta property="og:description"
     content="Sign in to your To Quran account." />
   <meta property="og:site_name"
@@ -20,9 +20,9 @@
   <meta name="robots" content="noindex, nofollow" />
   
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.ico') }}" />
+  <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon/favicon.png') }}" />
   @include('pwa.meta')
-  <link rel="preload" as="image" href="{{ asset('assets/img/logo/logo.webp') }}" />
+  <link rel="preload" as="image" href="{{ asset('assets/img/logo/logo.png') }}" />
 
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"

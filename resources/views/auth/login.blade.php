@@ -110,7 +110,7 @@ max-width: 125px;
           <div class="text-center mb-4">
             <a href="{{ url('/login') }}" class="d-inline-flex align-items-center justify-content-center gap-2 text-decoration-none">
               <span class="auth-logo d-inline-flex align-items-center justify-content-center">
-                <img src="{{ asset('assets/img/logo/logo.webp') }}" alt="To Quran Logo" width="169" height="32" fetchpriority="high">
+                <img src="{{ asset('assets/img/logo/logo.png') }}" alt="To Quran Logo" width="169" height="54" fetchpriority="high">
               </span>
               {{-- لو حابة تكتبي اسم البراند جنب اللوجو --}}
               {{-- <span class="fw-bold text-dark ms-1">To Quran</span> --}}

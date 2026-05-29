@@ -1,10 +1,19 @@
--- Redacted backup evidence only.
--- Original file: database/manual/backups/2026-05-27-235118-u504065335_to_quran-export.sql
+-- To Quran legacy public DB export evidence note.
+-- Original filename: 2026-05-27-235118-u504065335_to_quran-export.sql
+-- Original source: D:\xampp\htdocs\toquran\u504065335_to_quran.sql
 -- Target/source DB: u504065335_to_quran
--- Purpose: original public To Quran DB export evidence before To Quran app/LMS transition.
+-- Original bytes: 758476
+-- Original last write: 2026-05-27 23:00:59
+-- Original SHA256: 3DF0F3EF5AC2FE9D05229A533F2885D0261C3B2B2624380BEF7FD03846C12CD2
 --
+-- Repository policy:
 -- The raw full-fidelity SQL dump was removed from the repository because it
--- contained auth/contact/runtime data and credential-like fields.
+-- contained auth/contact/runtime data, credential-like fields, and real-looking
+-- PII. Keep raw restore dumps only in secured local/offline storage.
 --
--- Keep any raw restore dump only in secured local/offline storage.
--- Do not execute this file.
+-- Preserved app-relevant data:
+-- The only legacy public DB data intentionally preserved for the To Quran app
+-- import is the Quran video/surah list, extracted separately in:
+-- database/manual/backups/2026-05-28-u504065335_to_quran-quran-video-preservation.sql
+--
+-- This file is evidence only and is not executable restore SQL.

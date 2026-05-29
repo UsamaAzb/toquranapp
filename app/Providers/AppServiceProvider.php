@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\ParentModel;
+use App\Models\User;
 use App\Observers\ParentObserver;
 use App\Services\BreadcrumbService;
 use App\View\Composers\ParentMenuComposer;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -25,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::before(function (User $user): ?bool {
+            return $user->hasRole('super_admin') ? true : null;
+        });
+
         ParentModel::observe(ParentObserver::class);
 
         View::composer('layouts.sections.menu.verticalMenu', ParentMenuComposer::class);

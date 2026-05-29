@@ -1,6 +1,6 @@
 <div>
   <button type="button" class="btn btn-sm btn-success" wire:click="addDailySession">
    
-   +  Add Daily Session
+   + Add Automated Task Set
   </button>
 </div>

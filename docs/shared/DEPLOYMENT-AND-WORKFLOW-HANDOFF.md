@@ -64,13 +64,48 @@ Before server deployment, confirm the destination host/database backup, run only
 
 ## Launch Order
 
-1. Complete TQ3 launch verification: intake review, transfer, Family Workspace, activation, parent login, and student login.
-2. Add or confirm the first superadmin account and a superadmin staff-user management surface for admins, customer support, and teachers.
-3. Complete TQ4 launch smoke: teacher login, student login, parent visibility, and core session/task pages render without crashes.
-4. Start the public `toquran` repo handoff: booking form values, reference prefix, Contact Us behavior, contact phone `+201091051913`, sign-in link, and app handoff path.
-5. Run end-to-end public form to app intake/review/transfer/login smoke tests.
-6. Complete deployment hardening: backup/export, queue/mail/storage/build assets, and Composer security advisories.
+1. Keep local/manual testing easy while launch work is active: smoke users, smoke families, and the shared local test password may remain in the local real-name app DB until the final deployment cleanup gate.
+2. Complete TQ3 launch verification: intake review, transfer, Family Workspace, activation, parent login, and student login.
+3. Review the TQ3.5 staff-user implementation, then create the first superadmin with `php artisan toquran:bootstrap-superadmin --confirm-db=u504065335_to_quran`, use the Staff Users page for admins/customer support/teachers, configure `TOQURAN_DEFAULT_TEACHER_EMAIL`, and assign transferred families to customer support owners from the app.
+4. Complete TQ4 launch smoke: teacher login, student login, parent visibility, and core session/task pages render without crashes.
+5. Start the public `toquran` repo handoff: booking form values, multi-child/per-child multi-service intake payload, reference prefix, Contact Us behavior, contact phone `+201091051913`, sign-in link, and app handoff path.
+6. Run end-to-end public form to app intake/review/transfer/login smoke tests.
+7. Complete deployment hardening: backup/export, queue/mail/storage/build assets, and Composer security advisories.
+8. Final deployment-only cleanup gate: remove launch smoke data marked by `@toquran-smoke.test`, `[SMOKE]`, and `SMOKE-TQ-*`; rotate any real staff/teacher credentials that were temporarily set to a shared local test password; verify no shared test passwords remain before any production launch or production DB export.
+
+## Local Testing Convenience Vs Deployment Safety
+
+- During active local testing, it is acceptable to keep smoke accounts/families/classes and the shared local test password because they make fast role-switching and end-to-end checks possible.
+- Do not treat that convenience state as deployable. The cleanup/rotation gate is mandatory only when moving from local smoke testing to production launch/export.
+- The real launch default teacher account `drosamaqandil@gmail.com` may keep the temporary shared password only during local testing; it must be rotated before go-live because it survives smoke-data cleanup.
+- Smoke cleanup should use the documented scoped cleanup plan rather than ad hoc deletes: `database/manual/patches/2026-05-29-launch-smoke-data-cleanup-plan.sql`.
+- After cleanup, verify zero `@toquran-smoke.test` users and no `[SMOKE]` / `SMOKE-TQ-*` rows remain in launch-facing tables.
+
+## Launch Authorization And Audit Posture
+
+- `super_admin` intentionally has a global Laravel `Gate::before` authorization bypass for launch recovery and owner-level administration.
+- Do not add audit writes inside `Gate::before`: it runs during authorization checks, not durable business actions, and would create noisy records without proving what changed.
+- Sensitive actions should keep action-level audit trails instead: family lifecycle changes, credential reveal/reset, intake transfer/contact resolution, staff/user management, support assignment, teacher assignment, and destructive cleanup.
+- Keep `super_admin` assignment tightly controlled: only the owner/root launch account should hold it unless a second break-glass account is explicitly approved.
+- Before production launch, rotate any temporary `super_admin` or real teacher/admin passwords and confirm no smoke/test account has `super_admin`.
+
+## Launch Access Handoff
+
+- Teacher-class assignment is an app-owned launch prerequisite before TQ4 smoke tests. The app route is `/admin/teacher-class-assignments` for `super_admin` and `admin`.
+- Teacher assignment should reuse `teacher_subject_classes` and deactivate assignments with `status = 'inactive'` plus `removed_at`, not hard-delete launch rows.
+- Upcoming transfer-created teacher assignments resolve through `TOQURAN_DEFAULT_TEACHER_EMAIL`; launch local default is `drosamaqandil@gmail.com` and must be set in production before first transfer smoke. If the configured teacher cannot be resolved, the app should fail loudly instead of silently assigning a legacy Week14 teacher id.
+- App-side class-subject catalog: Quran Memorization, Arabic Language, Quranic Arabic, Sanad Program, My Deen Journey / `MDJ`, and Well Being.
+- Public child-facing intake service selector for launch: Quran Memorization, Quranic Arabic, Arabic Language, Sanad Ijazah Program, and My Deen Journey. Each child may choose one or more services.
+- Guarded learning-catalog reference-data patch has been executed locally: `database/manual/patches/2026-05-29-toquran-learning-catalog-reference-data.sql`.
+- My Deen Journey / `MDJ` and Well Being must stay distinct: MDJ is the To Quran learner journey/service framing, while parent-written behavior points continue to resolve through the Well Being behavior subject only.
+- Keep inherited Week14 school-subject classes/subjects inactive where practical for future MDJ expansion; do not expose them in launch public copy or launch assignment dropdowns by default.
+- Current launch smoke and teacher-session checks assume one current/active student per class, matching the inherited Week14 operating model. Multi-student classes are allowed as a future deliberate adaptation, but they need a specific UX review for per-student actions such as Points Lab, rewards, behavior points, and task review.
+- Public website copy should avoid promising automated class scheduling, finance management, or a full class-management product during launch.
 
 ## Open Follow-Up
 
 Create a To Quran deployment checklist equivalent to Week14's server push checklist, including real server DB backup/restore, starter/reference data verification, queue/mail requirements, public website handoff, and Composer security hardening. Track that work under `TQ9. Deployment Readiness And Public Website Handoff`.
+
+Keep n8n/WhatsApp/notification ownership boundaries explicit during deployment: automation can read the app's family support assignment for routing, but should not write directly to `parents.family_support_id` without a reviewed app-side endpoint or workflow.
+
+Local smoke data was created for launch testing on 2026-05-29. Keep it while active manual testing is still happening; remove it only at the final deployment cleanup gate using `database/manual/patches/2026-05-29-launch-smoke-data-cleanup-plan.sql`.

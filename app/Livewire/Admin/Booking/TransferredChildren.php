@@ -8,6 +8,7 @@ use App\Models\BookingChild;
 use App\Models\BookingIntakeReview;
 use App\Models\ParentModel;
 use App\Models\Student;
+use App\Models\User;
 use App\Services\FamilyLifecycleService;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -21,6 +22,7 @@ use InvalidArgumentException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Spatie\Permission\Models\Role;
 
 class TransferredChildren extends Component
 {
@@ -146,6 +148,7 @@ class TransferredChildren extends Component
         return view('livewire.admin.booking.transferred-children', [
             'bookings' => $bookings,
             'pendingIntakeReviewCount' => $this->pendingIntakeReviewCount(),
+            'supportUsers' => $this->supportUsers(),
         ])->layout('components.layouts.app', ['title' => 'Transferred Children']);
     }
 
@@ -290,6 +293,77 @@ class TransferredChildren extends Component
         $parentId = $this->familyWorkspaceTargetId($booking);
 
         return $parentId ? route('admin.families.show', $parentId) : null;
+    }
+
+    public function familySupportId(Booking $booking): ?int
+    {
+        return $booking->displayTransferredChildren
+            ->pluck('student.parent.family_support_id')
+            ->filter()
+            ->first();
+    }
+
+    public function familySupportName(Booking $booking): string
+    {
+        $supportName = $booking->displayTransferredChildren
+            ->pluck('student.parent.familySupport.name')
+            ->filter()
+            ->first();
+
+        return filled($supportName) ? (string) $supportName : 'Unassigned';
+    }
+
+    public function assignFamilySupport(int $parentId, mixed $supportUserId): void
+    {
+        $this->resetErrorBag(['familySupport']);
+
+        try {
+            $this->authorizeFamilySupportAssignment();
+        } catch (AuthorizationException $exception) {
+            $this->addError('familySupport', $exception->getMessage());
+
+            return;
+        }
+
+        $supportUserId = blank($supportUserId) ? null : (int) $supportUserId;
+        $supportUser = null;
+
+        if ($supportUserId !== null) {
+            $supportUser = User::query()
+                ->whereKey($supportUserId)
+                ->where('status', 'active')
+                ->first();
+
+            if (! $supportUser?->hasRole('customer_support')) {
+                $this->addError('familySupport', 'Choose an active customer support user.');
+
+                return;
+            }
+        }
+
+        if (! $this->parentHasTransferredChild($parentId)) {
+            $this->addError('familySupport', 'Choose a transferred family from this page.');
+
+            return;
+        }
+
+        $parent = ParentModel::findOrFail($parentId);
+        $parent->forceFill(['family_support_id' => $supportUserId])->save();
+
+        session()->flash(
+            'success',
+            $supportUser
+                ? "Family support owner assigned to {$supportUser->name}."
+                : 'Family support owner cleared.'
+        );
+    }
+
+    protected function parentHasTransferredChild(int $parentId): bool
+    {
+        return BookingChild::query()
+            ->where('transfer_status', 'transferred')
+            ->whereHas('student', fn (Builder $query) => $query->where('parent_id', $parentId))
+            ->exists();
     }
 
     public function parentStatusMeta(Booking $booking): array
@@ -536,6 +610,7 @@ class TransferredChildren extends Component
                 'booking',
                 'student' => function ($studentQuery) {
                     $studentQuery->with([
+                        'parent.familySupport',
                         'parent.user',
                         'user',
                         'gradeLevel',
@@ -785,6 +860,32 @@ class TransferredChildren extends Component
         if (! $this->canViewStudentDomainLinks()) {
             throw new AuthorizationException('You do not have permission to manage lifecycle actions from this page.');
         }
+    }
+
+    protected function authorizeFamilySupportAssignment(): void
+    {
+        if (! $this->canViewStudentDomainLinks()) {
+            throw new AuthorizationException('Only admin or superadmin can assign family support ownership.');
+        }
+    }
+
+    protected function supportUsers(): Collection
+    {
+        $supportRole = Role::query()
+            ->where('name', 'customer_support')
+            ->where('guard_name', 'web')
+            ->first();
+
+        if (! $supportRole) {
+            return collect();
+        }
+
+        return User::query()
+            ->whereHas('roles', fn (Builder $query) => $query->whereKey($supportRole->id))
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->orderBy('id')
+            ->get(['id', 'name', 'email']);
     }
 
     protected function normalizeLifecycleSelection(string $action, string $targetType): array
