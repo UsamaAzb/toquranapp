@@ -9,6 +9,7 @@ final class SchoolSystemOptions
     public const IB = 'IB';
     public const AMERICAN = 'American';
     public const BRITISH = 'British';
+    public const EGYPTIAN = 'Egyptian';
     public const OTHER = 'Other';
 
     public static function values(): array
@@ -17,6 +18,7 @@ final class SchoolSystemOptions
             self::IB,
             self::AMERICAN,
             self::BRITISH,
+            self::EGYPTIAN,
             self::OTHER,
         ];
     }
@@ -27,6 +29,7 @@ final class SchoolSystemOptions
             self::IB => 'IB System',
             self::AMERICAN => 'American System',
             self::BRITISH => 'British System',
+            self::EGYPTIAN => 'Egyptian System',
             self::OTHER => 'Other',
         ];
     }
@@ -47,6 +50,7 @@ final class SchoolSystemOptions
             'ib', 'ib system', 'international baccalaureate' => self::IB,
             'american', 'american system' => self::AMERICAN,
             'british', 'british system' => self::BRITISH,
+            'egyptian', 'egyptian system' => self::EGYPTIAN,
             'other', 'other system' => self::OTHER,
             default => null,
         };

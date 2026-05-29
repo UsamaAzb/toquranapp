@@ -65,7 +65,7 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Website impact: The public website must be updated or coordinated because it previously used the same DB name and may expect old tables.
 - Owner: `toquranapp`
 - Follow-up: Create public website handoff checklist and verify real server backup/deploy path before launch.
-- Status: Implemented locally on branch `tq-real-db-transition`; pending review before commit.
+- Status: Committed on branch `tq-real-db-transition` through `e507fa5`.
 
 ### 2026-05-28 - Starter Reference Data Baseline
 - Decision: Create only minimal starter/reference rows for the deployable To Quran app baseline: roles, service values, current operating year, To Quran program, learner levels, To Quran subjects, and grade-level subject mappings. The `owner` role is included as a compatibility carry-forward because imported Week14 routes still reference it; it is not yet an approved To Quran product role.
@@ -74,4 +74,22 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Website impact: Public intake service values should align to the five app service values before launch.
 - Owner: `toquranapp`
 - Follow-up: Review TQ2 intake/service adaptation, first admin/teacher account creation path, and public website service-value handoff.
-- Status: Implemented locally on branch `tq-real-db-transition`; pending review before commit.
+- Status: Committed on branch `tq-real-db-transition` through `e507fa5`.
+
+### 2026-05-28 - Launch Scope Keeps Operations Manual
+- Decision: First deployment reuses the Week14-style manual operations model for consultation scheduling, finance, detailed class management, and teacher assignment decisions. TQ2 should focus on To Quran service/intake semantics and transfer readiness, not new scheduling or finance systems.
+- Why: Owner needs launch within two days and confirmed those operations are already handled manually in Week14.
+- App/LMS impact: Keep imported intake, review, transfer, account lifecycle, LMS access, sessions, and task foundations. Do not block launch on management systems Week14 does not already have.
+- Website impact: Public website should not promise automated scheduling, finance, or class-management features that the app does not yet own.
+- Owner: `toquranapp`
+- Follow-up: Review public form labels/reference prefix and then continue TQ2/TQ3 launch checks.
+- Status: Approved for launch-scope TQ2 implementation.
+
+### 2026-05-29 - Superadmin Staff User Management Is Required For Launch
+- Decision: Before public intake is connected for launch, superadmin needs a clear app surface to create and manage internal staff users, especially admins and teachers.
+- Why: The app cannot rely on manual database edits for the people who will operate intake, teaching, and support after launch.
+- App/LMS impact: Add or confirm a staff-user management workflow using existing `users`, Spatie roles, and teacher/admin profile patterns where possible. Scope is account/role management only.
+- Website impact: Public form and Contact Us handoff should wait until app-side staff users can be managed by superadmin.
+- Owner: `toquranapp`
+- Follow-up: Treat this as TQ3.5 launch gate after the current TQ2 service/intake review.
+- Status: Approved for launch checklist.

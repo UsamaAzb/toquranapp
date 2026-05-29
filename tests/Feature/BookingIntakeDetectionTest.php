@@ -334,7 +334,7 @@ class BookingIntakeDetectionTest extends TestCase
 
         $this->assertSame($review->id, $refreshedReview->id);
         $this->assertSame('12', $refreshedReview->child_age);
-        $this->assertSame(['IB Private Tutoring'], $refreshedReview->children_payload[0]['service_interests']);
+        $this->assertSame(['Quran Memorization'], $refreshedReview->children_payload[0]['service_interests']);
     }
 
     public function test_repeat_flagged_submission_keeps_children_payload_type_free(): void
@@ -394,7 +394,7 @@ class BookingIntakeDetectionTest extends TestCase
 
         $this->assertSame($review->id, $preservedReview->id);
         $this->assertSame('11', $preservedReview->child_age);
-        $this->assertSame(['Help Me Study'], $preservedReview->children_payload[0]['service_interests']);
+        $this->assertSame(['My Deen Journey'], $preservedReview->children_payload[0]['service_interests']);
         $this->assertSame($reviewChild->id, $preservedReview->reviewChildren->first()->id);
         $this->assertSame('promote_child', $preservedReview->reviewChildren->first()->resolution_status);
         $this->assertSame('Operator has started review.', $preservedReview->reviewChildren->first()->resolution_note);

@@ -113,11 +113,12 @@ Use this table when coordinating the import plan with `docs/TOQURAN-SPRINTS.md`.
 | Phase 0.5 - Week14 Schema Freshness Gate | TQ0.5 | Complete; schema snapshot freshness is verified. |
 | Phase 1 - App Skeleton Import | TQ1 | Complete in commit `270e832`. |
 | Phase 2 - Schema Baseline And Data Mapping Plan | TQ1.5 / TQ1 exit gate before TQ2 | Establish the app DB target and schema plan before intake/family adaptation. |
-| Phase 3 - Intake And Family Foundation | TQ2 and TQ3 | Split implementation work by service catalog/intake first, then family lifecycle. |
-| Phase 4 - Core Tutoring LMS | TQ4 | Sessions, task flows, protected attachments, approval, rewards, and behavior/consequence foundations. |
+| Phase 3 - Intake And Family Foundation | TQ2, TQ3, and TQ3.5 | Split implementation work by service catalog/intake first, then family lifecycle launch verification and superadmin staff-user management. |
+| Phase 4 - Core Tutoring LMS | TQ4 | Launch smoke for sessions/task surfaces first; deeper tutoring workflow adaptation can continue after deployment. |
 | Phase 5 - My Deen Journey | TQ5 | Service-specific adaptation after core tutoring surfaces exist. |
 | Phase 6 - Library And Automation | TQ6 and TQ7 | Split implementation work by Library/content foundation first, then routine/series automation. |
 | Phase 7 - Deferred Arabic Vocabulary Games | TQ8 | Post-deployment planning item. |
+| Deployment Readiness | TQ9 | Production hardening, public website handoff, and end-to-end smoke. |
 
 ### Phase 0 - Owner Review
 
@@ -208,7 +209,7 @@ Result:
 - real-target framework infrastructure key/index correction: complete
 - real-target malformed Library column-name and identifier-drift corrections: complete
 - current real-target schema evidence: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
-- next DB/code work: TQ2 intake/service adaptation, first admin/teacher account decision, public website handoff, and pre-deployment hardening
+- next DB/code work: TQ2 intake/service adaptation, superadmin staff-user management for admins/teachers, public website handoff, and pre-deployment hardening
 
 ### Phase 3 - Intake And Family Foundation
 
@@ -220,9 +221,21 @@ Adapt Week14 booking/intake/family lifecycle:
 - Family Workspace
 - activation and account history
 
+Launch verification boundary:
+
+- verify parent/student login and activation before website intake is connected
+- verify Family Workspace and transfer flows with To Quran service values
+- avoid broad rebuilds unless a blocker prevents launch
+
 Website follow-up:
 
 - plan public form write-path changes after app target exists
+
+Launch access follow-up:
+
+- confirm or add a superadmin staff-user management surface before public intake goes live
+- superadmin must be able to create/manage admins, customer support, and teachers
+- keep this scoped to staff accounts and roles; class assignment, scheduling, and finance remain manual for launch
 
 ### Phase 4 - Core Tutoring LMS
 
@@ -233,6 +246,11 @@ Adapt Week14:
 - protected attachments
 - task approval
 - rewards/behavior/consequence agreements
+
+Launch boundary:
+
+- smoke-test teacher login, student login, parent visibility, session/task pages, and basic assignment visibility
+- deeper tutoring workflow polish may continue after deployment
 
 ### Phase 5 - My Deen Journey
 

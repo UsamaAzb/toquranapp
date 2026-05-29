@@ -71,6 +71,30 @@ Week14 reuse:
 - likely reuse family/session/task/account structures
 - new service metadata and teacher qualification workflow likely needed
 
+## Intake Alias Rules
+
+The app canonical service values are:
+
+- Quran Memorization
+- Quranic Arabic
+- My Deen Journey
+- Paid Parental Consultation
+- Sanad Ijazah
+
+Inherited Week14 labels may still arrive from old fixtures, old data, or transitional public forms. App intake normalization maps them to To Quran values instead of exposing them as product labels:
+
+| Legacy/transitional label | To Quran value |
+| --- | --- |
+| IB Private Classes / IB Private Tutoring | Quran Memorization |
+| Help Me Read / SAT or ACT preparation | Quranic Arabic |
+| Help Me Study | My Deen Journey |
+| My Deen Journey (Parenting System) | My Deen Journey |
+| Sanad Ijazah Program | Sanad Ijazah |
+
+## Launch Scope
+
+For first deployment, do not add new scheduling, finance, consultation-calendar, or full class-management systems. The app launch should reuse the current Week14-style manual operations around those areas while the LMS handles intake review, account transfer, family workspace, teacher/student/parent access, sessions, and tasks.
+
 ## Terms To Avoid As Ongoing To Quran Product Labels
 
 - Week14
