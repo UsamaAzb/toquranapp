@@ -58,12 +58,12 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 
 ### TQ2. To Quran Service Catalog And Intake Foundation
 
-- Status: `active`
+- Status: `done`
 - Depends on: TQ1.5
 - Goal: Adapt Week14 family/intake model to Quran Memorization, Quranic Arabic, My Deen Journey, Paid Parental Consultation, and Sanad Ijazah service interests.
-- Current artifact: first app-side service/intake adaptation implemented locally on branch `tq-real-db-transition`; broad booking/family verification passed locally with 235 tests and 1203 assertions.
+- Current artifact: app-side service/intake adaptation committed in `124756b` and merged to `main` in `0b99741`; focused booking/family suite passed before merge.
 - Launch scope: keep consultation scheduling, finance, class assignment detail, and teacher management manual for first deployment. Do not build those workflows before launch unless explicitly reopened.
-- Website action: align public form values and reference prefix after app target is approved.
+- Website action: align public form values and reference prefix during TQ9 public website handoff.
 - DB action: real-target transition and starter/reference data are complete; app-side service aliases now normalize old Week14 labels and To Quran website labels to the five starter service values.
 
 ### TQ3. Family Workspace And Account Lifecycle Launch Verification
@@ -81,9 +81,10 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Status: `pending`
 - Depends on: TQ2/TQ3 access checks
 - Goal: Provide a superadmin-owned screen/workflow to create, edit, activate/deactivate, and role-manage internal staff users: admins, customer support, and teachers.
-- Launch scope: this is required before deployment. It is staff account administration only, not finance, HR, payroll, automated scheduling, or full teacher assignment management.
+- Launch scope: this is required before deployment. It includes creating the first superadmin account who can manage everything after launch, then using that account to manage staff users. It is staff account administration only, not finance, HR, payroll, automated scheduling, or full teacher assignment management.
+- Week14 reuse reference: inspect `D:\xampp\htdocs\week14-app-lms\docs\plans\active\2026-05-27-customer-support-phase1-native-task-workflow.md` before implementation. That plan treats staff/user management as a prerequisite for customer-support workflows and should inform To Quran launch sequencing.
 - Website action: none directly, but public intake should not go live until app staff can manage the people who will process it.
-- DB action: use existing `users`, Spatie roles, and teacher profile tables where possible; add only minimal guarded DB changes if the imported Week14 user-management surface is missing a required To Quran field.
+- DB action: use existing `users`, Spatie roles, and teacher profile tables where possible; add only minimal guarded DB changes if the imported Week14 user-management surface is missing a required To Quran field. First superadmin creation must be documented with backup/target evidence and should prefer the app workflow or a narrowly guarded manual SQL patch over ad hoc database edits.
 
 ### TQ4. Core Tutoring Sessions And Tasks
 
@@ -127,6 +128,6 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Depends on: TQ2, TQ3 launch verification, TQ3.5, and TQ4 launch smoke.
 - Goal: Complete the final deployment gate and coordinate the public `toquran` website handoff.
 - App action: resolve Composer security advisories, confirm production `.env`, build assets, storage link, queue/mail behavior, first superadmin/admin/teacher access, and final app smoke.
-- Website action: update booking form values, Contact Us behavior, reference prefix, sign-in link, and app handoff path; do not promise automated scheduling, finance, or class management.
+- Website action: update booking form values, Contact Us behavior, reference prefix, sign-in link, app handoff path, and public contact phone number to `+201091051913`; do not promise automated scheduling, finance, or class management.
 - DB action: confirm real server backup/export, execute only reviewed manual SQL, verify starter/reference data, and preserve Quran YouTube/video extract for later Library migration.
 - Done when: public form to app intake/review/transfer/login smoke passes on the deployment target or a production-equivalent environment.

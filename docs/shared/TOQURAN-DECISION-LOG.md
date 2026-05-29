@@ -29,7 +29,7 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Website impact: Public intake and copy must align with shared docs and may need later updates after the app schema is approved.
 - Owner: `toquranapp`
 - Follow-up: Mirror or reference the shared docs from the website repo before public intake handoff work begins.
-- Status: Approved for Phase 1 and Phase 2 local baseline.
+- Status: Approved; app-side baseline and TQ2 service/intake adaptation are merged to `main` through `0b99741`.
 
 ### 2026-05-27 - Reuse Week14 Selectively
 - Decision: Week14 LMS is the source implementation, but Week14 product content and sprint history must not be copied blindly.
@@ -37,8 +37,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Copy/adapt Week14 code after owner approval according to the selective reuse plan.
 - Website impact: Website handoff rules and service labels must follow To Quran docs, not Week14 naming.
 - Owner: `toquranapp`
-- Follow-up: Proceed to TQ2 service catalog/intake adaptation and public website handoff.
-- Status: Approved through real DB baseline and starter/reference data.
+- Follow-up: Proceed to TQ3/TQ3.5 launch verification, then public website handoff under TQ9.
+- Status: Approved through TQ2 app-side service/intake adaptation merged to `main` in `0b99741`.
 
 ### 2026-05-27 - My Deen Journey Is a To Quran Service
 - Decision: My Deen Journey is a To Quran service, not a direct rename of Week14 Journey.
@@ -65,7 +65,7 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Website impact: The public website must be updated or coordinated because it previously used the same DB name and may expect old tables.
 - Owner: `toquranapp`
 - Follow-up: Create public website handoff checklist and verify real server backup/deploy path before launch.
-- Status: Committed on branch `tq-real-db-transition` through `e507fa5`.
+- Status: Merged to `main` through `0b99741`.
 
 ### 2026-05-28 - Starter Reference Data Baseline
 - Decision: Create only minimal starter/reference rows for the deployable To Quran app baseline: roles, service values, current operating year, To Quran program, learner levels, To Quran subjects, and grade-level subject mappings. The `owner` role is included as a compatibility carry-forward because imported Week14 routes still reference it; it is not yet an approved To Quran product role.
@@ -73,8 +73,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: `u504065335_to_quran` now has starter/reference rows and no user/client rows. `BookingSubjectProvisioning` was adapted so subject ids 1, 2, and 15 map to Quran Memorization, Quranic Arabic, and My Deen Journey.
 - Website impact: Public intake service values should align to the five app service values before launch.
 - Owner: `toquranapp`
-- Follow-up: Review TQ2 intake/service adaptation, first admin/teacher account creation path, and public website service-value handoff.
-- Status: Committed on branch `tq-real-db-transition` through `e507fa5`.
+- Follow-up: Continue with first admin/teacher account creation path and public website service-value handoff.
+- Status: Merged to `main` through `0b99741`; TQ2 app-side aliases landed in `124756b`.
 
 ### 2026-05-28 - Launch Scope Keeps Operations Manual
 - Decision: First deployment reuses the Week14-style manual operations model for consultation scheduling, finance, detailed class management, and teacher assignment decisions. TQ2 should focus on To Quran service/intake semantics and transfer readiness, not new scheduling or finance systems.
@@ -82,14 +82,23 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Keep imported intake, review, transfer, account lifecycle, LMS access, sessions, and task foundations. Do not block launch on management systems Week14 does not already have.
 - Website impact: Public website should not promise automated scheduling, finance, or class-management features that the app does not yet own.
 - Owner: `toquranapp`
-- Follow-up: Review public form labels/reference prefix and then continue TQ2/TQ3 launch checks.
-- Status: Approved for launch-scope TQ2 implementation.
+- Follow-up: Continue TQ3/TQ3.5 launch checks, then public form labels/reference prefix under TQ9.
+- Status: Approved and reflected in TQ2 app-side implementation merged to `main`.
 
 ### 2026-05-29 - Superadmin Staff User Management Is Required For Launch
 - Decision: Before public intake is connected for launch, superadmin needs a clear app surface to create and manage internal staff users, especially admins and teachers.
 - Why: The app cannot rely on manual database edits for the people who will operate intake, teaching, and support after launch.
-- App/LMS impact: Add or confirm a staff-user management workflow using existing `users`, Spatie roles, and teacher/admin profile patterns where possible. Scope is account/role management only.
+- App/LMS impact: Add or confirm a staff-user management workflow using existing `users`, Spatie roles, and teacher/admin profile patterns where possible. Scope is account/role management only. The first launch superadmin account must be created and documented as part of this gate.
 - Website impact: Public form and Contact Us handoff should wait until app-side staff users can be managed by superadmin.
 - Owner: `toquranapp`
-- Follow-up: Treat this as TQ3.5 launch gate after the current TQ2 service/intake review.
+- Follow-up: Treat this as the next launch branch after TQ2 service/intake merge.
 - Status: Approved for launch checklist.
+
+### 2026-05-29 - Website Contact Phone For Launch
+- Decision: Public To Quran website contact surfaces should use `+201091051913` for launch instead of the current number.
+- Why: Owner explicitly identified this as a public website sprint item to avoid missing it during the app-first launch work.
+- App/LMS impact: None directly, except shared deployment docs should carry the reminder until public website handoff.
+- Website impact: Update visible Contact Us phone links/text and any `tel:` links during the `toquran` repo handoff.
+- Owner: `toquran`
+- Follow-up: Track in the public website sprint doc and verify during TQ9 end-to-end handoff.
+- Status: Approved for public website handoff.

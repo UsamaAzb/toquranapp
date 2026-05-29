@@ -72,7 +72,7 @@ As of 2026-05-28, Phase 1 app skeleton import has been performed and committed:
 
 Current DB state: Phase 2 local schema baseline is complete in `toquranapp_local` with 352 tables and no imported rows. On 2026-05-28 the owner changed the deployment posture: the real app DB target is now `u504065335_to_quran` for the accelerated deployment path.
 
-On branch `tq-real-db-transition`, the real-name local target has been created and verified:
+The real-name local target has been created, corrected, merged to `main`, and verified:
 
 - real app DB: `u504065335_to_quran`
 - table count: 352
@@ -81,4 +81,5 @@ On branch `tq-real-db-transition`, the real-name local target has been created a
 - malformed imported Library identifiers corrected, including ` general_library_dp_unit_id`, `teacher and_student_questions`, and the MYP local/global challenges unit column
 - no user/client rows imported; `users` remains 0
 - Quran YouTube/video list preserved separately at `database/manual/backups/2026-05-28-u504065335_to_quran-quran-video-preservation.sql`
-- next work: TQ2 intake/service adaptation, first admin/teacher account decision, public website handoff, and pre-deployment security hardening
+- TQ2 app-side service/intake adaptation landed in `124756b` and was merged to `main` in `0b99741`
+- next work: TQ3/TQ3.5 launch verification, first superadmin account, superadmin staff-user management for admins/support/teachers, public website handoff, and pre-deployment security hardening

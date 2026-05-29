@@ -64,13 +64,12 @@ Before server deployment, confirm the destination host/database backup, run only
 
 ## Launch Order
 
-1. Finish and review the current TQ2 app-side service/intake adaptation.
-2. Complete TQ3 launch verification: intake review, transfer, Family Workspace, activation, parent login, and student login.
-3. Add or confirm a superadmin staff-user management surface for admins, customer support, and teachers.
-4. Complete TQ4 launch smoke: teacher login, student login, parent visibility, and core session/task pages render without crashes.
-5. Start the public `toquran` repo handoff: booking form values, reference prefix, Contact Us behavior, sign-in link, and app handoff path.
-6. Run end-to-end public form to app intake/review/transfer/login smoke tests.
-7. Complete deployment hardening: backup/export, queue/mail/storage/build assets, and Composer security advisories.
+1. Complete TQ3 launch verification: intake review, transfer, Family Workspace, activation, parent login, and student login.
+2. Add or confirm the first superadmin account and a superadmin staff-user management surface for admins, customer support, and teachers.
+3. Complete TQ4 launch smoke: teacher login, student login, parent visibility, and core session/task pages render without crashes.
+4. Start the public `toquran` repo handoff: booking form values, reference prefix, Contact Us behavior, contact phone `+201091051913`, sign-in link, and app handoff path.
+5. Run end-to-end public form to app intake/review/transfer/login smoke tests.
+6. Complete deployment hardening: backup/export, queue/mail/storage/build assets, and Composer security advisories.
 
 ## Open Follow-Up
 

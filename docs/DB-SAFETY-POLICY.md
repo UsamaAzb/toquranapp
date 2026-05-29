@@ -28,7 +28,7 @@ As of 2026-05-28:
 - The local `toquranapp_local` structure-only baseline was created with 352 tables and no imported rows. Execution evidence is recorded in `database/manual/patches/2026-05-28-toquranapp-local-baseline-execution-note.sql`.
 - The owner then changed the deployment posture for speed: the real To Quran app DB target is `u504065335_to_quran`.
 - Because `u504065335_to_quran` was also the public website DB name/export source, every real-target patch must verify that it is intentionally targeting the app deployment DB and not an accidental wrong connection.
-- On branch `tq-real-db-transition`, the real-name local target `u504065335_to_quran` was created from a guarded structure-only baseline, then starter/reference data was inserted intentionally. The target has 352 tables, 7 roles, 5 service values, 3 To Quran subjects, 12 grade-level subject mappings, and 0 users.
+- The real-name local target `u504065335_to_quran` was created from a guarded structure-only baseline, then starter/reference data was inserted intentionally. The target has 352 tables, 7 roles, 5 service values, 3 To Quran subjects, 12 grade-level subject mappings, and 0 users.
 - A follow-up framework infrastructure correction restored Laravel/Sanctum/Spatie keys and indexes in `u504065335_to_quran`. Evidence is recorded in `database/manual/patches/2026-05-28-framework-infrastructure-indexes-execution-note.sql`.
 - A follow-up Library column correction renamed the malformed imported column ` general_library_dp_unit_id` to `general_library_dp_unit_id` in `u504065335_to_quran`. Evidence is recorded in `database/manual/patches/2026-05-28-library-column-correction-execution-note.sql`.
 - A follow-up Library identifier correction renamed `teacher and_student_questions` to `teacher_and_student_questions` and corrected the MYP local/global challenges unit column to `general_library_myp_unit_id`. Evidence is recorded in `database/manual/patches/2026-05-28-library-schema-identifier-drift-execution-note.sql`.
@@ -85,7 +85,7 @@ The recommended strategy is:
 - treat `toquranapp_local` as the completed dry-run baseline;
 - use `u504065335_to_quran` as the real app DB target for the accelerated deployment path;
 - build the app schema from the current Week14 LMS schema after To Quran adaptation decisions are approved;
-- keep the executed starter/reference data patch as the baseline for TQ2 intake and family adaptation;
+- keep the executed starter/reference data patch as the baseline for TQ2+ intake and family adaptation;
 - map/preserve the old Quran YouTube/video list later into the Library/content system;
 - keep Arabic vocabulary games and legacy Quran video migration out of Phase 1;
 - keep destructive cleanup of old tables documented separately before execution.

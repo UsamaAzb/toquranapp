@@ -1,6 +1,6 @@
 # Week14 Selective Reuse Import Plan
 
-Status: Phase 2 real DB transition and starter/reference data complete locally; TQ2 adaptation pending
+Status: Phase 2 real DB transition, starter/reference data, and TQ2 app-side service/intake adaptation are merged to `main`; TQ3/TQ3.5 launch verification next
 Date: 2026-05-27; updated 2026-05-28
 
 ## Objective
@@ -209,7 +209,7 @@ Result:
 - real-target framework infrastructure key/index correction: complete
 - real-target malformed Library column-name and identifier-drift corrections: complete
 - current real-target schema evidence: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
-- next DB/code work: TQ2 intake/service adaptation, superadmin staff-user management for admins/teachers, public website handoff, and pre-deployment hardening
+- next DB/code work: TQ3/TQ3.5 launch verification, first superadmin account, superadmin staff-user management for admins/support/teachers, public website handoff, and pre-deployment hardening
 
 ### Phase 3 - Intake And Family Foundation
 
