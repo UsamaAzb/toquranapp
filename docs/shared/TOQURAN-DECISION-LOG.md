@@ -37,8 +37,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Copy/adapt Week14 code after owner approval according to the selective reuse plan.
 - Website impact: Website handoff rules and service labels must follow To Quran docs, not Week14 naming.
 - Owner: `toquranapp`
-- Follow-up: Proceed to TQ3/TQ3.5 launch verification, then public website handoff under TQ9.
-- Status: Approved through TQ2 app-side service/intake adaptation merged to `main` in `0b99741`.
+- Follow-up: Proceed with public website handoff under TQ9.
+- Status: Approved through TQ3/TQ3.5/TQ4 launch access closeout in `529f7bc`.
 
 ### 2026-05-27 - My Deen Journey Is a To Quran Service
 - Decision: My Deen Journey is a To Quran service, not a direct rename of Week14 Journey.
@@ -82,8 +82,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Keep imported intake, review, transfer, account lifecycle, LMS access, sessions, and task foundations. Do not block launch on management systems Week14 does not already have.
 - Website impact: Public website should not promise automated scheduling, finance, or class-management features that the app does not yet own.
 - Owner: `toquranapp`
-- Follow-up: Continue TQ3/TQ3.5 launch checks, then public form labels/reference prefix under TQ9.
-- Status: Approved and reflected in TQ2 app-side implementation merged to `main`.
+- Follow-up: Continue with public form labels/reference prefix under TQ9.
+- Status: Approved and reflected through launch access closeout in `529f7bc`.
 
 ### 2026-05-29 - Superadmin Staff User Management Is Required For Launch
 - Decision: Before public intake is connected for launch, superadmin needs a clear app surface to create and manage internal staff users, especially admins and teachers.
@@ -91,8 +91,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Add or confirm a staff-user management workflow using existing `users`, Spatie roles, and teacher/admin profile patterns where possible. Scope is account/role management only. The first launch superadmin account must be created and documented as part of this gate.
 - Website impact: Public form and Contact Us handoff should wait until app-side staff users can be managed by superadmin.
 - Owner: `toquranapp`
-- Follow-up: Review and commit the TQ3.5 implementation, then use the Staff Users page for ongoing admin/support/teacher management.
-- Status: Implemented locally on branch `tq-launch-access-management`; first real superadmin bootstrapped in `u504065335_to_quran`; owner manual smoke passed on 2026-05-29; pending review/commit.
+- Follow-up: Use the Staff Users page for ongoing admin/support/teacher management; rotate temporary credentials before production launch.
+- Status: Implemented and committed in `529f7bc`; first real superadmin bootstrapped in `u504065335_to_quran`; owner manual smoke passed on 2026-05-29.
 
 ### 2026-05-29 - Family Support Assignment Is App-Owned
 - Decision: The LMS owns transferred-family customer-support assignment through `parents.family_support_id`. Admins/superadmins may assign or clear an active `customer_support` owner from the Transferred Families page; customer support users may view assigned families but not reassign ownership.
@@ -101,7 +101,7 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Website impact: None directly; public intake still hands families to the app, and app staff owns responsibility after transfer.
 - Owner: `toquranapp`
 - Follow-up: When n8n/WhatsApp/notification automation is added, let automation read the assignment or submit app-reviewed change requests. Do not allow n8n to directly overwrite `parents.family_support_id` during launch.
-- Status: Implemented locally on branch `tq-launch-access-management`; pending review/commit.
+- Status: Implemented and committed in `529f7bc`.
 
 ### 2026-05-29 - Website Contact Phone For Launch
 - Decision: Public To Quran website contact surfaces should use `+201091051913` for launch instead of the current number.
@@ -119,7 +119,7 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Website impact: Public copy may talk about My Deen Journey, Quran/Arabic, and Sanad services, but should not expose inactive Week14 school subjects or imply launch-time school-subject tutoring unless approved.
 - Owner: `toquranapp`
 - Follow-up: Use the 6-subject catalog in TQ4 launch smoke and keep inactive Week14 school subjects hidden by default unless future MDJ expansion is approved.
-- Status: Approved by owner clarification; guarded reference-data patch executed locally in `u504065335_to_quran`; teacher assignment UI now uses the catalog locally on branch `tq-launch-access-management`.
+- Status: Approved by owner clarification; guarded reference-data patch executed locally in `u504065335_to_quran`; teacher assignment UI uses the catalog in `529f7bc`.
 
 ### 2026-05-29 - Launch Default Teacher For Transfers
 - Decision: Upcoming transferred students should be assigned initially to the configured launch default teacher account, currently `drosamaqandil@gmail.com`, while remaining editable from Student Account > Subject Access.
@@ -128,7 +128,7 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Website impact: None directly; public intake still hands off to the app and the app owns teacher assignment after transfer.
 - Owner: `toquranapp`
 - Follow-up: Set `TOQURAN_DEFAULT_TEACHER_EMAIL` on production and verify first production-equivalent transfer assigns the expected teacher before public intake goes live.
-- Status: Implemented locally on branch `tq-launch-access-management`; real teacher account created in `u504065335_to_quran`; pending review/commit.
+- Status: Implemented and committed in `529f7bc`; real teacher account created in `u504065335_to_quran`.
 
 ### 2026-05-29 - Public Intake Child Service Selector
 - Decision: The launch public booking form should support multiple children, and each child should be able to select one or more child-facing services: Quran Memorization, Quranic Arabic, Arabic Language, Sanad Ijazah Program, and My Deen Journey.
@@ -136,8 +136,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: `BookingServiceInterest` now treats Arabic Language as a distinct canonical service instead of normalizing it into Quranic Arabic. The real app DB target now includes `services_types.value = Arabic Language` and `services.id = 6 / name = Arabic Language`.
 - Website impact: The public website sprint must replace the single-child/single-service form with a multi-child, per-child multi-service payload before connecting to app intake.
 - Owner: `toquranapp` owns the service contract; `toquran` owns the public form implementation.
-- Follow-up: Implement the public website form/update under website sprint W1 after TQ3/TQ3.5/TQ4 app launch gates pass.
-- Status: Implemented locally on branch `tq-launch-access-management`; DB patch executed in `u504065335_to_quran`; pending review/commit.
+- Follow-up: Implement the public website form/update under website sprint W1 / app TQ9.
+- Status: App-side service contract implemented and committed in `529f7bc`; DB patch executed in `u504065335_to_quran`.
 
 ### 2026-05-29 - Launch Task Type Reference Data
 - Decision: Seed minimal teacher-facing launch task-type reference rows: Assignment, Lesson, Project, and Quiz.
@@ -145,8 +145,8 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: Teachers can create normal session tasks during launch smoke. The reference-data patch is guarded and idempotent with fixed-ID drift checks.
 - Website impact: None directly; public copy can say tutoring tasks exist only after TQ4 smoke passes.
 - Owner: `toquranapp`
-- Follow-up: Review and commit the TQ4 launch smoke changes before marking this gate done.
-- Status: Implemented locally on branch `tq-launch-access-management`; DB patch executed in `u504065335_to_quran`; owner manual task/student/parent smoke passed on 2026-05-29; pending review/commit.
+- Follow-up: Keep Assignment as default during future task taxonomy work.
+- Status: Implemented and committed in `529f7bc`; DB patch executed in `u504065335_to_quran`; owner manual task/student/parent smoke passed on 2026-05-29.
 
 ### 2026-05-29 - Correct Mistaken Attachment-Kind Task Types
 - Decision: Remove the same-day mistaken Activity/File/YouTube/Link task-type rows and correct the real DB to Assignment/Lesson/Project/Quiz.
@@ -155,4 +155,4 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Website impact: None.
 - Owner: `toquranapp`
 - Follow-up: Keep Assignment as default during future task taxonomy work.
-- Status: Implemented locally on branch `tq-launch-access-management`; correction patch executed in `u504065335_to_quran`; owner manual task smoke passed on 2026-05-29; pending review/commit.
+- Status: Implemented and committed in `529f7bc`; correction patch executed in `u504065335_to_quran`; owner manual task smoke passed on 2026-05-29.

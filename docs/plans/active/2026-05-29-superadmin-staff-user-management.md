@@ -1,6 +1,6 @@
 # Superadmin Staff User Management
 
-Status: implementation-review; first real superadmin account bootstrapped locally
+Status: done; implemented in launch access commit `529f7bc`
 Date: 2026-05-29
 Sprint: TQ3.5
 
@@ -127,6 +127,12 @@ Real DB bootstrap:
 - local test credentials: current local users were reset to a shared 8-character test password for manual launch testing; execution note is `database/manual/patches/2026-05-29-test-password-reset-execution-note.sql`
 
 Transferred-family support assignment is covered by admin assignment, customer-support denial, and non-support-user rejection tests.
+
+Closeout:
+
+- staff-user management, first superadmin bootstrap evidence, support assignment, launch smoke data, and teacher assignment prerequisites were completed in the launch access branch;
+- merged closeout source commit: `529f7bc`;
+- final deployment still requires smoke-data cleanup and temporary credential rotation.
 
 ## Non-Goals
 

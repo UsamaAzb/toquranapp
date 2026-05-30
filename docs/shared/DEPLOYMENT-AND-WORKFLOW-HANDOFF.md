@@ -65,10 +65,10 @@ Before server deployment, confirm the destination host/database backup, run only
 ## Launch Order
 
 1. Keep local/manual testing easy while launch work is active: smoke users, smoke families, and the shared local test password may remain in the local real-name app DB until the final deployment cleanup gate.
-2. Complete TQ3 launch verification: intake review, transfer, Family Workspace, activation, parent login, and student login.
-3. Review the TQ3.5 staff-user implementation, then create the first superadmin with `php artisan toquran:bootstrap-superadmin --confirm-db=u504065335_to_quran`, use the Staff Users page for admins/customer support/teachers, configure `TOQURAN_DEFAULT_TEACHER_EMAIL`, and assign transferred families to customer support owners from the app.
-4. Complete TQ4 launch smoke: teacher login, student login, parent visibility, and core session/task pages render without crashes.
-5. Start the public `toquran` repo handoff: booking form values, multi-child/per-child multi-service intake payload, reference prefix, Contact Us behavior, contact phone `+201091051913`, sign-in link, and app handoff path.
+2. App-side TQ3 launch verification is complete for the current launch path: intake review, transfer, Family Workspace access, lifecycle states, parent login, and student login have automated/manual smoke coverage.
+3. App-side TQ3.5 staff/user access is complete for launch: first superadmin was created, Staff Users manages admins/customer support/teachers, `TOQURAN_DEFAULT_TEACHER_EMAIL` is documented, and transferred-family support ownership is app-owned.
+4. App-side TQ4 launch smoke is complete: teacher login, student login, parent visibility, teacher class assignment, session task creation, task attachments, and core task visibility passed local/manual checks.
+5. Start the public `toquran` repo handoff under TQ9: booking form values, multi-child/per-child multi-service intake payload, reference prefix, Contact Us behavior, contact phone `+201091051913`, sign-in link, and app handoff path.
 6. Run end-to-end public form to app intake/review/transfer/login smoke tests.
 7. Complete deployment hardening: backup/export, queue/mail/storage/build assets, and Composer security advisories.
 8. Final deployment-only cleanup gate: remove launch smoke data marked by `@toquran-smoke.test`, `[SMOKE]`, and `SMOKE-TQ-*`; rotate any real staff/teacher credentials that were temporarily set to a shared local test password; verify no shared test passwords remain before any production launch or production DB export.

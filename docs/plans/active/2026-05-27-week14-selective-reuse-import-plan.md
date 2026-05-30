@@ -1,6 +1,6 @@
 # Week14 Selective Reuse Import Plan
 
-Status: Phase 2 real DB transition, starter/reference data, and TQ2 app-side service/intake adaptation are merged to `main`; TQ3/TQ3.5 launch verification next
+Status: Phase 2 real DB transition, TQ2 app-side service/intake adaptation, and TQ3/TQ3.5/TQ4 launch access verification are complete; TQ9 deployment/public website handoff next
 Date: 2026-05-27; updated 2026-05-28
 
 ## Objective
@@ -113,8 +113,8 @@ Use this table when coordinating the import plan with `docs/TOQURAN-SPRINTS.md`.
 | Phase 0.5 - Week14 Schema Freshness Gate | TQ0.5 | Complete; schema snapshot freshness is verified. |
 | Phase 1 - App Skeleton Import | TQ1 | Complete in commit `270e832`. |
 | Phase 2 - Schema Baseline And Data Mapping Plan | TQ1.5 / TQ1 exit gate before TQ2 | Establish the app DB target and schema plan before intake/family adaptation. |
-| Phase 3 - Intake And Family Foundation | TQ2, TQ3, and TQ3.5 | Split implementation work by service catalog/intake first, then family lifecycle launch verification and superadmin staff-user management. |
-| Phase 4 - Core Tutoring LMS | TQ4 | Launch smoke for sessions/task surfaces first; deeper tutoring workflow adaptation can continue after deployment. |
+| Phase 3 - Intake And Family Foundation | TQ2, TQ3, and TQ3.5 | Complete through launch access closeout; service catalog/intake, family lifecycle launch verification, and superadmin staff-user management are in place for launch. |
+| Phase 4 - Core Tutoring LMS | TQ4 | Launch smoke for sessions/task surfaces is complete; deeper tutoring workflow adaptation can continue after deployment. |
 | Phase 5 - My Deen Journey | TQ5 | Service-specific adaptation after core tutoring surfaces exist. |
 | Phase 6 - Library And Automation | TQ6 and TQ7 | Split implementation work by Library/content foundation first, then routine/series automation. |
 | Phase 7 - Deferred Arabic Vocabulary Games | TQ8 | Post-deployment planning item. |
@@ -209,7 +209,7 @@ Result:
 - real-target framework infrastructure key/index correction: complete
 - real-target malformed Library column-name and identifier-drift corrections: complete
 - current real-target schema evidence: `database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql`
-- next DB/code work: TQ3/TQ3.5 launch verification, first superadmin account, superadmin staff-user management for admins/support/teachers, public website handoff, and pre-deployment hardening
+- next DB/code work: TQ9 deployment readiness, public website handoff, production backup/restore checks, smoke-data cleanup/credential rotation, and pre-deployment hardening
 
 ### Phase 3 - Intake And Family Foundation
 

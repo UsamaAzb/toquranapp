@@ -1,6 +1,6 @@
 # Launch Access And Teacher-Class Management Plan
 
-Status: implementation-review
+Status: done; implemented in commit `529f7bc`
 Date: 2026-05-29
 Sprint: TQ3.5 closeout / TQ4 launch smoke prerequisite
 
@@ -18,10 +18,10 @@ This plan extends the existing staff-user plan at `docs/plans/active/2026-05-29-
 
 ## Sprint / Roadmap Relationship
 
-- TQ3: Family Workspace launch verification still needs role/access smoke coverage.
-- TQ3.5: Superadmin Staff User Management is in implementation review and now includes first superadmin, staff user management, support assignment, smoke data, launch role access, and branding fixes.
-- TQ4: Core Tutoring Sessions And Tasks needs a teacher-class assignment path before teacher/student/parent smoke tests can be meaningful.
-- TQ9: Deployment readiness depends on first superadmin/admin/teacher access and public website handoff clarity.
+- TQ3: Family Workspace launch verification has role/access smoke coverage for the launch path.
+- TQ3.5: Superadmin Staff User Management includes first superadmin, staff user management, support assignment, smoke data, launch role access, and branding fixes.
+- TQ4: Core Tutoring Sessions And Tasks has a teacher-class assignment path and passed launch task smoke.
+- TQ9: Deployment readiness and public website handoff are the next active gate.
 
 ## Current Evidence
 
@@ -247,7 +247,7 @@ Post-CodeRabbit cleanup notes:
 - Customer-support ownership assignment now verifies the selected parent belongs to a transferred family before writing `parents.family_support_id`.
 - The stale `logo.webp` asset was removed after all visible auth/layout references moved to `logo.png`.
 
-Status: implementation-review. Do not mark the gate done until the uncommitted launch-access changes are reviewed and committed.
+Status: done. Launch access, teacher assignment, support assignment, task-type correction, branding cleanup, and backup redaction fixes are committed in `529f7bc`; TQ9 deployment/public website handoff is next.
 
 ## Non-Goals
 

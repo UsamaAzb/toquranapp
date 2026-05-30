@@ -82,4 +82,5 @@ The real-name local target has been created, corrected, merged to `main`, and ve
 - no user/client rows imported; `users` remains 0
 - Quran YouTube/video list preserved separately at `database/manual/backups/2026-05-28-u504065335_to_quran-quran-video-preservation.sql`
 - TQ2 app-side service/intake adaptation landed in `124756b` and was merged to `main` in `0b99741`
-- next work: TQ3/TQ3.5 launch verification, first superadmin account, superadmin staff-user management for admins/support/teachers, public website handoff, and pre-deployment security hardening
+- TQ3/TQ3.5/TQ4 launch access verification landed in `529f7bc`: first superadmin, staff-user management, support assignment, teacher assignment, launch task types, task attachment stabilization, To Quran branding cleanup, smoke data notes/cleanup plan, and launch verification docs
+- next work: TQ9 deployment readiness and public website handoff, including production backup/restore checks, public booking form alignment, end-to-end intake smoke, smoke-data cleanup, temporary credential rotation, and pre-deployment security hardening
