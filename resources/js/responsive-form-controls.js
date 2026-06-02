@@ -54,6 +54,17 @@ if (!window.__toquranResponsiveControlsBooted) {
     return escaped;
   }
 
+  function isPluginManagedSelect(field) {
+    return Boolean(
+      field?.tagName === 'SELECT' &&
+      (
+        pluginManagedSelectClasses.some(className => field.classList.contains(className)) ||
+        field.hasAttribute('data-select2-id') ||
+        field.nextElementSibling?.classList?.contains('select2')
+      )
+    );
+  }
+
   function isEnhanceableField(field) {
     if (!(field instanceof HTMLElement)) {
       return false;
@@ -72,11 +83,7 @@ if (!window.__toquranResponsiveControlsBooted) {
         return false;
       }
 
-      if (
-        pluginManagedSelectClasses.some(className => field.classList.contains(className)) ||
-        field.hasAttribute('data-select2-id') ||
-        field.nextElementSibling?.classList?.contains('select2')
-      ) {
+      if (isPluginManagedSelect(field)) {
         return false;
       }
     }
@@ -400,6 +407,12 @@ if (!window.__toquranResponsiveControlsBooted) {
     const syncTimer = window.setInterval(() => {
       if (!select.isConnected || !wrapper.isConnected) {
         cleanupDisconnectedControls();
+
+        return;
+      }
+
+      if (isPluginManagedSelect(select)) {
+        unregisterControl(select, true);
 
         return;
       }
