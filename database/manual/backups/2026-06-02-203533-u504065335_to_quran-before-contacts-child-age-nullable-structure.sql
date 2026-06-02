@@ -1,0 +1,17 @@
+-- Redacted structure-backup evidence only.
+-- Original file: database/manual/backups/2026-06-02-203533-u504065335_to_quran-before-contacts-child-age-nullable-structure.sql
+-- Target/source DB: u504065335_to_quran
+-- Purpose: structure evidence before making contacts.child_age nullable for generic public Contact Us rows.
+--
+-- The raw focused structure dump was intentionally removed from version control because
+-- restore-style dumps contain runnable DROP/CREATE SQL. Keep raw restore dumps only in
+-- secured local/offline storage.
+--
+-- Verified before patch execution:
+-- - table: contacts
+-- - column: child_age
+-- - type: varchar(255)
+-- - nullable: NO
+-- - row data exported: no
+--
+-- Do not execute this file.

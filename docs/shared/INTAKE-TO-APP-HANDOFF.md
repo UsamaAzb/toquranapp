@@ -6,14 +6,16 @@ Define how public `toquran.org` consultation/intake data should hand off to priv
 
 ## Current Website Evidence
 
-As of the public website commit `c7addea` on `main`, the public site:
+As of the public website commit `6dfb71f` on `main`, the public site:
 
 - is a Laravel 10 app at `D:\xampp\htdocs\toquran`
 - exposes `/book-trial`, posts to `/book-trial/store`, and redirects to `/book-trial/confirmation/{reference}`
 - renders a multi-child public booking form
 - allows one or more service interests per child
 - uses `TQ-` booking references
-- writes a legacy-compatible `bookings` row plus a JSON payload in `bookings.notes`
+- writes clean booking submissions into app-owned `bookings` and `booking_children`
+- writes duplicate/repeat/blocked/contact-mismatch submissions into `booking_intake_review` and `booking_intake_review_children` through `booking_intake_submission_locks`
+- writes Contact Us submissions to app-compatible `contacts` with `CNT-` references
 - sends support/admin email to `support@toquran.org`
 - exposes service interests:
   - `Quran Memorization`
@@ -22,7 +24,7 @@ As of the public website commit `c7addea` on `main`, the public site:
   - `Sanad Ijazah Program`
   - `My Deen Journey`
 
-Current website W1 is a good UI/form step, but it is not the final app handoff path because it stores the multi-child payload only in `bookings.notes`. After comparing Week14 website/LMS, To Quran should follow the same shared-table pattern: the public website writes directly to LMS-owned intake tables in the app DB, not to a separate legacy JSON queue that the app imports later.
+Website implementation is now aligned with the approved Week14-style shared-table handoff. Local production-equivalent TQ9 smoke passed on 2026-06-02 using the real app DB name `u504065335_to_quran`: clean public booking, duplicate/review booking, generic Contact Us, app transfer, parent/student/teacher login, and teacher class visibility. The remaining deployment work is server-target verification, production backup/export, smoke-data cleanup, and temporary credential rotation.
 
 ## Target Handoff Contract
 
@@ -74,7 +76,7 @@ The booking form should submit or transform into a children payload compatible w
 
 ## Direct Shared-DB Write Contract
 
-The final launch handoff should adapt the Week14 website implementation rather than the current JSON-only To Quran W1 implementation.
+The final launch handoff is the Week14-style shared app DB implementation, now present in the public website at commit `6dfb71f`.
 
 Website booking submissions should:
 
@@ -93,15 +95,15 @@ Website contact submissions should:
 - generate and preserve `CNT-` contact references
 - write to `contacts`
 - omit child-specific fields when the message is a generic Contact Us request
-- rely on the app-owned schema contract where `contacts.child_age` is nullable; run `database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql` on the confirmed app DB target before public Contact Us writes to the shared app DB
+- rely on the app-owned schema contract where `contacts.child_age` is nullable; this was applied locally through `database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql`, and production deploy/import must preserve the same shape before public Contact Us writes to the shared app DB
 - avoid writing new production records to legacy `contact_us`
 - keep `support@toquran.org` as the launch support routing address unless owner changes the mailbox
 
-## Temporary Website Notes JSON Evidence
+## Historical Website Notes JSON Evidence
 
-The public website W1 implementation at commit `c7addea` stores the review-first payload in the legacy website `bookings.notes` column as JSON.
+The public website W1 implementation at commit `c7addea` stored the review-first payload in the legacy website `bookings.notes` column as JSON.
 
-This JSON is useful as compatibility evidence and as an implementation reference while updating the website, but it should not be the long-term app handoff mechanism when the website can write directly to the app-owned tables.
+This JSON remains useful only as compatibility evidence for old/local W1 rows. It is not the production handoff mechanism now that the website writes directly to the app-owned tables.
 
 Contract name: `toquran_public_review_first_v1`
 
@@ -134,7 +136,7 @@ Shape:
 }
 ```
 
-Parser expectations:
+Fallback parser expectations, only if old W1 JSON rows must be inspected:
 
 - Treat `bookings.notes` as a temporary/source-evidence fallback for multi-child public requests when `handoff_contract` is `toquran_public_review_first_v1`.
 - Keep the legacy `bookings.child_name`, `bookings.child_age`, and `bookings.service_interest` fields as summary/display fallback only.
@@ -169,6 +171,8 @@ The app now accepts both the current public To Quran values and the inherited We
 | `Paid Consultation`, `Parental Consultation`, `Paid Parental Consultation` | `Paid Parental Consultation` |
 | `Sanad`, `Ijazah`, `Sanad Ijazah`, `Sanad Ijazah Program` | `Sanad Ijazah` |
 
+During transfer, app provisioning uses each child's selected public `service_interests` to activate optional launch subjects in the student's class-subject plan. Quran Memorization, Arabic Language, and Sanad Program are activated only when selected; Quranic Arabic, My Deen Journey, and Well Being remain active-by-default for launch unless the owner changes that product rule.
+
 ## Launch Scope
 
 For first deployment, To Quran follows the current Week14 operating model: intake, admin/customer-support review, family/student account transfer, and LMS access are app-supported; consultation scheduling, finance, and detailed class management remain manual until later sprints.
@@ -177,10 +181,8 @@ Upcoming transferred students receive initial class-subject teacher assignments 
 
 ## Immediate Gaps
 
-- Public website W1 now has the right multi-child/per-child multi-service UI and `TQ-` reference prefix, but it still writes multi-child details only into legacy `bookings.notes`.
-- Website booking must be adapted to write app-owned `booking_children` and review-first records directly, as Week14 website does.
-- Website contact must be adapted to write app-compatible `contacts` rows, not legacy `contact_us` rows.
-- App-owned `contacts.child_age` nullable patch must be executed with backup/export evidence before generic public Contact Us rows are allowed to write directly to the shared app DB.
+- Public website shared-DB handoff is implemented in `toquran` commit `6dfb71f`; do not plan another delayed JSON import bridge unless deployment forces separate databases.
+- App-owned `contacts.child_age` nullable patch was executed locally against `u504065335_to_quran` on 2026-06-02 with target verification and structure-backup evidence. Production deploy/import must preserve the nullable column shape before public Contact Us goes live.
 - App-side public validation/website adapter must not require school/grade for launch public submissions.
 - Deployment must prove that `toquran` and `toquranapp` are pointed at the intended shared app DB target before public form launch.
 

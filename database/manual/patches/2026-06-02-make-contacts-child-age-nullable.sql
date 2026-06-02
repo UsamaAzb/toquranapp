@@ -5,7 +5,7 @@
 -- Purpose: public Contact Us writes app-compatible contacts rows without child-specific fields.
 --          contacts.child_age must therefore be nullable. Do not remove the column because
 --          app-side child-specific contact workflows may still use it.
--- Status: reviewed/integrated as an app-owned manual patch; not executed by Codex.
+-- Status: executed locally against u504065335_to_quran on 2026-06-02 after focused structure backup.
 
 DELIMITER $$
 

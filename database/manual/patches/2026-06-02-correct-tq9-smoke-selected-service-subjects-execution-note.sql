@@ -1,0 +1,29 @@
+-- To Quran TQ9 smoke selected-service subject correction execution note
+-- Date: 2026-06-02
+-- Target DB: u504065335_to_quran
+-- Status: executed locally by Codex on 2026-06-02.
+--
+-- Patch:
+-- database/manual/patches/2026-06-02-correct-tq9-smoke-selected-service-subjects.sql
+--
+-- Before-backup/evidence:
+-- database/manual/backups/2026-06-02-205300-u504065335_to_quran-before-tq9-smoke-selected-subject-correction.sql
+--
+-- Reason:
+-- The first TQ9 public website smoke transfer was created before the app
+-- transfer code passed child service_interests into subject provisioning.
+-- The child selected Arabic Language, but the transferred student subject
+-- row stayed inactive. This patch corrects only transferred smoke children
+-- under @toquran-smoke.test whose own service_interests selected Arabic
+-- Language or Sanad Ijazah.
+--
+-- Execution:
+-- SET @toquran_confirm_real_db_target = 'u504065335_to_quran';
+-- SOURCE database/manual/patches/2026-06-02-correct-tq9-smoke-selected-service-subjects.sql;
+--
+-- Verification:
+-- - booking_child_id 7 / Smoke TQ9 Clean Amina kept service_interests ["Quran Memorization","Arabic Language"].
+-- - Arabic Language students_subjects.id 21 changed to active.
+-- - Arabic Language teacher_subject_classes.id 23 changed to active.
+-- - Sanad Program students_subjects.id 22 stayed inactive because this child did not select Sanad.
+-- - Sanad Program teacher_subject_classes.id 24 stayed inactive.
