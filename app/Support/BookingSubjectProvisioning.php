@@ -121,6 +121,8 @@ final class BookingSubjectProvisioning
                 BookingServiceInterest::ARABIC_LANGUAGE => self::SUBJECT_ARABIC_LANGUAGE,
                 BookingServiceInterest::SANAD_IJAZAH => self::SUBJECT_SANAD_PROGRAM,
                 BookingServiceInterest::MY_DEEN_JOURNEY => self::SUBJECT_MY_DEEN_JOURNEY,
+                // Consultation is an intake/support service, not an LMS class subject.
+                BookingServiceInterest::PAID_PARENTAL_CONSULTATION => null,
                 default => null,
             })
             ->filter()

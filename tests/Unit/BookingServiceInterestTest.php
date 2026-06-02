@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Support\BookingServiceInterest;
+use App\Support\BookingSubjectProvisioning;
 use PHPUnit\Framework\TestCase;
 
 class BookingServiceInterestTest extends TestCase
@@ -25,5 +26,26 @@ class BookingServiceInterestTest extends TestCase
         $this->assertSame('Paid Parental Consultation', BookingServiceInterest::normalize('consultation'));
         $this->assertSame('Sanad Ijazah', BookingServiceInterest::normalize('ijazah'));
         $this->assertSame('Sanad Ijazah', BookingServiceInterest::normalize('Sanad Ijazah Program'));
+    }
+
+    public function test_service_interests_map_only_lms_subject_services_to_subject_ids(): void
+    {
+        $this->assertSame(
+            [
+                BookingSubjectProvisioning::SUBJECT_QURAN_MEMORIZATION,
+                BookingSubjectProvisioning::SUBJECT_ARABIC_LANGUAGE,
+                BookingSubjectProvisioning::SUBJECT_SANAD_PROGRAM,
+                BookingSubjectProvisioning::SUBJECT_MY_DEEN_JOURNEY,
+            ],
+            BookingSubjectProvisioning::subjectIdsForServiceInterests([
+                'Quran Memorization',
+                'Arabic Language',
+                'Sanad Ijazah Program',
+                'My Deen Journey',
+                'Paid Parental Consultation',
+            ])
+        );
+
+        $this->assertSame([], BookingSubjectProvisioning::subjectIdsForServiceInterests('consultation'));
     }
 }

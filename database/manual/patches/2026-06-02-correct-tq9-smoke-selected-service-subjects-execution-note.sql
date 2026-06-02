@@ -21,6 +21,13 @@
 -- SET @toquran_confirm_real_db_target = 'u504065335_to_quran';
 -- SOURCE database/manual/patches/2026-06-02-correct-tq9-smoke-selected-service-subjects.sql;
 --
+-- Post-review hardening:
+-- The replay artifact now includes a SQLEXCEPTION handler that rolls back and
+-- re-raises if any statement fails after START TRANSACTION. This is a safety
+-- improvement to the recorded patch artifact and does not require another data
+-- correction because the original local execution already completed and was
+-- verified.
+--
 -- Verification:
 -- - booking_child_id 7 / Smoke TQ9 Clean Amina kept service_interests ["Quran Memorization","Arabic Language"].
 -- - Arabic Language students_subjects.id 21 changed to active.

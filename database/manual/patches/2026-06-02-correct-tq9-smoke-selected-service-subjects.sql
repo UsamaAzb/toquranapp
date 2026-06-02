@@ -20,6 +20,12 @@ CREATE PROCEDURE `_toquran_correct_tq9_smoke_selected_service_subjects`()
 BEGIN
     DECLARE table_count INT DEFAULT 0;
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
     IF COALESCE(@toquran_confirm_real_db_target, '') <> 'u504065335_to_quran' THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'ABORTED: set @toquran_confirm_real_db_target = ''u504065335_to_quran'' before running this patch.';
