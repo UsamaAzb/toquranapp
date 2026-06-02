@@ -32,7 +32,7 @@ When app code is imported, verify:
 
 - `APP_NAME`, `APP_URL`, mail sender, Vite app name, and route domains are To Quran-specific.
 - no Week14 public URLs, emails, QA accounts, or service labels remain.
-- mobile/tablet form controls are checked before launch: long dropdowns, multi-service selectors, date fields, and Flatpickr-style pickers must be contained within the viewport, preserve real field names/values, dispatch real DOM `input`/`change` events, and keep validation feedback attached to the visible control.
+- mobile/tablet form controls are checked before launch: long dropdowns, multi-service selectors, date/time/datetime fields, and Flatpickr-style pickers must be contained within the viewport, preserve real field names/values, dispatch real DOM `input`/`change` events, mirror programmatic value changes, avoid duplicate hidden-field tab stops/accessibility entries, clean up observers after dynamic removal, and keep validation feedback attached to the visible control.
 - queue worker requirements are documented if activation emails or queued mail are imported.
 - storage/public file delivery rules are documented before uploading app assets.
 - public website sign-in link remains `https://app.toquran.org/login`.
@@ -69,7 +69,7 @@ Before server deployment, confirm the destination host/database backup, run only
 2. App-side TQ3 launch verification is complete for the current launch path: intake review, transfer, Family Workspace access, lifecycle states, parent login, and student login have automated/manual smoke coverage.
 3. App-side TQ3.5 staff/user access is complete for launch: first superadmin was created, Staff Users manages admins/customer support/teachers, `TOQURAN_DEFAULT_TEACHER_EMAIL` is documented, and transferred-family support ownership is app-owned.
 4. App-side TQ4 launch smoke is complete: teacher login, student login, parent visibility, teacher class assignment, session task creation, task attachments, and core task visibility passed local/manual checks.
-5. Start the public `toquran` repo handoff under TQ9: booking form values, multi-child/per-child multi-service intake payload, reference prefix, Contact Us behavior, contact phone `+201091051913`, sign-in link, and app handoff path.
+5. Start the public `toquran` repo handoff under TQ9: booking form values, multi-child/per-child multi-service intake payload, reference prefix, Contact Us behavior, contact phone `+201091051913`, sign-in link, and app handoff path. The approved handoff path is the Week14-style shared app DB pattern: website writes directly to app-owned booking/review/contact tables, not to a delayed JSON import queue.
 6. Run end-to-end public form to app intake/review/transfer/login smoke tests.
 7. Complete deployment hardening: backup/export, queue/mail/storage/build assets, and Composer security advisories.
 8. Final deployment-only cleanup gate: remove launch smoke data marked by `@toquran-smoke.test`, `[SMOKE]`, and `SMOKE-TQ-*`; rotate any real staff/teacher credentials that were temporarily set to a shared local test password; verify no shared test passwords remain before any production launch or production DB export.
@@ -93,6 +93,9 @@ Before server deployment, confirm the destination host/database backup, run only
 ## Launch Access Handoff
 
 - Teacher-class assignment is an app-owned launch prerequisite before TQ4 smoke tests. The app route is `/admin/teacher-class-assignments` for `super_admin` and `admin`.
+- Public website booking/contact handoff is a shared-DB write, matching Week14 website/LMS. The website may write only to app-approved tables and columns. Booking targets are `bookings`, `booking_children`, `booking_intake_review`, `booking_intake_review_children`, and `booking_intake_submission_locks`. Contact target is `contacts`, not legacy `contact_us`.
+- Before public Contact Us writes to `contacts`, execute the reviewed app-owned `contacts.child_age` nullable patch with confirmed target and backup/export evidence. Generic Contact Us rows should not need or fake child age.
+- Public website booking should preserve `TQ-` booking references and remain review-first: clean submissions create pending app bookings/children; duplicate/repeat/blocked/contact-mismatch submissions create intake review records; confirmed scheduling and real meeting details remain app/manual operations.
 - Teacher assignment should reuse `teacher_subject_classes` and deactivate assignments with `status = 'inactive'` plus `removed_at`, not hard-delete launch rows.
 - Upcoming transfer-created teacher assignments resolve through `TOQURAN_DEFAULT_TEACHER_EMAIL`; launch local default is `drosamaqandil@gmail.com` and must be set in production before first transfer smoke. If the configured teacher cannot be resolved, the app should fail loudly instead of silently assigning a legacy Week14 teacher id.
 - App-side class-subject catalog: Quran Memorization, Arabic Language, Quranic Arabic, Sanad Program, My Deen Journey / `MDJ`, and Well Being.

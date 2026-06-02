@@ -103,6 +103,10 @@ timestamp, and checksum.
   - guarded real-target correction patch that removes the mistaken attachment-kind task rows and confirms Assignment/Lesson/Project/Quiz
 - `patches/2026-05-29-correct-launch-task-types-execution-note.sql`
   - execution note for the launch task-type correction patch
+- `patches/2026-06-02-make-contacts-child-age-nullable.sql`
+  - guarded real-target schema patch that makes `contacts.child_age` nullable for generic public Contact Us submissions; not executed by Codex
+- `patches/2026-06-02-make-contacts-child-age-nullable-execution-note.sql`
+  - pre-execution note for the Contact Us `contacts.child_age` nullable patch; update it with backup/export evidence and execution verification if the patch is run
 
 ## Current Local App Target
 
@@ -118,6 +122,7 @@ timestamp, and checksum.
 - Arabic Language is now also a distinct app/public service value for intake; the public website can send it separately from Quranic Arabic during the multi-child/multi-service handoff.
 - Default transfer teacher assignment is configured by `TOQURAN_DEFAULT_TEACHER_EMAIL`; the current launch default teacher is `drosamaqandil@gmail.com` in `u504065335_to_quran`.
 - Launch task-type rows exist for Assignment, Lesson, Project, and Quiz so teacher session-task modals can create normal tasks during TQ4 smoke.
+- Public website Contact Us handoff requires `contacts.child_age` to be nullable because generic contact rows do not always belong to a child. The app-owned manual patch is prepared but must not be executed until target and backup/export evidence are confirmed.
 
 ## Current Real-Target Replay Order
 
@@ -132,6 +137,7 @@ For a fresh accelerated To Quran app DB target, use the documented real-target a
 7. `patches/2026-05-29-add-arabic-language-service-reference.sql`
 8. `patches/2026-05-29-add-launch-task-types.sql`
 9. `patches/2026-05-29-correct-launch-task-types.sql`
+10. `patches/2026-06-02-make-contacts-child-age-nullable.sql`
 
 The framework infrastructure correction is part of the current real-target baseline shape even though it is stored as a follow-up patch, because the original structure dump omitted several Laravel/Sanctum/Spatie runtime keys and indexes. The Library column correction is also part of the current real-target baseline shape; the To Quran-owned baseline replay files have been corrected, and the follow-up patch remains idempotent for already-created targets.
 

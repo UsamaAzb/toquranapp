@@ -54,24 +54,28 @@ Before writing new app code:
 
 ## Frontend Form Control Rules
 
-For any new or changed form UI, review mobile/tablet behavior for native `select` controls, `input[type="date"]`, and picker widgets such as Flatpickr before closing the task.
+For any new or changed form UI, review mobile/tablet behavior for native `select` controls, `input[type="date"]`, `input[type="time"]`, `input[type="datetime-local"]`, and picker widgets such as Flatpickr before closing the task.
 
-- Long `select` menus and date pickers can overflow narrow phone/tablet viewports. On mobile/tablet, use the shared responsive-control pattern or an equivalent contained custom UI instead of letting the native control spill outside the viewport.
+- Long `select` menus and date/time pickers can overflow narrow phone/tablet viewports. On mobile/tablet, use the shared responsive-control pattern or an equivalent contained custom UI instead of letting the native control spill outside the viewport.
 - Do not change backend contracts while improving the UI. The real field must remain in the form with the same `id`, `name`, value, validation attributes, disabled/readonly state, and submitted payload.
 - Custom controls must write to the real field and dispatch real DOM `input` and `change` events on that field so Livewire, Alpine, browser validation, and normal form submission all stay aligned.
-- Custom menus/calendars must stay inside their parent width using `left: 0; right: 0`, mobile-safe max height, and internal scrolling.
+- Visible custom triggers must mirror programmatic changes to the real field value, selected options, disabled state, and validation state.
+- Custom menus/calendars must stay inside their parent width using `inset-inline: 0` or equivalent logical containment, mobile-safe max height, and internal scrolling.
 - Dynamic rows, modal content, and Livewire-rendered fields must be enhanced after insertion and cleaned up if the field, row, modal, or form is removed.
+- Hidden native fields must not create duplicate keyboard tab stops or duplicate screen-reader entries while enhanced.
+- Guard global listeners and observers against duplicate binding, and disconnect per-field observers when enhanced fields are removed.
 - Server validation UI must stay visually attached to the visible control. If a native field is hidden/enhanced and has adjacent `.invalid-feedback`, move or mirror the invalid state so the visible custom trigger/input is red and the feedback appears below it.
 - Flatpickr fields inside `wire:ignore` need special review. If the real input has an `@error(...) is-invalid @enderror` class but Flatpickr renders an `altInput`, mirror the invalid state to the visible `altInput`, and clear it when the user selects a valid value.
 - Submit-time focus/scroll should target the visible custom trigger/input, not a hidden native field.
 - Desktop should keep native behavior unless the task explicitly calls for a desktop redesign.
+- Use Bootstrap/theme CSS variables for custom controls; do not hardcode colors.
 
 Minimum verification for these changes:
 
-- Search changed views for native `<select>` and `input[type="date"]` controls.
-- Test one normal form select, one select inside a modal or Livewire section, one date/picker field, and one dynamic row if the page has add/remove rows.
+- Search changed views for native `<select>`, `input[type="date"]`, `input[type="time"]`, and `input[type="datetime-local"]` controls.
+- Test one normal form select, one select inside a modal or Livewire section, one date/picker field, one time or datetime field when present, and one dynamic row if the page has add/remove rows.
 - Confirm real field values update, submitted names/values are unchanged, validation errors display below the visible control, invalid states clear after a valid selection, and date picker previous/next navigation works on touch/mobile.
-- Rebuild assets when the implementation touches Vite-managed JS/CSS, and confirm manifests point to generated files that exist in both `public/build/` and `build/` while legacy root-build sync is still enabled.
+- Rebuild assets when the implementation touches Vite-managed JS/CSS, and confirm manifests point to generated files that exist in both `public/build/` and `build/` while legacy root-build sync is still enabled. Those build directories are intentionally gitignored in this repo; `docs/BUILD-DEPLOY-MARKER.md` is the tracked signal that generated assets changed and must be uploaded with deployment.
 
 ## Plan Requirements
 

@@ -134,10 +134,28 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Decision: The launch public booking form should support multiple children, and each child should be able to select one or more child-facing services: Quran Memorization, Quranic Arabic, Arabic Language, Sanad Ijazah Program, and My Deen Journey.
 - Why: Owner wants the public `toquran` repo handoff to align with the app's review-first intake model and to distinguish Arabic Language from Quranic Arabic.
 - App/LMS impact: `BookingServiceInterest` now treats Arabic Language as a distinct canonical service instead of normalizing it into Quranic Arabic. The real app DB target now includes `services_types.value = Arabic Language` and `services.id = 6 / name = Arabic Language`.
-- Website impact: The public website sprint must replace the single-child/single-service form with a multi-child, per-child multi-service payload before connecting to app intake.
+- Website impact: Public website commit `c7addea` has the multi-child/per-child multi-service UI direction, but TQ9 still needs to connect it to app-owned intake tables rather than leaving it as legacy `bookings.notes` JSON only.
 - Owner: `toquranapp` owns the service contract; `toquran` owns the public form implementation.
-- Follow-up: Implement the public website form/update under website sprint W1 / app TQ9.
+- Follow-up: Implement the direct shared-table public website handoff under app TQ9.
 - Status: App-side service contract implemented and committed in `529f7bc`; DB patch executed in `u504065335_to_quran`.
+
+### 2026-06-02 - Public Website Uses Week14-Style Shared App DB Handoff
+- Decision: To Quran should follow the Week14 website/LMS intake pattern for launch: the public website writes directly into app-owned LMS intake/contact tables in the shared app DB, instead of creating a delayed app import bridge from legacy JSON rows.
+- Why: Week14 website already proves the safer pattern for these paired repos: public form UX lives on the website, while clean/review decisions, child rows, submission locks, and contact rows are written into LMS-owned tables immediately. Since To Quran is using the same accelerated shared DB deployment posture, an import bridge adds delay and split-brain risk without clear benefit.
+- App/LMS impact: `toquranapp` remains schema and workflow authority. App-owned target tables for website booking are `bookings`, `booking_children`, `booking_intake_review`, `booking_intake_review_children`, and `booking_intake_submission_locks`; app-owned target table for Contact Us is `contacts`.
+- Website impact: `toquran` should adapt the Week14 website booking/contact implementation: use To Quran service values and `TQ-` references, write child rows directly, route duplicate/repeat/blocked/contact-mismatch requests into intake review, write contacts to `contacts`, and stop treating `contact_us` or `bookings.notes` JSON as the final production handoff.
+- Owner: `toquranapp` owns schema/rules; `toquran` owns public route/UI implementation.
+- Follow-up: Update website sprint W1/TQ9 implementation instructions and run end-to-end public booking/contact to app review smoke before deployment.
+- Status: Approved direction after app-side cross-repo audit on 2026-06-02.
+
+### 2026-06-02 - Contact Us Does Not Require Child Age
+- Decision: Generic public Contact Us submissions should write to the app-owned `contacts` table without requiring or faking `child_age`; the column remains present but becomes nullable.
+- Why: Contact Us is not always tied to a learner. Requiring child age is an inherited Week14 schema constraint that breaks the To Quran public website handoff under strict MySQL/MariaDB inserts.
+- App/LMS impact: App-owned manual patch `database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql` changes `contacts.child_age` from `NOT NULL` to `NULL DEFAULT NULL` after target and backup/export evidence are confirmed. No contact data is inserted, updated, or deleted by the patch.
+- Website impact: `toquran` should write generic contact rows to `contacts` without adding fake child-age placeholders, and its shared-DB tests should treat `contacts.child_age` as nullable after the app patch.
+- Owner: `toquranapp` owns the schema patch; `toquran` owns public Contact Us implementation and tests.
+- Follow-up: Execute the patch during TQ9 deployment readiness only after confirming the target DB and backup/export evidence, then run website Contact Us to app DB smoke.
+- Status: Approved app-owned schema contract; patch prepared but not executed by Codex.
 
 ### 2026-05-29 - Launch Task Type Reference Data
 - Decision: Seed minimal teacher-facing launch task-type reference rows: Assignment, Lesson, Project, and Quiz.

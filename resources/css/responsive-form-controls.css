@@ -8,6 +8,8 @@
     border: 0 !important;
     opacity: 0.01 !important;
     pointer-events: none !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
   }
 
   .tq-responsive-control {
@@ -70,8 +72,7 @@
   .tq-responsive-control__menu {
     position: absolute;
     inset-block-start: calc(100% + 0.25rem);
-    left: 0;
-    right: 0;
+    inset-inline: 0;
     z-index: 1085;
     display: none;
     max-block-size: min(18rem, 54svh);
@@ -193,7 +194,7 @@
   }
 
   .tq-responsive-control__calendar-day.is-selected {
-    color: var(--bs-primary-color, #fff);
+    color: var(--bs-primary-color, var(--bs-white));
     background: var(--bs-primary);
   }
 
@@ -206,5 +207,56 @@
 
   .tq-responsive-control__calendar-day:disabled {
     opacity: 0.42;
+  }
+
+  .tq-responsive-control__time-menu {
+    padding: 0.35rem;
+  }
+
+  .tq-responsive-control__time-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem;
+    max-block-size: min(16rem, 48svh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .tq-responsive-control__time-option {
+    min-block-size: 2.5rem;
+    border: 0;
+    border-radius: var(--bs-border-radius-sm);
+    color: var(--bs-body-color);
+    background: transparent;
+    font: inherit;
+    font-weight: 600;
+  }
+
+  .tq-responsive-control__time-option:hover,
+  .tq-responsive-control__time-option:focus-visible,
+  .tq-responsive-control__time-option[aria-selected="true"] {
+    color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), 0.1);
+    outline: 0;
+  }
+
+  .tq-responsive-control__datetime-time {
+    margin-block-start: 0.65rem;
+    padding-block-start: 0.65rem;
+    border-block-start: var(--bs-border-width) solid var(--bs-border-color);
+  }
+
+  .tq-responsive-control__datetime-time-heading {
+    margin-block-end: 0.45rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .tq-responsive-control__time-empty {
+    color: var(--bs-secondary-color);
+    font-size: 0.875rem;
+    padding: 0.65rem 0.75rem;
   }
 }
