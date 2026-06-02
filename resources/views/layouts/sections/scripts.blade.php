@@ -24,7 +24,7 @@
 <!-- END: Page JS-->
 
 <!-- app JS -->
-@vite(['resources/js/app.js'])
+@vite(['resources/js/app.js', 'resources/js/responsive-form-controls.js'])
 <!-- END: app JS-->
 
 @stack('modals')

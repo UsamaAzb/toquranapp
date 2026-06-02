@@ -58,9 +58,11 @@ export default defineConfig({
       input: [
         'resources/css/app.css',
         'resources/css/app-zone.css',
+        'resources/css/responsive-form-controls.css',
         'resources/css/vocabulary-games.css',
         'resources/assets/css/demo.css',
         'resources/js/app.js',
+        'resources/js/responsive-form-controls.js',
         ...pageJsFiles,
         ...vendorJsFiles,
         ...LibsJsFiles,

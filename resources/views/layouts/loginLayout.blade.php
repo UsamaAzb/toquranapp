@@ -20,13 +20,14 @@
   <meta name="robots" content="noindex, nofollow" />
   
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="{{ asset('assets/img/favicon/favicon.png') }}" />
+  <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon/favicon.ico') }}" />
   @include('pwa.meta')
   <link rel="preload" as="image" href="{{ asset('assets/img/logo/logo.png') }}" />
 
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
       rel="stylesheet">
+  @vite(['resources/css/responsive-form-controls.css'])
     </head>
     <body class="hold-transition sidebar-mini layout-fixed sidebar-collapse">
       <div class="wrapper">
@@ -35,6 +36,7 @@
 
 <script src="https://code.jquery.com/jquery-3.6.1.min.js" ></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" ></script>
+@vite(['resources/js/responsive-form-controls.js'])
 
 
 <script>

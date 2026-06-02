@@ -28,7 +28,7 @@
 @stack('styles')
 
 <!-- app CSS -->
-@vite(['resources/css/app.css'])
+@vite(['resources/css/app.css', 'resources/css/responsive-form-controls.css'])
 <!-- END: app CSS-->
 
 @livewireStyles

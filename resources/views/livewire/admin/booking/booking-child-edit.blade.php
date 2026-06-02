@@ -522,7 +522,7 @@
                         <label class="form-label">Scheduled Date</label>
                         <div wire:ignore>
                           <input type="text"
-                            class="form-control js-booking-child-picker"
+                            class="form-control js-booking-child-picker @error('scheduledDate') is-invalid @enderror"
                             id="scheduled-date-picker-{{ $child->id }}"
                             data-picker-type="date"
                             data-property="scheduledDate"
@@ -549,7 +549,7 @@
                         </div>
                         <div wire:ignore>
                           <input type="text"
-                            class="form-control js-booking-child-picker"
+                            class="form-control js-booking-child-picker @error('scheduledTime') is-invalid @enderror"
                             id="scheduled-time-picker-{{ $child->id }}"
                             data-picker-type="time"
                             data-property="scheduledTime"
@@ -1015,6 +1015,29 @@
           component.set(property, value);
         };
 
+        const hasAdjacentValidationFeedback = input => {
+          const ignoredWrapper = input.closest('[wire\\:ignore]');
+          const feedback = ignoredWrapper?.nextElementSibling;
+
+          return Boolean(
+            feedback?.classList.contains('invalid-feedback') &&
+            feedback.textContent.trim()
+          );
+        };
+
+        const syncPickerValidationState = input => {
+          const picker = input?._flatpickr;
+
+          if (!picker) {
+            return;
+          }
+
+          const invalid = input.classList.contains('is-invalid') || hasAdjacentValidationFeedback(input);
+
+          input.classList.toggle('is-invalid', invalid);
+          picker.altInput?.classList.toggle('is-invalid', invalid);
+        };
+
         const ensurePickerValue = input => {
           if (!input._flatpickr) {
             return;
@@ -1024,12 +1047,15 @@
 
           if (!currentValue) {
             input._flatpickr.clear(false);
+            syncPickerValidationState(input);
             return;
           }
 
           if (input._flatpickr.input.value !== currentValue) {
             input._flatpickr.setDate(currentValue, false);
           }
+
+          syncPickerValidationState(input);
         };
 
         const initPicker = input => {
@@ -1049,6 +1075,8 @@
             monthSelectorType: 'static',
             onChange: function(selectedDates, dateStr) {
               input.dataset.currentValue = dateStr;
+              input.classList.remove('is-invalid');
+              this.altInput?.classList.remove('is-invalid');
               syncLivewireProperty(input, dateStr);
             },
             onClose: function(selectedDates, dateStr) {
@@ -1075,6 +1103,7 @@
 
           window.flatpickr(input, config);
           ensurePickerValue(input);
+          syncPickerValidationState(input);
         };
 
         const initAllBookingChildPickers = (root = document) => {

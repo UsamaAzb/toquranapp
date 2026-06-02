@@ -61,6 +61,49 @@ Before the public website handoff is implemented, the booking form should submit
 
 `Paid Parental Consultation` remains an app-supported service value, but it is not part of the owner-confirmed child-facing multi-service selector for this launch pass unless the owner reopens the public form scope.
 
+## Website Notes JSON Contract
+
+The public website W1 handoff stores the review-first payload in the legacy website `bookings.notes` column as JSON.
+
+Contract name: `toquran_public_review_first_v1`
+
+Shape:
+
+```json
+{
+  "handoff_contract": "toquran_public_review_first_v1",
+  "parent": {
+    "name": "Parent Name",
+    "email": "parent@example.com",
+    "phone": "+2010 910 51 913",
+    "country": "United Kingdom"
+  },
+  "children": [
+    {
+      "name": "Learner Name",
+      "age": 12,
+      "service_interests": [
+        "Quran Memorization",
+        "Quranic Arabic"
+      ]
+    }
+  ],
+  "preferences": {
+    "preferred_date": "2026-06-15",
+    "preferred_time": "evening",
+    "main_concerns": "Optional parent message"
+  }
+}
+```
+
+Parser expectations:
+
+- Treat `bookings.notes` as the source of truth for multi-child public requests when `handoff_contract` is `toquran_public_review_first_v1`.
+- Keep the legacy `bookings.child_name`, `bookings.child_age`, and `bookings.service_interest` fields as summary/display fallback only.
+- Normalize `children.*.service_interests` through the app-side alias/canonicalization rules below.
+- Do not require school/grade for this website contract; the owner removed that public field for launch.
+- Confirm scheduling, meeting details, identity resolution, transfer, and account creation inside the app review workflow, not from website-side assumptions.
+
 ## Service Interest Mapping
 
 | Website value | App-owned meaning | First-import handling |

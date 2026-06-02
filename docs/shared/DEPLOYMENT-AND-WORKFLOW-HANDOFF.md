@@ -32,6 +32,7 @@ When app code is imported, verify:
 
 - `APP_NAME`, `APP_URL`, mail sender, Vite app name, and route domains are To Quran-specific.
 - no Week14 public URLs, emails, QA accounts, or service labels remain.
+- mobile/tablet form controls are checked before launch: long dropdowns, multi-service selectors, date fields, and Flatpickr-style pickers must be contained within the viewport, preserve real field names/values, dispatch real DOM `input`/`change` events, and keep validation feedback attached to the visible control.
 - queue worker requirements are documented if activation emails or queued mail are imported.
 - storage/public file delivery rules are documented before uploading app assets.
 - public website sign-in link remains `https://app.toquran.org/login`.
@@ -96,6 +97,7 @@ Before server deployment, confirm the destination host/database backup, run only
 - Upcoming transfer-created teacher assignments resolve through `TOQURAN_DEFAULT_TEACHER_EMAIL`; launch local default is `drosamaqandil@gmail.com` and must be set in production before first transfer smoke. If the configured teacher cannot be resolved, the app should fail loudly instead of silently assigning a legacy Week14 teacher id.
 - App-side class-subject catalog: Quran Memorization, Arabic Language, Quranic Arabic, Sanad Program, My Deen Journey / `MDJ`, and Well Being.
 - Public child-facing intake service selector for launch: Quran Memorization, Quranic Arabic, Arabic Language, Sanad Ijazah Program, and My Deen Journey. Each child may choose one or more services.
+- Because the public website selector will be multi-child and per-child multi-service, the website repo must apply the same mobile/tablet dropdown/date rules as the app: keep the real submitted fields as the source of truth, enhance dynamically added child rows, keep menus inside their parent width, and ensure validation appears below the visible custom control.
 - Guarded learning-catalog reference-data patch has been executed locally: `database/manual/patches/2026-05-29-toquran-learning-catalog-reference-data.sql`.
 - My Deen Journey / `MDJ` and Well Being must stay distinct: MDJ is the To Quran learner journey/service framing, while parent-written behavior points continue to resolve through the Well Being behavior subject only.
 - Keep inherited Week14 school-subject classes/subjects inactive where practical for future MDJ expansion; do not expose them in launch public copy or launch assignment dropdowns by default.

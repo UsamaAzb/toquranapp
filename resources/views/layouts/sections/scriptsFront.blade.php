@@ -19,3 +19,6 @@
 <!-- BEGIN: Page JS-->
 @yield('page-script')
 <!-- END: Page JS-->
+
+<!-- responsive form controls -->
+@vite(['resources/js/responsive-form-controls.js'])

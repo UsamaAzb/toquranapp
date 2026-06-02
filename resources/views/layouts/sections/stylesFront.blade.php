@@ -22,3 +22,6 @@
 <!-- Page Styles -->
 @yield('page-style')
 @stack('styles')
+
+<!-- responsive form controls -->
+@vite(['resources/css/responsive-form-controls.css'])
