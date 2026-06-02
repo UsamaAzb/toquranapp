@@ -134,19 +134,19 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Decision: The launch public booking form should support multiple children, and each child should be able to select one or more child-facing services: Quran Memorization, Quranic Arabic, Arabic Language, Sanad Ijazah Program, and My Deen Journey.
 - Why: Owner wants the public `toquran` repo handoff to align with the app's review-first intake model and to distinguish Arabic Language from Quranic Arabic.
 - App/LMS impact: `BookingServiceInterest` now treats Arabic Language as a distinct canonical service instead of normalizing it into Quranic Arabic. The real app DB target now includes `services_types.value = Arabic Language` and `services.id = 6 / name = Arabic Language`.
-- Website impact: Public website commit `c7addea` has the multi-child/per-child multi-service UI direction, but TQ9 still needs to connect it to app-owned intake tables rather than leaving it as legacy `bookings.notes` JSON only.
+- Website impact: Public website commit `6dfb71f` implements the multi-child/per-child multi-service shared-DB handoff to app-owned booking/review tables.
 - Owner: `toquranapp` owns the service contract; `toquran` owns the public form implementation.
-- Follow-up: Implement the direct shared-table public website handoff under app TQ9.
+- Follow-up: Run deployment-target smoke for clean booking, review booking, Contact Us, app review, transfer, and login.
 - Status: App-side service contract implemented and committed in `529f7bc`; DB patch executed in `u504065335_to_quran`.
 
 ### 2026-06-02 - Public Website Uses Week14-Style Shared App DB Handoff
 - Decision: To Quran should follow the Week14 website/LMS intake pattern for launch: the public website writes directly into app-owned LMS intake/contact tables in the shared app DB, instead of creating a delayed app import bridge from legacy JSON rows.
 - Why: Week14 website already proves the safer pattern for these paired repos: public form UX lives on the website, while clean/review decisions, child rows, submission locks, and contact rows are written into LMS-owned tables immediately. Since To Quran is using the same accelerated shared DB deployment posture, an import bridge adds delay and split-brain risk without clear benefit.
 - App/LMS impact: `toquranapp` remains schema and workflow authority. App-owned target tables for website booking are `bookings`, `booking_children`, `booking_intake_review`, `booking_intake_review_children`, and `booking_intake_submission_locks`; app-owned target table for Contact Us is `contacts`.
-- Website impact: `toquran` should adapt the Week14 website booking/contact implementation: use To Quran service values and `TQ-` references, write child rows directly, route duplicate/repeat/blocked/contact-mismatch requests into intake review, write contacts to `contacts`, and stop treating `contact_us` or `bookings.notes` JSON as the final production handoff.
+- Website impact: `toquran` commit `6dfb71f` adapts the Week14 website booking/contact implementation: To Quran service values and `TQ-` references, direct child rows, duplicate/repeat/blocked/contact-mismatch intake review routing, `CNT-` contact references, and Contact Us writes to `contacts` instead of `contact_us` / `massage`.
 - Owner: `toquranapp` owns schema/rules; `toquran` owns public route/UI implementation.
-- Follow-up: Update website sprint W1/TQ9 implementation instructions and run end-to-end public booking/contact to app review smoke before deployment.
-- Status: Approved direction after app-side cross-repo audit on 2026-06-02.
+- Follow-up: Preserve the same shared DB target and app schema shape during production deploy/import, then repeat the public booking/contact smoke on the server target after cleanup/rotation.
+- Status: Implemented in public website commit `6dfb71f`; local production-equivalent shared DB smoke passed on 2026-06-02.
 
 ### 2026-06-02 - Contact Us Does Not Require Child Age
 - Decision: Generic public Contact Us submissions should write to the app-owned `contacts` table without requiring or faking `child_age`; the column remains present but becomes nullable.
@@ -154,8 +154,17 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - App/LMS impact: App-owned manual patch `database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql` changes `contacts.child_age` from `NOT NULL` to `NULL DEFAULT NULL` after target and backup/export evidence are confirmed. No contact data is inserted, updated, or deleted by the patch.
 - Website impact: `toquran` should write generic contact rows to `contacts` without adding fake child-age placeholders, and its shared-DB tests should treat `contacts.child_age` as nullable after the app patch.
 - Owner: `toquranapp` owns the schema patch; `toquran` owns public Contact Us implementation and tests.
-- Follow-up: Execute the patch during TQ9 deployment readiness only after confirming the target DB and backup/export evidence, then run website Contact Us to app DB smoke.
-- Status: Approved app-owned schema contract; patch prepared but not executed by Codex.
+- Follow-up: Run website Contact Us to app DB smoke and ensure production import/deploy preserves the nullable `contacts.child_age` shape.
+- Status: Executed locally against `u504065335_to_quran` on 2026-06-02 after target verification and focused structure backup evidence.
+
+### 2026-06-02 - TQ9 Shared DB Smoke And Deployment Hardening
+- Decision: Treat the Week14-style shared DB handoff as launch-ready locally after a production-equivalent smoke against the real app DB name, while keeping cleanup/rotation as the final deployment gate.
+- Why: Owner wants the app and website to move quickly using the same shared-table pattern as Week14. The local smoke proved clean booking, duplicate/review routing, generic Contact Us, app transfer, account activation, parent/student/teacher login, and teacher class visibility without adding an import bridge.
+- App/LMS impact: `contacts.child_age` is nullable locally; transfer provisioning now activates optional launch subjects from each child's selected `service_interests`; Composer advisories are clear after dependency hardening. Smoke data and temporary credentials remain local testing aids only.
+- Website impact: Public website commit `6dfb71f` can continue writing to app-owned booking/review/contact tables as long as production deploy preserves the app schema shape and shared DB target.
+- Owner: `toquranapp` owns schema, transfer rules, and deployment gates; `toquran` owns public form UX and public route implementation.
+- Follow-up: Before production launch/export, verify server DB target and backup, clean `@toquran-smoke.test` / `[SMOKE]` / `SMOKE-TQ-*` rows, rotate temporary credentials, verify queue/mail/storage/build assets, and settle the JavaScript audit lockfile/tooling strategy.
+- Status: Local smoke and Composer hardening complete on 2026-06-02; production cleanup/rotation still pending.
 
 ### 2026-05-29 - Launch Task Type Reference Data
 - Decision: Seed minimal teacher-facing launch task-type reference rows: Assignment, Lesson, Project, and Quiz.

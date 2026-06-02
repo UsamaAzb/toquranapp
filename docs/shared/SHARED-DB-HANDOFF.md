@@ -28,7 +28,9 @@ Track database and runtime items that affect both To Quran repos.
 | 2026-05-29 | Launch task-type rows were added to `task_types` for Assignment, Lesson, Project, and Quiz so teacher session tasks can be created during TQ4 smoke | Manual reference-data patch | `toquranapp` | Complete; committed in `529f7bc` |
 | 2026-05-29 | Same-day task-type reference rows were corrected after review: attachment-kind rows were removed and id 7 was restored to Assignment/default | Manual correction patch | `toquranapp` | Complete; committed in `529f7bc` |
 | 2026-06-02 | Week14 website/LMS handoff was inspected: Week14 website writes directly into LMS-owned `bookings`, `booking_children`, intake review, submission lock, and `contacts` tables. To Quran should follow this shared-table pattern instead of building a delayed JSON import bridge when both repos share the app DB. | Cross-repo audit | `toquranapp` + `toquran` | Approved direction for TQ9 website handoff |
-| 2026-06-02 | Contact Us shared-DB contract was clarified: generic public Contact Us submissions should write to `contacts` without requiring or faking `child_age`; app-owned patch `database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql` makes `contacts.child_age` nullable | Website handoff review | `toquranapp` | Patch prepared; not executed by Codex |
+| 2026-06-02 | Public website shared-DB handoff was implemented in `toquran` commit `6dfb71f`: booking writes target app-owned booking/review tables, Contact Us writes target `contacts`, references use `TQ-` / `CNT-`, and the public contact phone is `+201091051913` | Website implementation | `toquran` consuming app contract | Implemented; local shared-DB smoke passed |
+| 2026-06-02 | Contact Us shared-DB contract was clarified and executed locally: generic public Contact Us submissions write to `contacts` without requiring or faking `child_age`; app-owned patch `database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql` made `contacts.child_age` nullable after focused structure backup evidence | Website handoff review + manual patch | `toquranapp` | Executed locally; production import/deploy must preserve this shape |
+| 2026-06-02 | TQ9 production-equivalent local smoke passed from public website booking/contact into app review/transfer/login. A transfer provisioning bug was found and fixed so selected optional service interests activate their matching app subjects, e.g. Arabic Language subject id 3. | Local HTTP/DB smoke | `toquranapp` | Complete locally; see audit evidence |
 
 ## Current Backup/Baseline Evidence
 
@@ -66,6 +68,9 @@ Track database and runtime items that affect both To Quran repos.
 - Launch task type correction execution note: `database/manual/patches/2026-05-29-correct-launch-task-types-execution-note.sql`
 - Contact Us `contacts.child_age` nullable patch: `database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql`
 - Contact Us `contacts.child_age` nullable patch execution note: `database/manual/patches/2026-06-02-make-contacts-child-age-nullable-execution-note.sql`
+- TQ9 shared DB smoke/hardening audit: `docs/audits/2026-06-02-tq9-shared-db-smoke-and-hardening.md`
+- TQ9 smoke selected-service subject correction patch: `database/manual/patches/2026-06-02-correct-tq9-smoke-selected-service-subjects.sql`
+- TQ9 smoke selected-service subject correction execution note: `database/manual/patches/2026-06-02-correct-tq9-smoke-selected-service-subjects-execution-note.sql`
 
 ## Schema Comparison Summary
 
@@ -109,6 +114,6 @@ Document before destructive cleanup:
 8. Treat launch task types as required reference data for TQ4 teacher session/task smoke.
 9. Treat public website booking/contact as a shared app-DB writer: website may write only to app-approved tables and columns, primarily `bookings`, `booking_children`, `booking_intake_review`, `booking_intake_review_children`, `booking_intake_submission_locks`, and `contacts`.
 10. Do not make `contact_us` or legacy website-only booking JSON the long-term handoff target if the website can write to the shared app DB.
-11. Make `contacts.child_age` nullable before public Contact Us writes directly to the app DB; a generic contact message should not require a child age or fake placeholder value.
+11. Preserve the locally executed `contacts.child_age NULL DEFAULT NULL` shape before public Contact Us writes directly to the production app DB; a generic contact message should not require a child age or fake placeholder value.
 12. Preserve the Quran YouTube/video list later through a Library/content migration.
 13. Keep destructive cleanup documented before execution.

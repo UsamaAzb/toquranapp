@@ -1,16 +1,20 @@
 -- Execution note for 2026-06-02-make-contacts-child-age-nullable.sql
--- Status: NOT EXECUTED by Codex.
--- Reason: DB mutations require confirmed target and backup/export evidence.
--- Required target: u504065335_to_quran
--- Required pre-run confirmation:
---   1. Export/backup the confirmed target DB.
---   2. Select u504065335_to_quran.
---   3. Set @toquran_confirm_real_db_target = 'u504065335_to_quran'.
+-- Status: EXECUTED locally by Codex on 2026-06-02.
+-- Target: u504065335_to_quran
+-- Before-backup:
+--   database/manual/backups/2026-06-02-203533-u504065335_to_quran-before-contacts-child-age-nullable-structure.sql
+--   Focused structure-only export of contacts before the schema change; no contact rows were exported.
+-- Pre-run confirmation:
+--   1. .env points to DB_DATABASE=u504065335_to_quran.
+--   2. MySQL query returned DATABASE() = u504065335_to_quran.
+--   3. information_schema table count returned 352.
+--   4. contacts.child_age was NO / varchar / 255 before execution.
+--   5. Execution set @toquran_confirm_real_db_target = 'u504065335_to_quran'.
 -- Patch guards:
 --   - aborts unless @toquran_confirm_real_db_target is set to u504065335_to_quran.
 --   - aborts unless DATABASE() is u504065335_to_quran.
 --   - aborts unless the selected schema has at least 300 tables.
 --   - aborts unless contacts.child_age exists exactly once as varchar(255).
--- Expected effect:
---   contacts.child_age changes from NOT NULL to NULL DEFAULT NULL.
+-- Verified effect:
+--   contacts.child_age changed from NOT NULL to NULL DEFAULT NULL.
 --   No contact rows are inserted, updated, or deleted.

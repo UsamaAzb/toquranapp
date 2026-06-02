@@ -287,6 +287,43 @@ class BookingTransferGatingTest extends TestCase
         $this->assertSame(10, DB::table('student_gifts')->where('student_id', $studentId)->where('academic_year_id', 2)->count());
     }
 
+    public function test_transfer_activates_subjects_selected_from_public_service_interests(): void
+    {
+        $child = $this->createBookingChild([], [
+            'evaluation_outcome' => 'fit',
+            'meeting_disposition' => 'completed',
+            'transfer_status' => 'not_transferred',
+            'service_interests' => ['Arabic Language', 'Sanad Ijazah Program'],
+        ]);
+
+        $this->makeTransferServiceDoubleWithRealClassProvisioning()->transferChild($child);
+
+        $studentId = (int) $child->fresh()->student_id;
+        $gradeLevelSubjects = DB::table('grade_level_subjects')
+            ->where('grade_level_id', 1)
+            ->whereIn('subject_id', [3, 4])
+            ->pluck('id', 'subject_id');
+
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[3],
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[4],
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('teacher_subject_classes', [
+            'subject_id' => 3,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('teacher_subject_classes', [
+            'subject_id' => 4,
+            'status' => 'active',
+        ]);
+    }
+
     public function test_transfer_syncs_missing_subjects_for_reused_student_with_current_class(): void
     {
         $parent = ParentModel::create([
@@ -1639,6 +1676,14 @@ class BookingTransferGatingTest extends TestCase
                 [
                     'title' => 'Quranic Arabic',
                     'value' => 'Quranic Arabic',
+                    'info' => null,
+                    'active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'title' => 'Arabic Language',
+                    'value' => 'Arabic Language',
                     'info' => null,
                     'active' => 1,
                     'created_at' => now(),

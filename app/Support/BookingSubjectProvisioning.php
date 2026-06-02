@@ -32,11 +32,13 @@ final class BookingSubjectProvisioning
     /** @deprecated Use SUBJECT_QURANIC_ARABIC. */
     public const SUBJECT_MATH = self::SUBJECT_QURANIC_ARABIC;
 
-    public static function planForGradeLevel(?int $gradeLevelId): array
+    public static function planForGradeLevel(?int $gradeLevelId, array|string|null $serviceInterests = null): array
     {
         if (! $gradeLevelId || ! Schema::hasTable('grade_level_subjects')) {
             return [];
         }
+
+        $selectedSubjectIds = self::subjectIdsForServiceInterests($serviceInterests);
 
         $query = GradeLevelSubject::query()
             ->where('grade_level_id', $gradeLevelId)
@@ -56,8 +58,8 @@ final class BookingSubjectProvisioning
                 'grade_level_subject_id' => $gradeLevelSubject->id,
                 'subject_id' => (int) $gradeLevelSubject->subject_id,
                 'subject_name' => self::subjectNameFromGradeLevelSubject($gradeLevelSubject),
-                'student_status' => self::studentStatus((int) $gradeLevelSubject->subject_id),
-                'teacher_status' => self::teacherStatus((int) $gradeLevelSubject->subject_id),
+                'student_status' => self::studentStatus((int) $gradeLevelSubject->subject_id, $selectedSubjectIds),
+                'teacher_status' => self::teacherStatus((int) $gradeLevelSubject->subject_id, $selectedSubjectIds),
             ])
             ->values()
             ->all();
@@ -105,6 +107,28 @@ final class BookingSubjectProvisioning
             self::SUBJECT_MY_DEEN_JOURNEY,
             self::SUBJECT_WELL_BEING,
         ];
+    }
+
+    public static function subjectIdsForServiceInterests(array|string|null $serviceInterests): array
+    {
+        $values = is_array($serviceInterests) ? $serviceInterests : [$serviceInterests];
+
+        return collect($values)
+            ->map(fn ($value) => is_scalar($value) ? BookingServiceInterest::normalize((string) $value) : null)
+            ->map(fn (?string $value): ?int => match ($value) {
+                BookingServiceInterest::QURAN_MEMORIZATION => self::SUBJECT_QURAN_MEMORIZATION,
+                BookingServiceInterest::QURANIC_ARABIC => self::SUBJECT_QURANIC_ARABIC,
+                BookingServiceInterest::ARABIC_LANGUAGE => self::SUBJECT_ARABIC_LANGUAGE,
+                BookingServiceInterest::SANAD_IJAZAH => self::SUBJECT_SANAD_PROGRAM,
+                BookingServiceInterest::MY_DEEN_JOURNEY => self::SUBJECT_MY_DEEN_JOURNEY,
+                // Consultation is an intake/support service, not an LMS class subject.
+                BookingServiceInterest::PAID_PARENTAL_CONSULTATION => null,
+                default => null,
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public static function subjectName(int $subjectId): string
@@ -178,14 +202,17 @@ final class BookingSubjectProvisioning
             ]);
     }
 
-    protected static function studentStatus(int $subjectId): string
+    protected static function studentStatus(int $subjectId, array $selectedSubjectIds = []): string
     {
-        return in_array($subjectId, self::activeByDefaultSubjectIds(), true) ? 'active' : 'inactive';
+        return in_array($subjectId, self::activeByDefaultSubjectIds(), true)
+            || in_array($subjectId, $selectedSubjectIds, true)
+                ? 'active'
+                : 'inactive';
     }
 
-    protected static function teacherStatus(int $subjectId): string
+    protected static function teacherStatus(int $subjectId, array $selectedSubjectIds = []): string
     {
-        return in_array($subjectId, self::activeByDefaultSubjectIds(), true) ? 'active' : 'inactive';
+        return self::studentStatus($subjectId, $selectedSubjectIds);
     }
 
     protected static function subjectNameFromGradeLevelSubject(GradeLevelSubject $gradeLevelSubject): string

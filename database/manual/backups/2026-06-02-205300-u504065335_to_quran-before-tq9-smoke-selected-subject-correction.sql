@@ -1,0 +1,25 @@
+-- Redacted backup evidence only.
+-- Date: 2026-06-02
+-- Target DB: u504065335_to_quran
+-- Purpose: before correcting transferred TQ9 smoke child's selected-service subject activation.
+-- Raw restore dump intentionally not stored in VCS.
+--
+-- Before-state query:
+-- SELECT bc.id AS booking_child_id, bc.child_name, bc.service_interests,
+--        ss.id AS student_subject_id, subjects.title AS subject_title,
+--        ss.status AS student_subject_status,
+--        tsc.id AS teacher_subject_class_id, tsc.status AS teacher_status
+-- FROM booking_children bc
+-- JOIN students_subjects ss ON ss.student_id = bc.student_id
+-- JOIN grade_level_subjects gls ON gls.id = ss.grade_level_subject_id
+-- JOIN subjects ON subjects.id = gls.subject_id
+-- LEFT JOIN teacher_subject_classes tsc ON tsc.class_subject_id = ss.class_subject_id
+-- WHERE bc.id = 7 AND subjects.id IN (3, 4)
+-- ORDER BY subjects.id;
+--
+-- Before-state summary:
+-- booking_child_id 7, child Smoke TQ9 Clean Amina, service_interests ["Quran Memorization","Arabic Language"]
+-- Arabic Language: students_subjects.id 21 inactive; teacher_subject_classes.id 23 inactive
+-- Sanad Program: students_subjects.id 22 inactive; teacher_subject_classes.id 24 inactive
+--
+-- Do not execute this file.

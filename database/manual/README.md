@@ -45,6 +45,10 @@ timestamp, and checksum.
   - redacted evidence note for the real-target backup before adding launch task-type reference rows
 - `backups/2026-05-29-173241-u504065335_to_quran-before-task-type-correction.sql`
   - restore-only focused real-target backup before correcting the same-day task-type reference rows; contains task tables only and no auth/session/contact data
+- `backups/2026-06-02-203533-u504065335_to_quran-before-contacts-child-age-nullable-structure.sql`
+  - focused structure-only real-target backup of `contacts` before making `contacts.child_age` nullable for generic public Contact Us submissions; no contact rows exported
+- `backups/2026-06-02-205300-u504065335_to_quran-before-tq9-smoke-selected-subject-correction.sql`
+  - redacted evidence note before correcting the TQ9 transferred smoke child's selected-service subject activation
 - `patches/2026-05-28-create-toquranapp-local-baseline.sql`
   - guarded structure-only baseline patch used to create `toquranapp_local`
 - `patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql`
@@ -104,9 +108,13 @@ timestamp, and checksum.
 - `patches/2026-05-29-correct-launch-task-types-execution-note.sql`
   - execution note for the launch task-type correction patch
 - `patches/2026-06-02-make-contacts-child-age-nullable.sql`
-  - guarded real-target schema patch that makes `contacts.child_age` nullable for generic public Contact Us submissions; not executed by Codex
+  - guarded real-target schema patch that makes `contacts.child_age` nullable for generic public Contact Us submissions; executed locally against `u504065335_to_quran` on 2026-06-02
 - `patches/2026-06-02-make-contacts-child-age-nullable-execution-note.sql`
-  - pre-execution note for the Contact Us `contacts.child_age` nullable patch; update it with backup/export evidence and execution verification if the patch is run
+  - execution note for the Contact Us `contacts.child_age` nullable patch
+- `patches/2026-06-02-correct-tq9-smoke-selected-service-subjects.sql`
+  - guarded real-target smoke-data correction patch that activates only transferred smoke child subjects selected in `booking_children.service_interests`
+- `patches/2026-06-02-correct-tq9-smoke-selected-service-subjects-execution-note.sql`
+  - execution note for the TQ9 smoke selected-service subject correction
 
 ## Current Local App Target
 
@@ -122,7 +130,7 @@ timestamp, and checksum.
 - Arabic Language is now also a distinct app/public service value for intake; the public website can send it separately from Quranic Arabic during the multi-child/multi-service handoff.
 - Default transfer teacher assignment is configured by `TOQURAN_DEFAULT_TEACHER_EMAIL`; the current launch default teacher is `drosamaqandil@gmail.com` in `u504065335_to_quran`.
 - Launch task-type rows exist for Assignment, Lesson, Project, and Quiz so teacher session-task modals can create normal tasks during TQ4 smoke.
-- Public website Contact Us handoff requires `contacts.child_age` to be nullable because generic contact rows do not always belong to a child. The app-owned manual patch is prepared but must not be executed until target and backup/export evidence are confirmed.
+- Public website Contact Us handoff requires `contacts.child_age` to be nullable because generic contact rows do not always belong to a child. The app-owned manual patch was executed locally against `u504065335_to_quran` on 2026-06-02 after target verification and focused structure backup evidence.
 
 ## Current Real-Target Replay Order
 

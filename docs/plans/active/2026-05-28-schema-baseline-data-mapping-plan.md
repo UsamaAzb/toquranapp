@@ -159,6 +159,6 @@ Next real-target direction:
 
 ## Open Caveats
 
-- Composer security advisories inherited from Week14 must be resolved before deployment.
+- Composer security advisories inherited from Week14 were resolved locally during TQ9 hardening on 2026-06-02; keep `composer audit` clean before deployment.
 - Production/real DB naming is now owner-directed as `u504065335_to_quran`; `toquranapp_local` remains the local proof baseline.
 - Public website intake handoff waits until app-side DB setup and TQ2 service/intake rules are ready.

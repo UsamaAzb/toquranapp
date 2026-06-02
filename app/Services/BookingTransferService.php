@@ -409,7 +409,7 @@ class BookingTransferService
             throw new InvalidArgumentException('Child transfer requires a grade level.');
         }
 
-        $subjectPlan = BookingSubjectProvisioning::planForGradeLevel($gradeLevelId);
+        $subjectPlan = BookingSubjectProvisioning::planForGradeLevel($gradeLevelId, $child->service_interests ?? []);
 
         if ($subjectPlan === []) {
             throw new InvalidArgumentException('Child transfer requires grade-level subjects for the selected grade.');
@@ -519,6 +519,14 @@ class BookingTransferService
 
             if ((int) $studentSubject->class_subject_id !== (int) $classSubject->id) {
                 $studentSubject->class_subject_id = $classSubject->id;
+            }
+
+            if ($subject['student_status'] === 'active' && $studentSubject->status !== 'active') {
+                $studentSubject->status = 'active';
+                $studentSubject->enrolled_at = $studentSubject->enrolled_at ?: now()->toDateString();
+            }
+
+            if ($studentSubject->isDirty()) {
                 $studentSubject->save();
             }
 
