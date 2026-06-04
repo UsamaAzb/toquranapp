@@ -192,10 +192,10 @@
 
     <section class="w14-parent-hero mb-4" aria-labelledby="children-title">
       <div>
-        <div class="w14-parent-hero__eyebrow">My children</div>
+        <div class="w14-parent-hero__eyebrow">My Deen Journey</div>
         <h1 class="w14-parent-hero__title" id="children-title">Welcome, {{ $parentFirstName }}.</h1>
         <p class="w14-parent-hero__copy">
-          Check reviews, points lab, and workspaces from one calm place.
+          Review tasks, add points, follow rewards, and open each child's workspace from one calm place.
         </p>
       </div>
 
@@ -264,7 +264,7 @@
             <div class="card-body w14-parent-child-card__body">
               <div class="w14-parent-child-card__name-row">
                 <div class="min-w-0">
-                  <div class="text-uppercase text-muted small fw-semibold mb-1">Workspace</div>
+                  <div class="text-uppercase text-muted small fw-semibold mb-1">My Deen Journey</div>
                   <h2 class="w14-parent-child-card__name" title="{{ $stu->display_name }}">{{ $stu->first_name }}</h2>
                 </div>
                 <span class="badge bg-label-{{ $reviewTone }} rounded-pill flex-shrink-0">

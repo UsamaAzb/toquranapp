@@ -323,6 +323,13 @@
                         <span class="badge bg-label-{{ $this->statusTone($child->account_status) }}">
                           {{ $this->statusLabel($child->account_status) }}
                         </span>
+                        <div class="mt-1">
+                          @if(($this->trustedChildSettings[$child->id] ?? false) === true)
+                            <span class="badge bg-label-info">Trusted</span>
+                          @else
+                            <span class="badge bg-label-secondary">Standard review</span>
+                          @endif
+                        </div>
                       </td>
                       <td class="text-center">
                         @if ($canViewStudentDomainLinks)
@@ -427,6 +434,14 @@
                     <span class="badge bg-label-{{ $this->statusTone($child->account_status) }}">
                       {{ $this->statusLabel($child->account_status) }}
                     </span>
+                  </div>
+
+                  <div class="family-workspace-child-card__meta">
+                    @if(($this->trustedChildSettings[$child->id] ?? false) === true)
+                      <span class="badge bg-label-info">Trusted</span>
+                    @else
+                      <span class="badge bg-label-secondary">Standard review</span>
+                    @endif
                   </div>
 
                   @if ($this->hasDuplicateCurrentClassHistory($child))

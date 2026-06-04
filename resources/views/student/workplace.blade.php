@@ -243,9 +243,10 @@ $configData = Helper::appClasses();
       <div class="d-flex  row  card-body">
         <div class="col-7">
         
+              <div class="text-uppercase text-primary small fw-semibold mb-1">My Deen Journey</div>
               <h5 class="mb-2">Welcome back,<span class="h4"> {{$student->first_name}} </span></h5>
               
-        <p>Your progress this week is awesome. Let's keep it up and gain lots of points.</p>
+        <p>Keep up your tasks, rewards, and points follow-up for this week.</p>
       
             <!--<h5 class="card-title mb-0">Congratulations {{$student->first_name}}! 🎉</h5>-->
             
@@ -268,7 +269,8 @@ $configData = Helper::appClasses();
       <div class="card h-100">
           <div class="d-flex align-items-start  card-body pb-0">
                <div class="col-6">
-            <h5 class="mb-5">Reward Progress</h5>
+            <h5 class="mb-1">Reward Progress</h5>
+            <small class="text-body-secondary d-block mb-3">My Deen Journey rewards</small>
 
           
           <div class="  text-sm-left d-flex flex-column">
@@ -309,7 +311,8 @@ $configData = Helper::appClasses();
       <div class="card h-100">
           <div class="d-flex align-items-start row card-body">
                <div class="col-lg-6 col-md-6 col-sm-6 col-12">
-            <h5 class="mb-5">Reward Progress</h5>
+            <h5 class="mb-1">Reward Progress</h5>
+            <small class="text-body-secondary d-block mb-3">My Deen Journey rewards</small>
 
           
           <div class="  text-sm-left d-flex flex-column">
@@ -382,7 +385,8 @@ $configData = Helper::appClasses();
  <div class="card h-100">
       <div class="d-flex align-items-start row card-body">
         
-            <h5 class="mb-5">Behavior Points</h5>
+            <h5 class="mb-1">Behavior Points</h5>
+            <small class="text-body-secondary d-block mb-3">Points follow-up</small>
 
     <div class="row">
         {{-- Positive --}}

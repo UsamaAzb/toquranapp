@@ -1,0 +1,55 @@
+-- Execution note: TQ5 My Deen Journey starter behavior/accountability reference data
+-- Date: 2026-06-03
+-- Target DB: u504065335_to_quran
+-- Patch executed:
+--   database/manual/patches/2026-06-03-tq5-mdj-starter-behavior-reference-data.sql
+-- Backup before execution:
+--   database/manual/backups/2026-06-03-140853-u504065335_to_quran-before-tq5-mdj-starter-data.sql
+--   The full dump was created before execution, then intentionally left out of
+--   Git because it contained user/contact/booking rows and credential hashes.
+--   This execution note records the backup evidence and affected table counts
+--   without committing personal or smoke-account data.
+--
+-- Preflight evidence:
+--   SELECT DATABASE() returned u504065335_to_quran.
+--   subjects.id = 15 returned My Deen Journey, active = 1, row_status = current.
+--   subjects.id = 16 returned Well Being, active = 1, row_status = current.
+--   Before patch:
+--     reward_discipline_transfer = 0
+--     punishments_suggestions = 0
+--     reward_discipline_points = 0
+--     punishment_agreements = 0
+--     student_gifts = 10
+--     reward_points_ledger = 0
+--     punishment_types = 0
+--
+-- Execution result:
+--   Patch completed successfully.
+--   After patch:
+--     punishment_types = 2
+--     punishments_suggestions = 6
+--     reward_discipline_transfer = 12
+--
+-- Guard-failure evidence:
+--   On 2026-06-04, the same guarded patch was executed through a temporary
+--   Laravel DB connection pointed at non-target local DB `toquranapp_local`.
+--   The guard message was:
+--     REFUSING TQ5 starter data patch: wrong target DB or subject 15/16 identity mismatch. Inserts are gated off.
+--   Before counts on `toquranapp_local`:
+--     punishment_types = 0
+--     punishments_suggestions = 0
+--     reward_discipline_transfer = 0
+--   After counts on `toquranapp_local`:
+--     punishment_types = 0
+--     punishments_suggestions = 0
+--     reward_discipline_transfer = 0
+--   Result: unchanged = yes.
+--
+-- Notes:
+--   This was an insert-only reference-data patch.
+--   Agreements remain meeting-defined family decisions.
+--   No production deployment, smoke cleanup, credential rotation, or public website work was performed.
+--   Post-review safety correction: the stored-procedure guard in the source
+--   patch was replaced with a read-only guard variable before any insert, and
+--   every insert is gated by that guard. The executed data body remains
+--   equivalent and idempotent.

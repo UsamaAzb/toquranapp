@@ -614,6 +614,25 @@ class FamilyWorkspace extends Component
     }
 
     #[Computed]
+    public function trustedChildSettings(): Collection
+    {
+        if (! Schema::hasTable('student_task_approval_settings')) {
+            return collect();
+        }
+
+        $studentIds = $this->children->pluck('id')->all();
+
+        if ($studentIds === []) {
+            return collect();
+        }
+
+        return DB::table('student_task_approval_settings')
+            ->whereIn('student_id', $studentIds)
+            ->pluck('trusted_auto_approval_enabled', 'student_id')
+            ->map(fn ($enabled): bool => (bool) $enabled);
+    }
+
+    #[Computed]
     public function availableReasons(): array
     {
         if (blank($this->pendingLifecycleAction)) {

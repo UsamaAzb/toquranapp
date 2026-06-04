@@ -6,15 +6,13 @@ use Tests\TestCase;
 
 class ParentTeacherTaskApprovalWorkflowTest extends TestCase
 {
-    public function test_manual_sql_artifacts_define_approval_metadata_and_unique_task_student_contract(): void
+    public function test_manual_sql_artifacts_define_approval_metadata_and_reward_uniqueness_contracts(): void
     {
-        $patch = file_get_contents(base_path('database/manual/patches/2026-05-04-parent-teacher-task-approval-workflow.sql'));
-        $verify = file_get_contents(base_path('database/manual/patches/2026-05-04-parent-teacher-task-approval-workflow-verify.sql'));
-        $punishmentAgreementPatch = file_get_contents(base_path('database/manual/patches/2026-05-05-punishment-agreements-unique-student-type-title.sql'));
+        $baseline = file_get_contents(base_path('database/manual/baseline/2026-05-28-u504065335_to_quran-app-schema-after-db-corrections.sql'));
+        $localBaseline = file_get_contents(base_path('database/manual/baseline/2026-05-28-toquranapp-local-schema.sql'));
 
-        $this->assertIsString($patch);
-        $this->assertIsString($verify);
-        $this->assertIsString($punishmentAgreementPatch);
+        $this->assertIsString($baseline);
+        $this->assertIsString($localBaseline);
 
         foreach ([
             'review_submitted_at',
@@ -26,30 +24,16 @@ class ParentTeacherTaskApprovalWorkflowTest extends TestCase
             'student_task_approval_events',
             'student_task_approval_settings',
             'uq_session_task_student',
-        ] as $needle) {
-            $this->assertStringContainsString($needle, $patch);
-            $this->assertStringContainsString($needle, $verify);
-        }
-
-        $this->assertStringContainsString('`u504065335_vuexy_week14`.`session_task_student`', $verify);
-        $this->assertStringContainsString("TABLE_SCHEMA = 'u504065335_vuexy_week14'", $verify);
-
-        foreach ([
-            'punishment_agreements',
-            'student_id',
-            'punishment_type_id',
-            'title',
             'uq_pa_student_type_title',
-            'HAVING COUNT(*) > 1',
-            'student_punishments',
-            'merge_then_delete',
-            'WHEN 17 THEN 128',
-            'WHEN 14 THEN 70',
-            'DELETE FROM `u504065335_vuexy_week14`.`punishment_agreements`',
-            'ADD UNIQUE KEY `uq_pa_student_type_title`',
+            'uq_rpl_student_year_source',
+            'uq_sg_student_year_points',
         ] as $needle) {
-            $this->assertStringContainsString($needle, $punishmentAgreementPatch);
+            $this->assertStringContainsString($needle, $baseline);
+            $this->assertStringContainsString($needle, $localBaseline);
         }
+
+        $this->assertStringNotContainsString('u504065335_vuexy_week14', $baseline);
+        $this->assertStringNotContainsString('u504065335_vuexy_week14', $localBaseline);
     }
 
     public function test_teacher_review_entry_is_student_specific_not_first_student_guess(): void
@@ -161,10 +145,12 @@ class ParentTeacherTaskApprovalWorkflowTest extends TestCase
         $this->assertStringContainsString("@extends('layouts/layoutMaster')", $parentChildrenView);
         $this->assertStringContainsString('<livewire:parent.behavior-modal />', $parentChildrenView);
         $this->assertStringContainsString('tabler-settings', $parentChildrenView);
+        $this->assertStringContainsString('My Deen Journey', $parentChildrenView);
+        $this->assertStringContainsString('Review tasks, add points, follow rewards', $parentChildrenView);
         $this->assertStringContainsString("'showLabel' => true", $parentChildrenView);
         $this->assertStringContainsString("'label' => 'Add points'", $parentChildrenView);
-        $this->assertStringContainsString("url('/parent/reward-discpline/'.\$stu->id)", $parentChildrenView);
-        $this->assertStringContainsString("url('/student/journey/board/'.\$stu->id)", $parentChildrenView);
+        $this->assertStringContainsString("route('parent.reward-discpline', \$stu->id)", $parentChildrenView);
+        $this->assertStringContainsString("route('student.journey.board', \$stu->id)", $parentChildrenView);
         $this->assertStringContainsString('Points Lab', $parentChildrenView);
         $this->assertStringContainsString('tabler-chart-bar', $parentChildrenView);
         $this->assertStringNotContainsString('tabler-flask', $parentChildrenView);
@@ -184,8 +170,8 @@ class ParentTeacherTaskApprovalWorkflowTest extends TestCase
         $this->assertStringContainsString('tabler-user', $verticalMenu);
         $this->assertStringNotContainsString('tabler-user-circle', $verticalMenu);
         $this->assertStringContainsString("route('student.workplace', \$menuStudentId)", $verticalMenu);
-        $this->assertStringContainsString("url('/parent/reward-discpline/'.\$menuStudentId)", $verticalMenu);
-        $this->assertStringContainsString("url('/student/journey/board/'.\$menuStudentId)", $verticalMenu);
+        $this->assertStringContainsString("route('parent.reward-discpline', \$menuStudentId)", $verticalMenu);
+        $this->assertStringContainsString("route('student.journey.board', \$menuStudentId)", $verticalMenu);
         $this->assertStringContainsString("route('parent.task-approvals', \$menuStudentId)", $verticalMenu);
     }
 
@@ -263,9 +249,11 @@ class ParentTeacherTaskApprovalWorkflowTest extends TestCase
     {
         $controller = file_get_contents(app_path('Http/Controllers/front/Teacher/ClassController.php'));
         $view = file_get_contents(resource_path('views/teacher/classes/class_sessions.blade.php'));
+        $quickActionHeader = file_get_contents(resource_path('views/livewire/teacher/session-agreement-reword-header.blade.php'));
 
         $this->assertIsString($controller);
         $this->assertIsString($view);
+        $this->assertIsString($quickActionHeader);
         $this->assertStringContainsString('$reviewCounts', $controller);
         $this->assertStringContainsString('Student quick actions', $view);
         $this->assertStringContainsString('w14-teacher-quick-actions', $view);
@@ -275,6 +263,9 @@ class ParentTeacherTaskApprovalWorkflowTest extends TestCase
         $this->assertStringContainsString('teacher.task-approvals', $view);
         $this->assertStringContainsString('@livewire(\'teacher.add-behavior-button\'', $view);
         $this->assertStringContainsString('$reviewCount', $view);
+        $this->assertStringContainsString('My Deen Journey', $quickActionHeader);
+        $this->assertStringContainsString('Session follow-up, rewards, and points', $quickActionHeader);
+        $this->assertStringContainsString("{{ \$card['title'] }}", $quickActionHeader);
     }
 
     public function test_points_lab_subject_scope_parent_access_and_task_history_contracts_are_explicit(): void

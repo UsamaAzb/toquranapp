@@ -514,6 +514,36 @@ class FamilyWorkspaceLifecycleTest extends TestCase
             ->assertDontSee(route('admin.students.show_reward', $child->id));
     }
 
+    public function test_admin_family_workspace_shows_trusted_child_status_read_only(): void
+    {
+        $this->createTrustedChildSettingsTable();
+
+        [$parent] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        [$trustedChild] = $this->createChild($parent, ChildAccountStatus::Active->value);
+        [$standardChild] = $this->createChild($parent, ChildAccountStatus::Active->value);
+        $standardChild->forceFill(['first_name' => 'Salma'])->save();
+
+        DB::table('student_task_approval_settings')->insert([
+            'student_id' => $trustedChild->id,
+            'trusted_auto_approval_enabled' => 1,
+            'updated_by_user_id' => $parent->user_id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $admin = $this->createWorkspaceStaff('admin', [
+            'families.view_workspace',
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(FamilyWorkspace::class, ['parent' => $parent])
+            ->assertSee('Trusted')
+            ->assertSee('Standard review')
+            ->assertDontSee('Trusted child auto approval')
+            ->assertDontSee('wire:model.live="enabled"', false);
+    }
+
     public function test_consultation_history_is_loaded_only_when_the_tab_is_active(): void
     {
         $this->createBookingTransferLifecycleTables();
@@ -783,6 +813,19 @@ class FamilyWorkspaceLifecycleTest extends TestCase
                 $table->string('status')->default('current');
                 $table->date('from_date')->nullable();
                 $table->date('to_date')->nullable();
+                $table->timestamps();
+            });
+        }
+    }
+
+    private function createTrustedChildSettingsTable(): void
+    {
+        if (! Schema::hasTable('student_task_approval_settings')) {
+            Schema::create('student_task_approval_settings', function ($table): void {
+                $table->id();
+                $table->unsignedBigInteger('student_id');
+                $table->boolean('trusted_auto_approval_enabled')->default(false);
+                $table->unsignedBigInteger('updated_by_user_id')->nullable();
                 $table->timestamps();
             });
         }

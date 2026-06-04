@@ -148,6 +148,7 @@ class StudentWorkplaceLoadTest extends TestCase
         $connection->enableQueryLog();
 
         $response = app(WorkplaceController::class)->index(Request::create('/student/workplace', 'GET'));
+        $workplaceView = file_get_contents(resource_path('views/student/workplace.blade.php'));
 
         $disciplineQueries = collect($connection->getQueryLog())
             ->pluck('query')
@@ -156,6 +157,9 @@ class StudentWorkplaceLoadTest extends TestCase
             ->values();
 
         $this->assertInstanceOf(\Illuminate\View\View::class, $response);
+        $this->assertIsString($workplaceView);
+        $this->assertStringContainsString('My Deen Journey', $workplaceView);
+        $this->assertStringContainsString('Points follow-up', $workplaceView);
         $this->assertSame(12, $response->getData()['total_post_point']);
         $this->assertSame(5, $response->getData()['total_negative_point']);
         $this->assertCount(2, $disciplineQueries);

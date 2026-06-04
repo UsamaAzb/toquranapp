@@ -21,6 +21,10 @@
 
 <div class="col-12">
   <div class="nav-align-top w-100">
+    <div class="text-center mb-3">
+      <div class="text-uppercase text-primary small fw-semibold">My Deen Journey</div>
+      <div class="text-body-secondary small">Session follow-up, rewards, and points for this student.</div>
+    </div>
     <ul class="nav nav-pills mb-3 row col-12 d-flex flex-wrap flex-column flex-lg-row  flex-md-row flex-sm-row  align-items-center justify-content-center">
       @foreach ($cards as $index => $card)
         <li class="col-xl-2 col-lg-3 col-md-4 col-sm-4 me-0 pe-0 col-11 mb-3 ">

@@ -16,27 +16,31 @@ class StudentTaskApprovalSurfaceTest extends TestCase
 
         $journeyView = file_get_contents(resource_path('views/livewire/student/journey.blade.php'));
         $sessionsView = file_get_contents(resource_path('views/livewire/student/sessions-board.blade.php'));
+        $taskActionsView = file_get_contents(resource_path('views/components/sessions/task-actions.blade.php'));
 
         $this->assertIsString($journeyView);
         $this->assertIsString($sessionsView);
+        $this->assertIsString($taskActionsView);
         $this->assertStringContainsString('wire:click="putToReview({{ $currentTaskId }})"', $journeyView);
-        $this->assertStringContainsString('wire:click="putToReview({{ $t[\'id\'] }})"', $sessionsView);
+        $this->assertStringContainsString("@include('components.sessions.task-actions'", $sessionsView);
+        $this->assertStringContainsString('$putToReviewAction = "putToReview({$taskId})";', $taskActionsView);
+        $this->assertStringContainsString('wire:click="{{ $putToReviewAction }}"', $taskActionsView);
         $this->assertStringContainsString('title="{{ __(\'Complete with PIN\') }}"', $journeyView);
-        $this->assertStringContainsString('title="Complete with PIN"', $sessionsView);
+        $this->assertStringContainsString('title="Complete with PIN"', $taskActionsView);
         $this->assertStringContainsString('tabler-key', $journeyView);
-        $this->assertStringContainsString('tabler-key', $sessionsView);
+        $this->assertStringContainsString('tabler-key', $taskActionsView);
         $this->assertStringContainsString("@if(!\$isCompleted && !\$isInReview && auth()->user()?->hasRole('student'))", $journeyView);
-        $this->assertStringContainsString("@if(!\$isCompleted && !\$isInReview && auth()->user()?->hasRole('student'))", $sessionsView);
-        $this->assertStringContainsString("@if(!\$isCompleted && auth()->user()?->hasRole('student'))", $journeyView);
-        $this->assertStringContainsString("@if(!\$isCompleted && auth()->user()?->hasRole('student'))", $sessionsView);
+        $this->assertStringContainsString('$showStudentReadyActions = !$isCompleted && !$isInReview && $isStudent;', $taskActionsView);
+        $this->assertStringContainsString("@if(!\$isCompleted && !\$isInReview && auth()->user()?->hasRole('student'))", $journeyView);
+        $this->assertStringContainsString('$showStudentPinAction = !$isCompleted && $isStudent && (!$isPhone || !$isInReview);', $taskActionsView);
         $this->assertStringContainsString('Approved by Parent', $journeyView);
         $this->assertStringContainsString('Approved by Parent', $sessionsView);
         $this->assertStringContainsString('$sourceBorderClass', $journeyView);
         $this->assertStringContainsString('$sourceBorderClass', $sessionsView);
         $this->assertStringNotContainsString('Put to review', $journeyView);
         $this->assertStringNotContainsString('Put to review', $sessionsView);
-        $this->assertStringContainsString("openParentTaskPointsModal({{ \$t['id'] }}, 'complete')", $sessionsView);
-        $this->assertStringContainsString('wire:click="openCompleteModal', $sessionsView);
+        $this->assertStringContainsString("openParentTaskPointsModal({{ \$taskId }}, 'complete')", $taskActionsView);
+        $this->assertStringContainsString('wire:click="{{ $pinAction }}"', $taskActionsView);
         $this->assertStringContainsString('studentSessionCompletePinModal', $sessionsView);
         $this->assertStringNotContainsString("'complete' => 'pin'", $sessionsView);
     }
@@ -47,11 +51,13 @@ class StudentTaskApprovalSurfaceTest extends TestCase
         $sessionsClass = file_get_contents(app_path('Livewire/Student/SessionsBoard.php'));
         $journeyView = file_get_contents(resource_path('views/livewire/student/journey.blade.php'));
         $sessionsView = file_get_contents(resource_path('views/livewire/student/sessions-board.blade.php'));
+        $taskActionsView = file_get_contents(resource_path('views/components/sessions/task-actions.blade.php'));
 
         $this->assertIsString($journeyClass);
         $this->assertIsString($sessionsClass);
         $this->assertIsString($journeyView);
         $this->assertIsString($sessionsView);
+        $this->assertIsString($taskActionsView);
         $this->assertStringContainsString('openParentReviewApprovalModal', $journeyClass);
         $this->assertStringContainsString('approveAsParent', $journeyClass);
         $this->assertStringContainsString('freshParentTaskPivot', $journeyClass);
@@ -61,9 +67,9 @@ class StudentTaskApprovalSurfaceTest extends TestCase
         $this->assertStringContainsString('freshParentTaskPivot', $sessionsClass);
         $this->assertStringContainsString('isInReviewLike', $sessionsClass);
         $this->assertStringContainsString('wire:click="openParentReviewApprovalModal', $journeyView);
-        $this->assertStringContainsString("wire:click=\"openParentTaskPointsModal({{ \$t['id'] }}, 'approve')\"", $sessionsView);
+        $this->assertStringContainsString("wire:click=\"openParentTaskPointsModal({{ \$taskId }}, 'approve')\"", $taskActionsView);
         $this->assertStringContainsString('Approve', $journeyView);
-        $this->assertStringContainsString('Approve', $sessionsView);
+        $this->assertStringContainsString('Approve', $taskActionsView);
     }
 
     public function test_student_task_surfaces_poll_lightweight_task_state_for_cross_account_changes(): void
@@ -77,8 +83,8 @@ class StudentTaskApprovalSurfaceTest extends TestCase
         $this->assertIsString($sessionsClass);
         $this->assertIsString($journeyView);
         $this->assertIsString($sessionsView);
-        $this->assertStringContainsString('wire:poll.3s.visible="refreshTaskState"', $journeyView);
-        $this->assertStringContainsString('wire:poll.3s.visible="refreshTaskState"', $sessionsView);
+        $this->assertStringContainsString('wire:poll.10s.visible="refreshTaskState"', $journeyView);
+        $this->assertStringContainsString('wire:poll.10s.visible="refreshTaskState"', $sessionsView);
         $this->assertStringContainsString('public function refreshTaskState', $journeyClass);
         $this->assertStringContainsString('public function refreshTaskState', $sessionsClass);
         $this->assertStringContainsString('taskStateSignature', $journeyClass);
@@ -116,7 +122,7 @@ class StudentTaskApprovalSurfaceTest extends TestCase
         $this->assertStringContainsString('window.w14ScrollRequestedTask', $boardScripts);
         $this->assertStringContainsString("hash.startsWith('#task-')", $boardScripts);
         $this->assertStringContainsString('scrollOffset', $boardScripts);
-        $this->assertStringContainsString('setTimeout(scrollRequestedTask, 900);', $boardScripts);
+        $this->assertStringContainsString('requestAnimationFrame(restoreBoardScrollTargets);', $boardScripts);
         $this->assertStringContainsString('scroll-margin-top: 7.5rem;', $boardStyles);
         $this->assertStringNotContainsString(
             "if (\$this->autoOpenMode === 'pin' && Auth::user()?->hasRole('student'))",
@@ -134,26 +140,19 @@ class StudentTaskApprovalSurfaceTest extends TestCase
         $this->assertStringContainsString('readonly', $journeyView);
     }
 
-    public function test_journey_image_preview_uses_non_bootstrap_overlay_over_open_task_modal(): void
+    public function test_journey_attachments_open_shared_study_viewer_without_nested_bootstrap_image_modal(): void
     {
         $journeyView = file_get_contents(resource_path('views/livewire/student/journey.blade.php'));
 
         $this->assertIsString($journeyView);
-        $this->assertStringContainsString('data-w14-image-attachment="true"', $journeyView);
+        $this->assertStringContainsString('openAttachmentStudyViewer', $journeyView);
+        $this->assertStringContainsString('<livewire:student.attachment-study-viewer', $journeyView);
+        $this->assertStringContainsString('surface="journey"', $journeyView);
         $this->assertStringNotContainsString('data-bs-target="#imageAttachmentModal"', $journeyView);
         $this->assertStringNotContainsString('id="imageAttachmentModal"', $journeyView);
         $this->assertStringNotContainsString('w14ReopenTaskAfterImage', $journeyView);
         $this->assertStringNotContainsString('showImageModal', $journeyView);
-        $this->assertStringContainsString('id="journeyImagePreviewOverlay"', $journeyView);
-        $this->assertStringContainsString('wire:ignore', $journeyView);
-        $this->assertStringContainsString('id="journeyImagePreviewImg"', $journeyView);
-        $this->assertStringContainsString('data-w14-image-preview-panel', $journeyView);
-        $this->assertStringContainsString('data-w14-image-preview-close', $journeyView);
         $this->assertStringContainsString("const journeyModalIds = ['taskModal', 'completePinModal', 'parentDirectCompleteModal'];", $journeyView);
-        $this->assertStringContainsString('e.target.closest(\'[data-w14-image-attachment="true"]\')', $journeyView);
-        $this->assertStringContainsString('const openPreview = (src, title) => {', $journeyView);
-        $this->assertStringContainsString('const closePreview = () => {', $journeyView);
-        $this->assertStringNotContainsString('overlayEl.querySelector(\'[data-w14-image-preview-close]\')?.focus();', $journeyView);
     }
 
     public function test_approval_pages_are_embedded_in_standard_blade_layouts(): void

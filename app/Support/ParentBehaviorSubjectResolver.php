@@ -45,8 +45,7 @@ class ParentBehaviorSubjectResolver
             }
         }
 
-        $strictMatch = (clone $strictQuery)
-            ->orderByRaw('FIELD(subject_id, '.implode(',', $subjectIds).')')
+        $strictMatch = $this->orderBySubjectPriority(clone $strictQuery, $subjectIds)
             ->first();
 
         if ($strictMatch) {
@@ -72,8 +71,7 @@ class ParentBehaviorSubjectResolver
                 }
             }
 
-            $classGradeMatch = (clone $classGradeQuery)
-                ->orderByRaw('FIELD(subject_id, '.implode(',', $subjectIds).')')
+            $classGradeMatch = $this->orderBySubjectPriority(clone $classGradeQuery, $subjectIds)
                 ->orderBy('id')
                 ->first();
 
@@ -92,10 +90,11 @@ class ParentBehaviorSubjectResolver
             'subject_ids' => $subjectIds,
         ]);
 
-        return TeacherSubjectClass::query()
+        $fallbackQuery = TeacherSubjectClass::query()
             ->whereIn('subject_id', $subjectIds)
-            ->availableForTeacher()
-            ->orderByRaw('FIELD(subject_id, '.implode(',', $subjectIds).')')
+            ->availableForTeacher();
+
+        return $this->orderBySubjectPriority($fallbackQuery, $subjectIds)
             ->orderBy('id')
             ->first();
     }
@@ -179,6 +178,15 @@ class ParentBehaviorSubjectResolver
         $normalizedTitle = preg_replace('/[^a-z]+/', '', strtolower($title)) ?? '';
 
         return str_contains($normalizedTitle, 'wellbeing');
+    }
+
+    private function orderBySubjectPriority($query, array $subjectIds)
+    {
+        $caseClauses = collect(array_values($subjectIds))
+            ->map(fn (int $subjectId, int $index): string => 'WHEN '.(int) $subjectId.' THEN '.$index)
+            ->implode(' ');
+
+        return $query->orderByRaw('CASE subject_id '.$caseClauses.' ELSE 999 END');
     }
 
     private function hasColumn(string $table, string $column): bool
