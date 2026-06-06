@@ -132,20 +132,22 @@ class WorkplaceController extends Controller
 
             $visibleTaskCounts = $this->visibleStudentSessionQuery((int) $student_id)
                 ->withCount([
-                    'tasks as visible_tasks_count',
+                    'tasks as actionable_tasks_count' => fn (Builder $query) => $query
+                        ->whereHas('taskStudents', fn (Builder $taskStudentQuery) => $taskStudentQuery
+                            ->where('student_id', $student_id)
+                            ->where(fn (Builder $statusQuery) => $statusQuery
+                                ->whereNull('status')
+                                ->orWhere('status', '')
+                                ->orWhere('status', SessionTaskStudent::STATUS_ASSIGNED))),
                     'tasks as completed_tasks_count' => fn (Builder $query) => $query
                         ->whereHas('taskStudents', fn (Builder $taskStudentQuery) => $taskStudentQuery
                             ->where('student_id', $student_id)
-                            ->where('status', 'completed')),
+                            ->where('status', SessionTaskStudent::STATUS_COMPLETED)),
                 ])
                 ->get(['id']);
 
             $CompletedTaskStudentCount = (int) $visibleTaskCounts->sum('completed_tasks_count');
-            $AssignedTaskStudentCount = (int) $visibleTaskCounts
-                ->sum(fn (ClassSession $session): int => max(
-                    0,
-                    (int) $session->visible_tasks_count - (int) $session->completed_tasks_count
-                ));
+            $AssignedTaskStudentCount = (int) $visibleTaskCounts->sum('actionable_tasks_count');
 
             $ReachedGift = StudentGift::where('student_id', $student_id)->where('academic_year_id', $academicYearId)->where('status', 'reached')->count();
             $RedeemedGift = StudentGift::where('student_id', $student_id)->where('academic_year_id', $academicYearId)->where('status', 'redeemed')->count();
@@ -165,26 +167,37 @@ class WorkplaceController extends Controller
                 ->unique()
                 ->values();
 
-            $openTaskCountsByClassSubject = $classSubjectIds->isEmpty()
+            $taskCountsByClassSubject = $classSubjectIds->isEmpty()
                 ? collect()
                 : SessionTask::query()
-                    ->select('class_sessions.class_subject_id', DB::raw('COUNT(DISTINCT session_tasks.id) as open_task_count'))
+                    ->select('class_sessions.class_subject_id')
+                    ->selectRaw(
+                        "COUNT(DISTINCT CASE WHEN (session_task_student.status IS NULL OR session_task_student.status = '' OR session_task_student.status = ?) THEN session_tasks.id END) as actionable_task_count",
+                        [SessionTaskStudent::STATUS_ASSIGNED]
+                    )
+                    ->selectRaw(
+                        'COUNT(DISTINCT CASE WHEN session_task_student.status IN (?, ?) THEN session_tasks.id END) as in_review_task_count',
+                        [SessionTaskStudent::STATUS_IN_REVIEW, SessionTaskStudent::STATUS_LEGACY_PENDING]
+                    )
                     ->join('class_sessions', 'class_sessions.id', '=', 'session_tasks.class_session_id')
                     ->join('session_task_student', 'session_task_student.session_task_id', '=', 'session_tasks.id')
                     ->whereIn('session_tasks.class_session_id', $this->visibleStudentSessionQuery((int) $student_id)->select('id'))
                     ->whereIn('class_sessions.class_subject_id', $classSubjectIds->all())
                     ->where('session_task_student.student_id', $student_id)
-                    ->where(fn (Builder $query) => $query
-                        ->whereNull('session_task_student.status')
-                        ->orWhere('session_task_student.status', '!=', SessionTaskStudent::STATUS_COMPLETED))
                     ->groupBy('class_sessions.class_subject_id')
-                    ->pluck('open_task_count', 'class_sessions.class_subject_id')
-                    ->map(fn ($count): int => (int) $count);
+                    ->get()
+                    ->keyBy(fn ($row): int => (int) $row->class_subject_id);
 
-            $student_subjects->each(function (StudentsSubject $studentSubject) use ($openTaskCountsByClassSubject): void {
+            $student_subjects->each(function (StudentsSubject $studentSubject) use ($taskCountsByClassSubject): void {
+                $counts = $taskCountsByClassSubject->get((int) $studentSubject->class_subject_id);
+
                 $studentSubject->setAttribute(
                     'open_task_count',
-                    (int) $openTaskCountsByClassSubject->get((int) $studentSubject->class_subject_id, 0)
+                    (int) ($counts->actionable_task_count ?? 0)
+                );
+                $studentSubject->setAttribute(
+                    'in_review_task_count',
+                    (int) ($counts->in_review_task_count ?? 0)
                 );
             });
 

@@ -107,6 +107,26 @@ $configData = Helper::appClasses();
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--w14-subject-accent, #2092ec) 22%, transparent);
   }
 
+  .w14-subject-review-badge {
+    position: absolute;
+    bottom: 0.7rem;
+    inset-inline-end: 0.75rem;
+    z-index: 1;
+    min-width: 1.65rem;
+    height: 1.65rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, #ff9f1c 16%, white);
+    color: #d97912;
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, #ff9f1c 28%, transparent);
+  }
+
   .w14-subject-icon {
     display: inline-flex;
     align-items: center;
@@ -127,6 +147,11 @@ $configData = Helper::appClasses();
   [data-bs-theme="dark"] .w14-subject-task-badge,
   .dark-style .w14-subject-task-badge {
     background: color-mix(in srgb, var(--w14-subject-accent, #2092ec) 28%, #252a3d);
+  }
+
+  [data-bs-theme="dark"] .w14-subject-review-badge,
+  .dark-style .w14-subject-review-badge {
+    background: color-mix(in srgb, #ff9f1c 28%, #252a3d);
   }
 
   .w14-subject-title {
@@ -633,15 +658,24 @@ $configData = Helper::appClasses();
   $subjectIcon = (string) ($subjectVisual['icon'] ?? 'ti tabler-school');
   $subjectTone = (string) ($subjectVisual['tone'] ?? 'default');
   $openTaskCount = (int) ($student_subject->open_task_count ?? 0);
+  $inReviewTaskCount = (int) ($student_subject->in_review_task_count ?? 0);
   $subjectHref = route('student.sessions', ['student_subject_id' => $student_subject->id, 'student_id' => $student->id]);
 @endphp
 
 <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
          <div class="card mb-0 w14-subject-card w14-subject-tone-{{ $subjectTone }}">
+           @if($openTaskCount > 0)
            <span
              class="w14-subject-task-badge"
-             aria-label="{{ trans_choice('{1} :count open task|[2,*] :count open tasks', $openTaskCount, ['count' => $openTaskCount]) }}"
+             aria-label="{{ trans_choice('{1} :count task to do|[2,*] :count tasks to do', $openTaskCount, ['count' => $openTaskCount]) }}"
            >{{ $openTaskCount }}</span>
+           @endif
+           @if($inReviewTaskCount > 0)
+           <span
+             class="w14-subject-review-badge"
+             aria-label="{{ trans_choice('{1} :count task in review|[2,*] :count tasks in review', $inReviewTaskCount, ['count' => $inReviewTaskCount]) }}"
+           >{{ $inReviewTaskCount }}</span>
+           @endif
            <a href="{{ $subjectHref }}" class="w14-subject-card-link" aria-label="{{ __('Open :subject tasks', ['subject' => $subjectTitle]) }}">
                <div class="card-body">
                  <span class="w14-subject-icon" aria-hidden="true">

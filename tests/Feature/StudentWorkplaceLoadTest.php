@@ -7,6 +7,7 @@ use App\Enums\FamilyLifecycleStatus;
 use App\Http\Controllers\Front\Student\WorkplaceController;
 use App\Models\ParentModel;
 use App\Models\PunishmentAgreement;
+use App\Models\SessionTaskStudent;
 use App\Models\Student;
 use App\Models\StudentGiftPointsHistory;
 use App\Models\User;
@@ -229,21 +230,43 @@ class StudentWorkplaceLoadTest extends TestCase
             'created_at' => now(),
         ]);
 
+        $inReviewTaskId = DB::table('session_tasks')->insertGetId([
+            'class_session_id' => $sessionId,
+            'title' => 'Visible in review',
+            'created_at' => now(),
+        ]);
+
+        $legacyPendingTaskId = DB::table('session_tasks')->insertGetId([
+            'class_session_id' => $sessionId,
+            'title' => 'Visible legacy pending',
+            'created_at' => now(),
+        ]);
+
         DB::table('session_task_student')->insert([
             [
                 'session_task_id' => $assignedTaskId,
                 'student_id' => $student->id,
-                'status' => 'assigned',
+                'status' => SessionTaskStudent::STATUS_ASSIGNED,
             ],
             [
                 'session_task_id' => $completedTaskId,
                 'student_id' => $student->id,
-                'status' => 'completed',
+                'status' => SessionTaskStudent::STATUS_COMPLETED,
             ],
             [
                 'session_task_id' => $blankStatusTaskId,
                 'student_id' => $student->id,
                 'status' => null,
+            ],
+            [
+                'session_task_id' => $inReviewTaskId,
+                'student_id' => $student->id,
+                'status' => SessionTaskStudent::STATUS_IN_REVIEW,
+            ],
+            [
+                'session_task_id' => $legacyPendingTaskId,
+                'student_id' => $student->id,
+                'status' => SessionTaskStudent::STATUS_LEGACY_PENDING,
             ],
         ]);
 
@@ -251,19 +274,22 @@ class StudentWorkplaceLoadTest extends TestCase
         $this->actingAs($user);
 
         $response = app(WorkplaceController::class)->index(Request::create('/student/workplace', 'GET'));
+        $studentSubject = $response->getData()['student_subjects']->first();
 
         $this->assertInstanceOf(\Illuminate\View\View::class, $response);
         $this->assertSame(3, $response->getData()['AssignedTaskStudentCount']);
         $this->assertSame(1, $response->getData()['CompletedTaskStudentCount']);
+        $this->assertSame(3, (int) $studentSubject->open_task_count);
+        $this->assertSame(2, (int) $studentSubject->in_review_task_count);
         $this->assertDatabaseHas('session_task_student', [
             'session_task_id' => $missingPivotTaskId,
             'student_id' => $student->id,
-            'status' => 'assigned',
+            'status' => SessionTaskStudent::STATUS_ASSIGNED,
         ]);
         $this->assertDatabaseHas('session_task_student', [
             'session_task_id' => $blankStatusTaskId,
             'student_id' => $student->id,
-            'status' => 'assigned',
+            'status' => SessionTaskStudent::STATUS_ASSIGNED,
         ]);
     }
 
