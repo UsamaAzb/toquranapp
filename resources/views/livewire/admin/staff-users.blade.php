@@ -90,6 +90,12 @@
             @error('phone') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
 
+          <div class="col-12">
+            <label class="form-label" for="staff-country">Country</label>
+            <input id="staff-country" type="text" class="form-control @error('country') is-invalid @enderror" wire:model.defer="country">
+            @error('country') <div class="invalid-feedback">{{ $message }}</div> @enderror
+          </div>
+
           <div class="col-12 col-md-6">
             <label class="form-label" for="staff-role">Role</label>
             <select id="staff-role" class="form-select @error('role') is-invalid @enderror" wire:model.defer="role">
@@ -209,6 +215,9 @@
                   <div>{{ $staffUser->email }}</div>
                   @if ($staffUser->phone)
                     <small class="text-body-secondary">{{ $staffUser->phone }}</small>
+                  @endif
+                  @if ($staffUser->country)
+                    <small class="text-body-secondary d-block">{{ $staffUser->country }}</small>
                   @endif
                 </td>
                 <td>

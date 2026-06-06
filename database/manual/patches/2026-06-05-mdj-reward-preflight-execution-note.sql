@@ -1,0 +1,23 @@
+-- Execution note: My Deen Journey reward queue preflight
+-- Date: 2026-06-05
+-- Target verified before execution:
+--   Laravel DB connection database = u504065335_to_quran
+--   driver = mysql
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-05-u504065335_to_quran-before-mdj-reward-preflight-student-gifts.sql
+--   Focused restore backup of student_gifts.
+-- Code path executed:
+--   App\Support\MyDeenJourneyLaunchDefaults::ensureRewardQueue() for every local student
+--   using the current academic year returned by AcademicYear::currentId().
+-- Guard result:
+--   Refused unless DB connection database was exactly u504065335_to_quran.
+-- Pre-check:
+--   academic_year_id = 1
+--   students checked = 7
+--   students missing current-year gifts = 5
+-- Post-check:
+--   students missing current-year gifts = 0
+--   student_gifts total = 70
+-- Reason:
+--   Existing local smoke students should show standard launch rewards before the owner manual pass.
+--   The UI also self-heals this path, but this preflight confirms the code path and removes manual-test surprise.

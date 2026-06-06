@@ -18,7 +18,9 @@ class BookingParentEdit extends Component
 
     public ?string $bookingReference = null;
 
-    public ?string $notes = null;
+    public array $intakeDetails = [];
+
+    public ?string $sharedNotes = null;
 
     #[Locked]
     public ?string $returnUrl = null;
@@ -32,13 +34,15 @@ class BookingParentEdit extends Component
         $this->parentEmail = (string) ($booking->parent_email ?? '');
         $this->parentPhone = (string) ($booking->parent_phone ?? '');
         $this->bookingReference = $booking->booking_reference;
-        $this->notes = $booking->notes;
+        [$this->intakeDetails, $this->sharedNotes] = $this->intakeDetailsFromNotes($booking->notes);
     }
 
     public function render()
     {
         return view('livewire.admin.booking.booking-parent-edit', [
             'booking' => $this->booking,
+            'intakeDetails' => $this->intakeDetails,
+            'sharedNotes' => $this->sharedNotes,
         ])->layout('components.layouts.app', ['title' => 'Edit Booking Parent']);
     }
 
@@ -49,7 +53,6 @@ class BookingParentEdit extends Component
             'parentEmail' => ['required', 'email', 'max:255'],
             'parentPhone' => ['required', 'string', 'max:20'],
             'bookingReference' => ['nullable', 'string', 'max:255'],
-            'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
 
@@ -63,9 +66,6 @@ class BookingParentEdit extends Component
             'parent_phone' => trim($validated['parentPhone']),
             'booking_reference' => filled($validated['bookingReference'] ?? null)
                 ? trim($validated['bookingReference'])
-                : null,
-            'notes' => filled($validated['notes'] ?? null)
-                ? trim($validated['notes'])
                 : null,
         ]);
 
@@ -92,5 +92,50 @@ class BookingParentEdit extends Component
         }
 
         return str_starts_with($url, url('/')) || str_starts_with($url, '/');
+    }
+
+    private function intakeDetailsFromNotes(?string $notes): array
+    {
+        $notes = trim((string) $notes);
+
+        if ($notes === '') {
+            return [[], null];
+        }
+
+        $json = json_decode($notes, true);
+        if (is_array($json)) {
+            $children = collect(data_get($json, 'children', []))
+                ->map(fn ($child): string => trim((string) data_get($child, 'name', '')))
+                ->filter()
+                ->values()
+                ->all();
+
+            return [[
+                'country' => data_get($json, 'parent.country'),
+                'preferred_date' => data_get($json, 'preferred.date'),
+                'preferred_time' => data_get($json, 'preferred.time'),
+                'main_concerns' => data_get($json, 'main_concerns'),
+                'children' => $children,
+                'contract' => data_get($json, 'handoff_contract'),
+            ], null];
+        }
+
+        $details = [];
+        foreach ([
+            'country' => '/^Country:\s*(.+)$/mi',
+            'preferred_date' => '/^Preferred date:\s*(.+)$/mi',
+            'preferred_time' => '/^Preferred time:\s*(.+)$/mi',
+            'main_concerns' => '/^Main concerns:\s*(.+)$/mi',
+        ] as $key => $pattern) {
+            if (preg_match($pattern, $notes, $matches)) {
+                $details[$key] = trim($matches[1]);
+            }
+        }
+
+        if ($details !== []) {
+            return [$details, null];
+        }
+
+        return [[], $notes];
     }
 }

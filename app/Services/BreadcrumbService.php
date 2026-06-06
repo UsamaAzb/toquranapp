@@ -78,7 +78,7 @@ class BreadcrumbService
             $studentLabels = [
                 'admin.students.account' => 'Student Account',
                 'admin.students.security' => 'Security',
-                'admin.students.show_reward' => 'Reward System',
+                'admin.students.show_reward' => 'Rewards',
             ];
 
             return [
@@ -161,7 +161,7 @@ class BreadcrumbService
         }
 
         if ($this->request->is('teacher/journey')) {
-            return $this->teacherStudentSurfaceLinks($classesUrl, 'Reward System');
+            return $this->teacherStudentSurfaceLinks($classesUrl, 'Rewards');
         }
 
         return [];

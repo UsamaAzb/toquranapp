@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class TeacherSubjectClass extends Model
 {
@@ -103,6 +104,10 @@ class TeacherSubjectClass extends Model
 
     public function scopeWithActiveStudentSubject($q, ?int $studentId = null)
     {
+        if (! Schema::hasTable('students_subjects') || ! Schema::hasTable('students')) {
+            return $q;
+        }
+
         return $q->whereHas('classSubject.studentsSubjects', function ($query) use ($studentId) {
             $query->where('status', 'active')
                 ->whereHas('student', function ($studentQuery): void {

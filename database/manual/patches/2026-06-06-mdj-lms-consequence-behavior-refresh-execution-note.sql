@@ -1,0 +1,68 @@
+-- Execution note: TQ5 My Deen Journey LMS-style consequence/behavior refresh
+-- Date: 2026-06-06
+-- Target: u504065335_to_quran
+--
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-06-u504065335_to_quran-before-mdj-lms-consequence-behavior-refresh.sql
+--   Exported tables:
+--     punishment_types
+--     punishments_suggestions
+--     punishment_agreements
+--     reward_discipline_transfer
+--     reward_discipline_points
+--     discipline_icons
+--
+-- Patch:
+--   database/manual/patches/2026-06-06-mdj-lms-consequence-behavior-refresh.sql
+--
+-- Execution details:
+--   First execution attempt passed the target guard but stopped before behavior/agreement
+--   updates because inherited behavior tables use utf8mb4_general_ci while agreement
+--   and icon tables use utf8mb4_unicode_ci. The patch was corrected to match the
+--   temporary behavior columns to the inherited behavior-table collation and rerun.
+--
+-- Successful target run output:
+--   TQ5 MDJ LMS consequence/behavior refresh guard passed.
+--   reward_discipline_transfer:
+--     Positive = 11
+--     Slip = 11
+--     No Way = 9
+--   reward_discipline_points:
+--     Positive = 121
+--     Slip = 121
+--     No Way = 99
+--   punishments_suggestions:
+--     Minor Slip = 10
+--     Serious Action = 10
+--   punishment_agreements:
+--     Minor Slip = 111
+--     Serious Action = 110
+--
+-- Verified starter behavior titles:
+--   Positive:
+--     Good Job | Good Effort | Focused | Good Adab | Honesty | Responsibility |
+--     Self-Control | Helping Others | Good Deed | Good Question | On Time
+--   Slip:
+--     Oops! | Not Ready | Distracted | Time Wasted | Task Not Done |
+--     Low Practice | Adab Slip | Device Slip | Small Excuse | No Response |
+--     Rule Reminder
+--   No Way / Red Flag:
+--     Serious Matter | Hurtful Words | Dishonesty | Cheating | Bullying |
+--     Aggression | Major Disrespect | Device Misuse | Rule Broken
+--
+-- Verified consequence suggestions now start from Week14 LMS practical language:
+--   Minor Slip examples:
+--     Lose 2-3 reward points
+--     Skip one fun activity or break time
+--     No phone during study time today
+--     Lose PlayStation time for one day
+--   Serious Action examples:
+--     Lose 20-30 points or 1 full gift level
+--     No phone or PlayStation for 3-5 days
+--     No outings / training / sleepovers until a reflection plan is approved
+--     Write a make-it-right plan and discuss it with parent and teacher
+--
+-- Guard-failure evidence:
+--   Running the same patch against toquranapp_local emitted:
+--     REFUSING TQ5 MDJ LMS consequence/behavior refresh: wrong DB, missing confirmation,
+--     or subject 15/16 identity mismatch. Updates are gated off.

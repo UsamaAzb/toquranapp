@@ -32,7 +32,7 @@ When app code is imported, verify:
 
 - `APP_NAME`, `APP_URL`, mail sender, Vite app name, and route domains are To Quran-specific.
 - no Week14 public URLs, emails, QA accounts, or service labels remain.
-- mobile/tablet form controls are checked before launch: long dropdowns, multi-service selectors, date/time/datetime fields, and Flatpickr-style pickers must be contained within the viewport, preserve real field names/values, dispatch real DOM `input`/`change` events, mirror programmatic value changes, avoid duplicate hidden-field tab stops/accessibility entries, clean up observers after dynamic removal, and keep validation feedback attached to the visible control.
+- mobile/tablet form controls are checked before launch: long dropdowns, multi-service selectors, date/time/datetime fields, and Flatpickr-style pickers must be contained within the viewport; preserve real field names/values and submitted payloads; dispatch real DOM `input`/`change` events; mirror programmatic value, disabled, and validation changes; avoid duplicate hidden-field tab stops/accessibility entries; avoid double-enhancing plugin-managed controls such as Select2/searchable selects; clean up open menus/listeners/observers after dynamic removal; keep validation feedback attached to the visible control; and verify touch-safe date picker month navigation.
 - queue worker requirements are documented if activation emails or queued mail are imported.
 - storage/public file delivery rules are documented before uploading app assets.
 - public website sign-in link remains `https://app.toquran.org/login`.

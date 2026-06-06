@@ -332,7 +332,7 @@
                               <a href="{{ route('admin.students.show_reward', $student->id) }}"
                                 class="btn btn-sm btn-icon btn-label-primary rounded-circle text-primary child-quick-action"
                                 aria-label="Open reward agreement for {{ $child->child_name ?: 'this child' }}"
-                                data-bs-toggle="tooltip" data-bs-placement="top" title="Reward System">
+                                data-bs-toggle="tooltip" data-bs-placement="top" title="Rewards">
                                 <i class="icon-base ti tabler-gift icon-18px"></i>
                               </a>
                               <a href="{{ route('admin.students.security', $student->id) }}"
@@ -642,7 +642,7 @@
                                           aria-label="Open reward agreement for {{ $child->child_name ?: 'this child' }}"
                                           data-bs-toggle="tooltip"
                                           data-bs-placement="top"
-                                          title="Reward System"
+                                          title="Rewards"
                                         >
                                           <i class="icon-base ti tabler-gift icon-18px"></i>
                                         </a>

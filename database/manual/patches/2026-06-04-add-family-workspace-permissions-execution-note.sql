@@ -1,0 +1,20 @@
+-- Execution note: family workspace permissions patch
+-- Date: 2026-06-04
+-- Target verified before execution:
+--   Laravel DB connection database = u504065335_to_quran
+--   driver = mysql
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-04-u504065335_to_quran-before-family-workspace-permissions.sql
+--   Focused restore backup of roles, permissions, and role_has_permissions; no auth/session/contact rows exported.
+-- Patch executed:
+--   database/manual/patches/2026-06-04-add-family-workspace-permissions.sql
+-- Guard result:
+--   Applying family workspace permissions patch to To Quran app DB.
+-- Post-check:
+--   permissions where name LIKE 'families.%' = 16
+--   admin.smoke@toquran-smoke.test role = admin
+--   admin.smoke@toquran-smoke.test can families.suspend = true
+--   Spatie permission cache flushed with php artisan permission:cache-reset
+-- Reason:
+--   Family workspace lifecycle controls existed in code but were hidden in the local launch target because the Spatie permission rows were absent.
+--   This insert-only patch makes admin lifecycle controls visible for launch operations and smoke testing.

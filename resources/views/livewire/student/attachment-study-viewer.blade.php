@@ -42,18 +42,24 @@
 
       <div
         class="attachment-study-body"
-        x-data="{ frameLoading: true, slowFrame: false, slowTimer: null }"
+        x-data="{ frameLoading: true, slowFrame: false, slowTimer: null, fallbackTimer: null }"
         x-effect="
           '{{ $viewerItemKey }}';
           frameLoading = true;
           slowFrame = false;
           clearTimeout(slowTimer);
-          slowTimer = setTimeout(() => slowFrame = true, 3500);
+          clearTimeout(fallbackTimer);
+          slowTimer = setTimeout(() => slowFrame = true, 2500);
+          fallbackTimer = setTimeout(() => {
+            frameLoading = false;
+            slowFrame = false;
+          }, 6500);
         "
         x-on:attachment-study-frame-loaded="
           frameLoading = false;
           slowFrame = false;
           clearTimeout(slowTimer);
+          clearTimeout(fallbackTimer);
         ">
         @if(in_array($mode, ['protected_file', 'legacy_file'], true))
           @if($isImage)
@@ -63,6 +69,15 @@
               x-data="{ zoom: 1 }"
               x-effect="'{{ $viewerItemKey }}'; zoom = 1"
               x-on:wheel.ctrl.prevent="zoom = Math.min(4, Math.max(0.5, zoom + ($event.deltaY < 0 ? 0.25 : -0.25)))">
+              <div
+                x-cloak
+                x-show="frameLoading"
+                class="attachment-study-loading"
+                role="status"
+                aria-live="polite">
+                <span class="attachment-study-spinner" aria-hidden="true"></span>
+                <span x-text="slowFrame ? 'Still loading...' : 'Loading...'"></span>
+              </div>
               <div class="attachment-study-zoom-controls" aria-label="Image zoom controls">
                 <button type="button" class="attachment-study-mini-btn" x-on:click="zoom = Math.max(0.5, zoom - 0.25)" aria-label="Zoom out">
                   <i class="ti tabler-minus"></i>
@@ -80,6 +95,8 @@
                   class="attachment-study-image"
                   src="{{ $currentItem['content_url'] }}"
                   alt="{{ $currentItem['title'] ?? 'Attachment' }}"
+                  x-on:load="$dispatch('attachment-study-frame-loaded')"
+                  x-on:error="$dispatch('attachment-study-frame-loaded')"
                   x-bind:style="`transform: scale(${zoom});`">
               </div>
             </div>
@@ -138,7 +155,22 @@
               <audio controls preload="metadata" src="{{ $currentItem['content_url'] }}"></audio>
             </div>
           @elseif($isPdf)
-            <iframe wire:key="{{ $viewerItemKey }}-pdf" class="attachment-study-frame" src="{{ $currentItem['content_url'] }}" title="{{ $currentItem['title'] ?? 'Attachment' }}"></iframe>
+            <div wire:key="{{ $viewerItemKey }}-pdf-shell" class="attachment-study-frame-shell">
+              <div
+                x-cloak
+                x-show="frameLoading"
+                class="attachment-study-loading"
+                role="status"
+                aria-live="polite">
+                <span class="attachment-study-spinner" aria-hidden="true"></span>
+                <span x-text="slowFrame ? 'Still loading...' : 'Loading...'"></span>
+              </div>
+              <iframe
+                class="attachment-study-frame"
+                src="{{ $currentItem['content_url'] }}"
+                title="{{ $currentItem['title'] ?? 'Attachment' }}"
+                x-on:load="$dispatch('attachment-study-frame-loaded')"></iframe>
+            </div>
           @else
             <div wire:key="{{ $viewerItemKey }}-download" class="attachment-study-card">
               <i class="ti tabler-file-description attachment-study-card-icon"></i>
@@ -150,6 +182,15 @@
             </div>
           @endif
         @elseif($mode === 'youtube')
+          <div
+            x-cloak
+            x-show="frameLoading"
+            class="attachment-study-loading"
+            role="status"
+            aria-live="polite">
+            <span class="attachment-study-spinner" aria-hidden="true"></span>
+            <span x-text="slowFrame ? 'Still loading...' : 'Loading...'"></span>
+          </div>
           <iframe
             wire:key="{{ $viewerItemKey }}-youtube"
             class="attachment-study-frame"
@@ -342,6 +383,14 @@
           border-radius: 8px;
           background: #fff;
           overscroll-behavior: contain;
+        }
+
+        .attachment-study-frame-shell {
+          position: relative;
+          flex: 1;
+          min-width: 0;
+          min-height: 0;
+          display: flex;
         }
 
         .attachment-study-video-shell {

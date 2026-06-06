@@ -293,6 +293,8 @@ class ParentTeacherTaskApprovalWorkflowTest extends TestCase
         $this->assertStringContainsString('$tscAlias.\'.subject_id\'', $pointsLab);
         $this->assertStringContainsString('protected function taskHistoryBaseQuery()', $pointsLab);
         $this->assertStringContainsString('protected function taskHistoryStateSignature(): string', $pointsLab);
+        $this->assertGreaterThanOrEqual(3, substr_count($pointsLab, "->orderBy('teacher_desc', 'desc')"));
+        $this->assertStringContainsString("->where('teacher_desc', 0)", file_get_contents(app_path('Livewire/Admin/Students/RewardDisciplinePoints.php')));
         $this->assertStringContainsString('$this->historyTab === \'tasks\' ? $this->taskHistoryStateSignature() : \'\'', $pointsLab);
         $this->assertStringContainsString('SessionTaskStudent::STATUS_COMPLETED', $pointsLab);
         $this->assertStringContainsString('StudentTaskApprovalEvent::TYPE_COMPLETED_BY_PARENT', $pointsLab);

@@ -190,6 +190,23 @@ class LifecycleGateTest extends TestCase
             ->assertRedirect(route('parent.students'));
     }
 
+    public function test_admin_parent_mixed_role_can_open_owned_child_journey_as_parent(): void
+    {
+        [, $student, , $parentUser] = $this->createStudentFamily(
+            FamilyLifecycleStatus::Active->value,
+            ChildAccountStatus::Active->value,
+        );
+        $parentUser->assignRole('admin');
+        $this->createClassSessionAttachmentFixture($student);
+
+        $this->actingAs($parentUser);
+
+        $this->get(route('student.tasks.journey', [
+            'sessionId' => 1,
+            'student_id' => $student->id,
+        ]))->assertOk();
+    }
+
     public function test_journey_livewire_mount_aborts_for_suspended_student(): void
     {
         [$studentUser, $student] = $this->createStudentFamily(

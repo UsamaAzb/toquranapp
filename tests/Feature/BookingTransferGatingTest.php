@@ -142,6 +142,84 @@ class BookingTransferGatingTest extends TestCase
         ]);
     }
 
+    public function test_transfer_copies_country_from_json_intake_notes_to_parent_and_student_users(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $child = $this->createBookingChild([
+            'notes' => json_encode([
+                'parent' => [
+                    'country' => 'United Kingdom',
+                ],
+            ]),
+        ], [
+            'evaluation_outcome' => 'fit',
+            'meeting_disposition' => 'completed',
+            'transfer_status' => 'not_transferred',
+        ]);
+
+        $this->makeTransferServiceWithRealUserCreation()->transferChild($child);
+
+        $child->refresh();
+        $parent = ParentModel::query()->findOrFail($child->booking->parent_id);
+        $student = DB::table('students')->where('id', $child->student_id)->first();
+
+        $this->assertSame('United Kingdom', User::query()->findOrFail($parent->user_id)->country);
+        $this->assertSame('United Kingdom', User::query()->findOrFail($student->user_id)->country);
+    }
+
+    public function test_transfer_copies_country_from_plaintext_intake_notes_to_parent_and_student_users(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $child = $this->createBookingChild([
+            'parent_email' => 'plaintext-country-parent@example.test',
+            'parent_phone' => '201000333444',
+            'notes' => "Country: Canada\nPreferred time: 18:00",
+        ], [
+            'child_name' => 'Plain Country Child',
+            'evaluation_outcome' => 'fit',
+            'meeting_disposition' => 'completed',
+            'transfer_status' => 'not_transferred',
+        ]);
+
+        $this->makeTransferServiceWithRealUserCreation()->transferChild($child);
+
+        $child->refresh();
+        $parent = ParentModel::query()->findOrFail($child->booking->parent_id);
+        $student = DB::table('students')->where('id', $child->student_id)->first();
+
+        $this->assertSame('Canada', User::query()->findOrFail($parent->user_id)->country);
+        $this->assertSame('Canada', User::query()->findOrFail($student->user_id)->country);
+    }
+
+    public function test_transfer_uses_launch_default_grade_when_public_intake_has_no_grade(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $child = $this->createBookingChild([
+            'child_grade' => null,
+        ], [
+            'child_grade' => null,
+            'evaluation_outcome' => 'fit',
+            'meeting_disposition' => 'completed',
+            'transfer_status' => 'not_transferred',
+            'service_interests' => ['Ahmed: Quran Memorization', 'Paid Parental Consultation', 'My Deen Journey'],
+        ]);
+
+        $this->assertNull(BookingTransferReadiness::blockedReason($child, $child->booking));
+
+        $this->makeTransferServiceDouble()->transferChild($child);
+
+        $child->refresh();
+
+        $this->assertNotNull($child->student_id);
+        $this->assertSame(
+            BookingTransferReadiness::defaultGradeLevelId(),
+            (int) DB::table('students')->where('id', $child->student_id)->value('grade_level_id')
+        );
+    }
+
     public function test_transfer_succeeds_when_fit_pending_transfer_status_and_meeting_is_terminal(): void
     {
         $admin = User::factory()->create();
@@ -1035,6 +1113,71 @@ class BookingTransferGatingTest extends TestCase
         ]);
     }
 
+    public function test_transfer_ignores_staff_only_phone_matches_and_creates_parent_login_with_submitted_email(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $firstStaffUser = User::factory()->create([
+            'email' => 'support-one@example.test',
+            'phone' => '201000111222',
+        ]);
+        $firstStaffUser->assignRole('admin');
+
+        $secondStaffUser = User::factory()->create([
+            'email' => 'support-two@example.test',
+            'phone' => '201000111222',
+        ]);
+        $secondStaffUser->assignRole('admin');
+
+        $child = $this->createBookingChild([
+            'parent_email' => 'mariam-parent@example.test',
+            'parent_phone' => '201000111222',
+        ], [
+            'evaluation_outcome' => 'fit',
+            'meeting_disposition' => 'completed',
+            'transfer_status' => 'not_transferred',
+        ]);
+
+        $result = $this->makeTransferServiceWithRealUserCreation()->transferChild($child);
+        $parent = ParentModel::query()->findOrFail($result['parent_id']);
+        $parentUser = User::query()->findOrFail($parent->user_id);
+
+        $this->assertSame('mariam-parent@example.test', $parent->email);
+        $this->assertSame('mariam-parent@example.test', $parentUser->email);
+        $this->assertNotSame($firstStaffUser->id, $parentUser->id);
+        $this->assertNotSame($secondStaffUser->id, $parentUser->id);
+        $this->assertTrue($parentUser->hasRole('parent'));
+        $this->assertDatabaseHas('booking_parent_identity_resolutions', [
+            'stage' => 'booking_transfer',
+            'outcome' => 'create_new_parent',
+            'booking_child_id' => $child->id,
+            'target_parent_id' => $parent->id,
+        ]);
+    }
+
+    public function test_transfer_reuses_staff_user_when_submitted_parent_email_matches_and_adds_parent_role(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $staffUser = User::factory()->create([
+            'email' => 'mariam@example.test',
+            'phone' => '201000111222',
+        ]);
+        $staffUser->assignRole('admin');
+
+        $child = $this->createBookingChild([], [
+            'evaluation_outcome' => 'fit',
+            'meeting_disposition' => 'completed',
+            'transfer_status' => 'not_transferred',
+        ]);
+
+        $result = $this->makeTransferServiceWithRealUserCreation()->transferChild($child);
+        $parent = ParentModel::query()->findOrFail($result['parent_id']);
+
+        $this->assertSame($staffUser->id, $parent->user_id);
+        $this->assertTrue($staffUser->fresh()->hasRole('parent'));
+    }
+
     public function test_transfer_blocks_split_parent_contact_collision_and_records_audit_row(): void
     {
         $this->actingAs(User::factory()->create());
@@ -1199,6 +1342,26 @@ class BookingTransferGatingTest extends TestCase
         return $transferService;
     }
 
+    protected function makeTransferServiceWithRealUserCreation(): BookingTransferService
+    {
+        $transferService = Mockery::mock(BookingTransferService::class, [new BookingParentIdentityResolver])
+            ->makePartial()
+            ->shouldAllowMockingProtectedMethods();
+
+        $transferService->shouldReceive('resolvePrimaryServiceType')
+            ->andReturn(Services_type::query()->firstOrFail());
+        $transferService->shouldReceive('ensureStudentHasClass')
+            ->andReturnNull();
+        $transferService->shouldReceive('seedTenDefaultGifts')
+            ->andReturn(['ok' => true]);
+        $transferService->shouldReceive('seedBehaviors')
+            ->andReturn('ok');
+        $transferService->shouldNotReceive('sendTransferWelcomeEmail');
+        $transferService->shouldNotReceive('sendTransferAdminEmail');
+
+        return $transferService;
+    }
+
     protected function createBookingChild(array $bookingOverrides = [], array $childOverrides = []): BookingChild
     {
         $booking = Booking::create(array_merge([
@@ -1264,6 +1427,7 @@ class BookingTransferGatingTest extends TestCase
                 $table->string('last_name')->nullable();
                 $table->string('email')->nullable()->unique();
                 $table->string('phone')->nullable();
+                $table->string('country')->nullable();
                 $table->timestamp('email_verified_at')->nullable();
                 $table->string('password');
                 $table->text('decryp_password')->nullable();
@@ -1283,6 +1447,9 @@ class BookingTransferGatingTest extends TestCase
         }
         if (! Schema::hasColumn('users', 'status')) {
             Schema::table('users', fn ($table) => $table->string('status')->nullable());
+        }
+        if (! Schema::hasColumn('users', 'country')) {
+            Schema::table('users', fn ($table) => $table->string('country')->nullable());
         }
         if (! Schema::hasColumn('users', 'decryp_password')) {
             Schema::table('users', fn ($table) => $table->text('decryp_password')->nullable());
@@ -1622,6 +1789,8 @@ class BookingTransferGatingTest extends TestCase
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         Role::findOrCreate('teacher', 'web');
         Role::findOrCreate('admin', 'web');
+        Role::findOrCreate('parent', 'web');
+        Role::findOrCreate('student', 'web');
 
         $defaultTeacherEmail = 'default.teacher@example.test';
         if (! User::query()->whereKey(3)->exists()) {

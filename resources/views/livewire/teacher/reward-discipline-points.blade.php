@@ -2,7 +2,7 @@
   class="w-100"
   wire:poll.30s.visible="refreshPointsLabState"
   wire:loading.class="pe-none"
-  wire:target="setTab,startBehavior,confirmBehaviorWithDescription,selectModalBehavior,openBehaviorHistory,openPunishmentHistory,setHistoryTypeFilter,setHistoryTab,setSubjectFilter,applyHistoryDateRange,clearHistoryDateRange,loadMoreHistory,loadMoreTaskHistory,loadMoreBehaviorHistory,loadMorePunishmentHistory"
+  wire:target="setTab,confirmBehaviorWithDescription,selectModalBehavior,openBehaviorHistory,openPunishmentHistory,setHistoryTypeFilter,setHistoryTab,setSubjectFilter,applyHistoryDateRange,clearHistoryDateRange,loadMoreHistory,loadMoreTaskHistory,loadMoreBehaviorHistory,loadMorePunishmentHistory"
 >
 <div>
     @once
@@ -1563,6 +1563,7 @@
           <button type="button"
                   class="btn-close"
                   aria-label="Close"
+                  data-bs-dismiss="modal"
                   wire:click="cancelBehaviorDescription">
           </button>
         </div>

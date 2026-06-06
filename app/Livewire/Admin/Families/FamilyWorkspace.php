@@ -111,6 +111,7 @@ class FamilyWorkspace extends Component
             'parentEditForm.last_name',
             'parentEditForm.email',
             'parentEditForm.phone',
+            'parentEditForm.country',
         ]);
 
         $this->parentEditForm = [
@@ -118,6 +119,7 @@ class FamilyWorkspace extends Component
             'last_name' => (string) ($parent->last_name ?? ''),
             'email' => (string) ($user?->email ?? $parent->email ?? ''),
             'phone' => (string) ($parent->phone ?? $user?->phone ?? ''),
+            'country' => (string) ($user?->country ?? $this->parentCountry ?? ''),
         ];
         $this->showParentEditModal = true;
 
@@ -150,6 +152,7 @@ class FamilyWorkspace extends Component
             'last_name' => trim((string) ($validated['parentEditForm']['last_name'] ?? '')),
             'email' => trim((string) ($validated['parentEditForm']['email'] ?? '')),
             'phone' => trim((string) ($validated['parentEditForm']['phone'] ?? '')),
+            'country' => trim((string) ($validated['parentEditForm']['country'] ?? '')),
         ];
 
         DB::transaction(function () use ($parent, $payload, $user): void {
@@ -161,7 +164,13 @@ class FamilyWorkspace extends Component
                     'last_name' => $payload['last_name'],
                     'email' => $payload['email'],
                     'phone' => $payload['phone'] !== '' ? $payload['phone'] : null,
-                ])->save();
+                ]);
+
+                if (Schema::hasColumn($user->getTable(), 'country')) {
+                    $user->country = $payload['country'];
+                }
+
+                $user->save();
             }
         });
 
@@ -633,6 +642,51 @@ class FamilyWorkspace extends Component
     }
 
     #[Computed]
+    public function parentCountry(): ?string
+    {
+        $userCountry = $this->userCountry();
+
+        if ($userCountry !== null) {
+            return $userCountry;
+        }
+
+        if (! Schema::hasTable('bookings')) {
+            return null;
+        }
+
+        $parent = $this->parent;
+        $emails = collect([$parent->email, $parent->user?->email])
+            ->map(fn ($email): string => strtolower(trim((string) $email)))
+            ->filter()
+            ->unique()
+            ->values();
+        $phones = collect([$parent->phone, $parent->user?->phone])
+            ->map(fn ($phone): string => trim((string) $phone))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $notes = DB::table('bookings')
+            ->where(function ($query) use ($emails, $phones): void {
+                $query->where('parent_id', $this->parentId);
+
+                if ($emails->isNotEmpty()) {
+                    $query->orWhereIn(DB::raw('LOWER(parent_email)'), $emails->all());
+                }
+
+                if ($phones->isNotEmpty()) {
+                    $query->orWhereIn('parent_phone', $phones->all());
+                }
+            })
+            ->whereNotNull('notes')
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
+            ->value('notes');
+
+        return $this->countryFromBookingNotes($notes);
+    }
+
+    #[Computed]
     public function availableReasons(): array
     {
         if (blank($this->pendingLifecycleAction)) {
@@ -1025,7 +1079,9 @@ class FamilyWorkspace extends Component
             $this->children,
             $this->accountHistory,
             $this->consultationHistory,
-            $this->currentClassHistoryCounts
+            $this->currentClassHistoryCounts,
+            $this->trustedChildSettings,
+            $this->parentCountry
         );
         $this->resetPage(pageName: 'historyPage');
     }
@@ -1064,6 +1120,7 @@ class FamilyWorkspace extends Component
                 Rule::unique('parents', 'phone')->ignore($parent->id),
                 Rule::unique('users', 'phone')->ignore($user?->id),
             ],
+            'parentEditForm.country' => [Schema::hasColumn('users', 'country') ? 'required' : 'nullable', 'string', 'max:100'],
         ];
     }
 
@@ -1130,6 +1187,41 @@ class FamilyWorkspace extends Component
     {
         $this->parentEditForm = [];
         $this->showParentEditModal = false;
+    }
+
+    private function countryFromBookingNotes(?string $notes): ?string
+    {
+        $notes = trim((string) $notes);
+
+        if ($notes === '') {
+            return null;
+        }
+
+        $json = json_decode($notes, true);
+        if (is_array($json)) {
+            $country = trim((string) data_get($json, 'parent.country'));
+
+            return $country !== '' ? $country : null;
+        }
+
+        if (preg_match('/^Country:\s*(.+)$/mi', $notes, $matches)) {
+            $country = trim($matches[1]);
+
+            return $country !== '' ? $country : null;
+        }
+
+        return null;
+    }
+
+    private function userCountry(): ?string
+    {
+        if (! Schema::hasColumn('users', 'country')) {
+            return null;
+        }
+
+        $country = trim((string) $this->parent->user?->country);
+
+        return $country !== '' ? $country : null;
     }
 
     private function passwordResetUrl(string $token, string $email): string

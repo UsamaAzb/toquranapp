@@ -1,0 +1,18 @@
+-- Execution note: users.country patch
+-- Date: 2026-06-04
+-- Target verified before execution:
+--   Laravel DB connection database = u504065335_to_quran
+--   driver = mysql
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-04-u504065335_to_quran-before-users-country-structure.sql
+--   Focused structure-only backup of users; no auth data, sessions, credentials, or contact rows exported.
+-- Patch executed:
+--   database/manual/patches/2026-06-04-add-users-country.sql
+-- Guard result:
+--   Applying users.country patch to To Quran app DB.
+-- Post-check:
+--   total_users = 21
+--   users_missing_country = 0
+-- Reason:
+--   Country is required for To Quran launch operations because it affects time-zone and currency context.
+--   The local target contains no real users, so existing local users were backfilled to Egypt as smoke data.

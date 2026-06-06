@@ -7,6 +7,7 @@ use App\Models\Student;
 use App\Models\StudentsSubject;
 use App\Models\Subject;
 use App\Models\TeacherSubjectClass;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -180,8 +181,12 @@ class ParentBehaviorSubjectResolver
         return str_contains($normalizedTitle, 'wellbeing');
     }
 
-    private function orderBySubjectPriority($query, array $subjectIds)
+    private function orderBySubjectPriority(Builder $query, array $subjectIds): Builder
     {
+        if ($subjectIds === []) {
+            return $query;
+        }
+
         $caseClauses = collect(array_values($subjectIds))
             ->map(fn (int $subjectId, int $index): string => 'WHEN '.(int) $subjectId.' THEN '.$index)
             ->implode(' ');

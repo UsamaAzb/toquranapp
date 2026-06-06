@@ -1,0 +1,31 @@
+-- Execution note: TQ5 My Deen Journey popup behavior category flag fix
+-- Date: 2026-06-06
+-- Repo/branch: toquranapp / codex/tq5-my-deen-journey-launch
+--
+-- Target verified:
+--   DB_DATABASE=u504065335_to_quran
+--
+-- Backup evidence:
+--   database/manual/backups/2026-06-06-u504065335_to_quran-before-mdj-popup-category-flag-fix.sql
+--   Focused tables: reward_discipline_transfer, reward_discipline_points,
+--   punishment_agreements, student_session_discipline, student_punishments,
+--   reward_points_ledger.
+--
+-- Patch executed:
+--   database/manual/patches/2026-06-06-mdj-popup-category-flag-fix.sql
+--
+-- Success evidence on u504065335_to_quran:
+--   TQ5 MDJ popup category flag guard passed.
+--   reward_discipline_transfer / Oops! / Slip / teacher_desc=1 / row_count=1
+--   reward_discipline_transfer / Serious Matter / No Way / teacher_desc=1 / row_count=1
+--   reward_discipline_points / Oops! / Slip / teacher_desc=1 / row_count=11
+--   reward_discipline_points / Serious Matter / No Way / teacher_desc=1 / row_count=11
+--
+-- Guard-failure evidence:
+--   The same patch was run against toquranapp_local and returned:
+--   REFUSING TQ5 MDJ popup category flag fix: wrong DB, missing confirmation, or subject 15/16 identity mismatch. Updates are gated off.
+--
+-- Behavioral note:
+--   `Oops!` and `Serious Matter` are category cards. They should open the
+--   behavior/consequence agreement modal for parent and teacher quick actions,
+--   not add/deduct points instantly like normal behavior cards.

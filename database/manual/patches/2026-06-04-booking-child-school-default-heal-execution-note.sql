@@ -1,0 +1,21 @@
+-- Execution note: booking child school-default heal
+-- Date: 2026-06-04
+-- Target verified before execution:
+--   Laravel DB connection database = u504065335_to_quran
+--   driver = mysql
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-04-u504065335_to_quran-before-booking-child-school-default-heal.sql
+--   Focused restore backup of booking_children.
+-- Code path executed:
+--   Guarded local PHP heal that fills blank booking_children.school_system with Other
+--   and blank booking_children.current_school with Not applicable.
+-- Guard result:
+--   Refused unless DB connection database was exactly u504065335_to_quran.
+-- Execution result:
+--   No-op; both missing counts were already zero at execution time.
+-- Post-check:
+--   booking_children missing school_system = 0
+--   booking_children missing current_school = 0
+-- Reason:
+--   School metadata is inherited Week14 intake context and should not burden To Quran launch admins.
+--   The app now silently defaults these fields while keeping the child workflow editor available.

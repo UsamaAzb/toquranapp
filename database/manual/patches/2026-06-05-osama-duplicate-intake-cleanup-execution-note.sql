@@ -1,0 +1,26 @@
+-- Execution note only: local duplicate intake cleanup for manual testing.
+-- Date: 2026-06-05
+-- Target: local real-name To Quran app database `u504065335_to_quran`
+-- Backup evidence:
+--   database/manual/backups/2026-06-05-135858-u504065335_to_quran-before-osama-duplicate-intake-cleanup.sql
+--
+-- Context:
+--   During TQ5 manual intake testing, four duplicate public-intake booking rows for the same
+--   local test parent cluttered the Booking Admin queue:
+--     parent_email: osama.elazab22@gmail.com
+--     booking ids: 6, 7, 8, 9
+--     booking_child ids: 11, 12, 13, 14
+--
+-- Guarded cleanup performed:
+--   - verified DATABASE() via Laravel connection was `u504065335_to_quran`
+--   - verified target booking ids were exactly [6, 7, 8, 9]
+--   - verified target child rows were untransferred and had no student_id
+--   - deleted related booking_parent_identity_resolutions, booking_child_emails,
+--     booking_child_audit_log, booking_children, and bookings rows for the target ids
+--
+-- Result:
+--   Before: 4 target bookings, 4 target booking_children
+--   After:  0 target bookings, 0 target booking_children
+--   Remaining pending bookings are smoke/test rows only.
+--
+-- This is not a production replay patch and should not be applied during deployment.

@@ -46,11 +46,15 @@ class JourneyController extends Controller
 
         $user = Auth::user();
 
-        if ($user->getRoleNames()->diff(['student', 'parent'])->isNotEmpty()) {
+        if ($user->hasRole('teacher')) {
             return false;
         }
 
-        return $user->hasRole('student') || $user->hasRole('parent');
+        if ($user->hasRole('student')) {
+            return $user->getRoleNames()->diff(['student'])->isEmpty();
+        }
+
+        return $user->hasRole('parent');
     }
 
     private function handleNonStudentParentRouteUser()
@@ -60,6 +64,18 @@ class JourneyController extends Controller
         }
 
         return redirect()->route('login');
+    }
+
+    private function isTeacherRouteUser(): bool
+    {
+        if (! Auth::check()) {
+            return false;
+        }
+
+        $user = Auth::user();
+
+        return $user->getRoleNames()->diff(['teacher'])->isEmpty()
+            && $user->hasRole('teacher');
     }
 
     protected function canUseEmbeddedOfficePreview(string $url): bool
@@ -150,6 +166,36 @@ class JourneyController extends Controller
     }
 
     /**
+     * @return array{0:Student,1:StudentsSubject}
+     */
+    protected function resolveTeacherSessionContext(Request $request, ClassSession $sessionModel): array
+    {
+        $studentId = (int) $request->student_id;
+        abort_unless($studentId > 0, 403);
+
+        $student = Student::query()
+            ->visibleToTeacher()
+            ->findOrFail($studentId);
+
+        $studentSubject = $this->resolveEnrollmentForSession($student->id, $sessionModel);
+
+        abort_unless(
+            TeacherSubjectClass::query()
+                ->whereKey($sessionModel->teacher_subject_classes_id)
+                ->where('user_teacher_coteacher_id', Auth::id())
+                ->availableForTeacher()
+                ->whereHas('classSubject.studentsSubjects', fn ($query) => $query
+                    ->where('student_id', $student->id)
+                    ->where('status', 'active')
+                    ->whereHas('student', fn ($studentQuery) => $studentQuery->visibleToTeacher()))
+                ->exists(),
+            403
+        );
+
+        return [$student, $studentSubject];
+    }
+
+    /**
      * Display a listing of the student's classes.
      */
     public function index()
@@ -197,7 +243,7 @@ class JourneyController extends Controller
                 ->first();
             $show_bar = 'true';
             $breadcrumb_links = [
-                'Reward System' => null,
+                'Rewards' => null,
 
             ];
 
@@ -212,7 +258,7 @@ class JourneyController extends Controller
                 $student_id = Student::where('user_id', $user_id)->value('id');
                 $student = Student::findOrFail($student_id);
                 $breadcrumb_links = [
-                    'Reward System' => null,
+                    'Rewards' => null,
 
                 ];
             }
@@ -224,7 +270,7 @@ class JourneyController extends Controller
                 $stu_name = $student->first_name;
                 $breadcrumb_links = [
                     $stu_name => url('students'),
-                    'Reward System' => null,
+                    'Rewards' => null,
 
                 ];
 
@@ -254,6 +300,39 @@ class JourneyController extends Controller
 
     public function go_journey(Request $request)
     {
+        if ($this->isTeacherRouteUser()) {
+            $sessionId = (int) $request->sessionId;
+            $sessionModel = ClassSession::with('subject')->findOrFail($sessionId);
+            [$student, $studentSubject] = $this->resolveTeacherSessionContext($request, $sessionModel);
+
+            $student_id = $student->id;
+            $lifecycleGate = LifecycleGate::inspect($student_id);
+            abort_if($lifecycleGate->denied(), 403, LifecycleGate::NEUTRAL_MESSAGE);
+
+            $subject_title = $sessionModel?->subject?->title ?? 'Subject';
+            $session_title = $sessionModel?->title ?? 'Session';
+            $show_bar = 'true';
+            $breadcrumb_links = [
+                $subject_title => route('teacher.sessions', ['teachersubjectid' => $sessionModel->teacher_subject_classes_id]),
+                $session_title => route('teacher.sessions', ['teachersubjectid' => $sessionModel->teacher_subject_classes_id]),
+            ];
+
+            $page = 'journey';
+            $tasks = SessionTask::query()
+                ->where('class_session_id', $sessionId)
+                ->orderBy('sort')
+                ->get(['id', 'class_session_id', 'title', 'description', 'sort', 'default_points']);
+
+            $totalCount = $tasks->count();
+            $completedCount = SessionTaskStudent::query()
+                ->whereIn('session_task_id', $tasks->pluck('id'))
+                ->where('student_id', $student_id)
+                ->where('status', 'completed')
+                ->count();
+
+            return view('student.journey.show_journey', compact('totalCount', 'completedCount', 'page', 'sessionId', 'show_bar', 'breadcrumb_links', 'student', 'student_id'));
+        }
+
         if ($this->isStudentParentRouteUser()) {
 
             $sessionId = (int) $request->sessionId;
@@ -316,16 +395,27 @@ class JourneyController extends Controller
 
     public function show_attachment(Request $request, int $sessionId, int $attachmentId)
     {
-        if ($this->isStudentParentRouteUser()) {
-            $student = $this->resolveStudentForLearner($request);
+        $isTeacherRouteUser = $this->isTeacherRouteUser();
+
+        if ($this->isStudentParentRouteUser() || $isTeacherRouteUser) {
+            if ($isTeacherRouteUser) {
+                $sessionModel = ClassSession::with('subject')->findOrFail($sessionId);
+                [$student, $studentSubject] = $this->resolveTeacherSessionContext($request, $sessionModel);
+            } else {
+                $student = $this->resolveStudentForLearner($request);
+            }
+
             $student_id = $student->id;
             $lifecycleGate = LifecycleGate::inspect($student_id);
             if ($lifecycleGate->denied()) {
                 return $this->handleDeniedLearnerLifecycle();
             }
 
-            $sessionModel = ClassSession::with('subject')->findOrFail($sessionId);
-            $studentSubject = $this->resolveEnrollmentForSession($student_id, $sessionModel);
+            if (! $isTeacherRouteUser) {
+                $sessionModel = ClassSession::with('subject')->findOrFail($sessionId);
+                $studentSubject = $this->resolveEnrollmentForSession($student_id, $sessionModel);
+            }
+
             $attachment = AttachmentFile::with('task.classSession')
                 ->findOrFail($attachmentId);
 
@@ -338,15 +428,12 @@ class JourneyController extends Controller
                 abort(404);
             }
 
-            abort_unless(
-                app(LibraryResourceAccessService::class)->canLearnerAccessAttachment(
-                    Auth::user(),
-                    (int) $student_id,
-                    $sessionId,
-                    $attachment
-                ),
-                403
-            );
+            $accessService = app(LibraryResourceAccessService::class);
+            $canAccessAttachment = $isTeacherRouteUser
+                ? $accessService->canTeacherAccessAttachment(Auth::user(), (int) $student_id, $sessionId, $attachment)
+                : $accessService->canLearnerAccessAttachment(Auth::user(), (int) $student_id, $sessionId, $attachment);
+
+            abort_unless($canAccessAttachment, 403);
 
             $type = strtolower($attachment->type);
             $path = $attachment->path;
@@ -382,14 +469,21 @@ class JourneyController extends Controller
             $taskBreadcrumbLabel = Str::limit($attachment->task->title, 35, '...');
 
             $taskUrlParams = ['sessionId' => $sessionId];
-            if (Auth::user()->hasRole('parent')) {
+            if (Auth::user()->hasRole('parent') || $isTeacherRouteUser) {
                 $taskUrlParams['student_id'] = $student_id;
             }
             $taskUrl = route('student.tasks.journey', $taskUrlParams + [
                 'task' => $attachment->task->id,
             ]);
 
-            if (Auth::user()->hasRole('parent')) {
+            if ($isTeacherRouteUser) {
+                $sessionUrl = url('student/tasks/'.$sessionId.'/journey/'.$student_id);
+                $breadcrumb_links = [
+                    $subject_title => route('teacher.sessions', ['teachersubjectid' => $teachersubjectid]),
+                    $session_title => $sessionUrl,
+                    $taskBreadcrumbLabel => $taskUrl,
+                ];
+            } elseif (Auth::user()->hasRole('parent')) {
                 $stu_name = $student->first_name;
                 $sessionUrl = url('student/tasks/'.$sessionId.'/journey/'.$student_id);
                 $breadcrumb_links = [
@@ -460,18 +554,25 @@ class JourneyController extends Controller
 
     public function stream_attachment(Request $request, int $sessionId, int $attachmentId): BinaryFileResponse|RedirectResponse
     {
-        if (! $this->isStudentParentRouteUser()) {
+        $isTeacherRouteUser = $this->isTeacherRouteUser();
+
+        if (! $this->isStudentParentRouteUser() && ! $isTeacherRouteUser) {
             return $this->handleNonStudentParentRouteUser();
         }
 
-        $student = $this->resolveStudentForLearner($request);
+        $sessionModel = ClassSession::findOrFail($sessionId);
+
+        if ($isTeacherRouteUser) {
+            [$student] = $this->resolveTeacherSessionContext($request, $sessionModel);
+        } else {
+            $student = $this->resolveStudentForLearner($request);
+            $this->resolveEnrollmentForSession($student->id, $sessionModel);
+        }
+
         $lifecycleGate = LifecycleGate::inspect($student->id);
         if ($lifecycleGate->denied()) {
             return $this->handleDeniedLearnerLifecycle();
         }
-
-        $sessionModel = ClassSession::findOrFail($sessionId);
-        $this->resolveEnrollmentForSession($student->id, $sessionModel);
 
         $attachment = AttachmentFile::with('task.classSession')->findOrFail($attachmentId);
 
@@ -483,15 +584,12 @@ class JourneyController extends Controller
             abort(404);
         }
 
-        abort_unless(
-            app(LibraryResourceAccessService::class)->canLearnerAccessAttachment(
-                Auth::user(),
-                (int) $student->id,
-                $sessionId,
-                $attachment
-            ),
-            403
-        );
+        $accessService = app(LibraryResourceAccessService::class);
+        $canAccessAttachment = $isTeacherRouteUser
+            ? $accessService->canTeacherAccessAttachment(Auth::user(), (int) $student->id, $sessionId, $attachment)
+            : $accessService->canLearnerAccessAttachment(Auth::user(), (int) $student->id, $sessionId, $attachment);
+
+        abort_unless($canAccessAttachment, 403);
 
         abort_if(in_array(strtolower((string) $attachment->type), ['link', 'youtube'], true), 404);
 

@@ -5,15 +5,21 @@ namespace App\Http\Controllers\Front\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\AttachmentFile;
 use App\Models\ClassSession;
+use App\Models\DifferentiatedTaskStudentAssignment;
+use App\Models\MainDailySessionStudentAssignment;
 use App\Models\SessionTaskStudent;
+use App\Models\SeriesTaskStudentAssignment;
 use App\Models\Student;
 use App\Models\StudentsSubject;
 use App\Models\Subject;
 use App\Models\TeacherSubjectClass;
 use App\Services\AttachmentService;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -137,14 +143,104 @@ class ClassController extends Controller
             ->pluck('review_count', 'session_task_student.student_id')
             ->map(fn ($count): int => (int) $count);
 
+        $automationSummaries = $this->currentAutomationSummaries($teacher_students, $teacherSubjectClass);
+
         return view('teacher.classes.class_sessions', compact(
             'teacher_class_sessions',
             'teacherSubjectClass',
             'teacher_students',
             'teachersubjectid',
             'student_id',
-            'reviewCounts'
+            'reviewCounts',
+            'automationSummaries'
         ));
+    }
+
+    private function currentAutomationSummaries(Collection $students, TeacherSubjectClass $teacherSubjectClass): Collection
+    {
+        $studentIds = $students
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->filter()
+            ->values();
+
+        $summaries = $studentIds->mapWithKeys(fn (int $studentId): array => [$studentId => collect()]);
+
+        if ($studentIds->isEmpty()) {
+            return $summaries;
+        }
+
+        $today = Carbon::today(config('app.timezone', 'Africa/Cairo'));
+
+        if (
+            Schema::hasTable('main_daily_session_student_assignments')
+            && Schema::hasTable('main_daily_session_templates')
+        ) {
+            MainDailySessionStudentAssignment::query()
+                ->with(['template:id,title,subject_id,created_by_user_id,status', 'version:id,display_name'])
+                ->whereIn('student_id', $studentIds)
+                ->effectiveOn($today)
+                ->whereHas('template', fn ($query) => $query
+                    ->where('subject_id', $teacherSubjectClass->subject_id)
+                    ->where('created_by_user_id', Auth::id())
+                    ->where('status', 'active'))
+                ->get()
+                ->each(function (MainDailySessionStudentAssignment $assignment) use ($summaries): void {
+                    $summaries[(int) $assignment->student_id]->push([
+                        'type' => 'Routine',
+                        'title' => (string) ($assignment->template?->title ?? 'Untitled routine'),
+                        'meta' => (string) ($assignment->version?->display_name ?? 'Current version'),
+                    ]);
+                });
+        }
+
+        if (
+            Schema::hasTable('differentiated_task_student_assignments')
+            && Schema::hasTable('differentiated_tasks')
+        ) {
+            DifferentiatedTaskStudentAssignment::query()
+                ->with(['task:id,title,subject_id,created_by_user_id,status', 'version:id,display_name'])
+                ->whereIn('student_id', $studentIds)
+                ->effectiveOn($today)
+                ->whereHas('task', fn ($query) => $query
+                    ->where('subject_id', $teacherSubjectClass->subject_id)
+                    ->where('created_by_user_id', Auth::id())
+                    ->where('status', 'active'))
+                ->get()
+                ->each(function (DifferentiatedTaskStudentAssignment $assignment) use ($summaries): void {
+                    $summaries[(int) $assignment->student_id]->push([
+                        'type' => 'Custom task',
+                        'title' => (string) ($assignment->task?->title ?? 'Untitled custom task'),
+                        'meta' => (string) ($assignment->version?->display_name ?? 'Current version'),
+                    ]);
+                });
+        }
+
+        if (
+            Schema::hasTable('series_task_student_assignments')
+            && Schema::hasTable('series_tasks')
+        ) {
+            SeriesTaskStudentAssignment::query()
+                ->with(['task:id,title,subject_id,created_by_user_id,status', 'version:id,display_name'])
+                ->whereIn('student_id', $studentIds)
+                ->effectiveOn($today)
+                ->whereHas('task', fn ($query) => $query
+                    ->where('subject_id', $teacherSubjectClass->subject_id)
+                    ->where('created_by_user_id', Auth::id())
+                    ->where('status', 'active'))
+                ->get()
+                ->each(function (SeriesTaskStudentAssignment $assignment) use ($summaries): void {
+                    $summaries[(int) $assignment->student_id]->push([
+                        'type' => 'Series',
+                        'title' => (string) ($assignment->task?->title ?? 'Untitled series'),
+                        'meta' => (string) ($assignment->version?->display_name ?? 'Current version'),
+                    ]);
+                });
+        }
+
+        return $summaries->map(fn (Collection $items): Collection => $items
+            ->sortBy([['type', 'asc'], ['title', 'asc']])
+            ->values());
     }
 
     public function taskApprovals(int $student, int $subject)

@@ -1,0 +1,22 @@
+-- Execution note: My Deen Journey behavior icon heal
+-- Date: 2026-06-04
+-- Target verified before execution:
+--   Laravel DB connection database = u504065335_to_quran
+--   driver = mysql
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-04-u504065335_to_quran-before-mdj-behavior-icon-heal.sql
+--   Focused restore backup of discipline_icons, reward_discipline_points, reward_discipline_transfer, and student_session_discipline.
+-- Code path executed:
+--   App\Support\MyDeenJourneyLaunchDefaults::ensureBehaviorTemplates() for all current students
+-- Guard result:
+--   Refused unless DB connection database was exactly u504065335_to_quran.
+-- Pre-check:
+--   discipline_icons = 0
+--   reward_discipline_points rows missing discipline_icon_id = 36
+-- Post-check:
+--   discipline_icons = 1
+--   reward_discipline_points rows missing discipline_icon_id = 0
+--   reward_discipline_points rows missing discipline_icon_path = 0
+-- Reason:
+--   Existing launch behavior templates were missing icon metadata. Teacher Points Lab writes copy those icons into student_session_discipline, where discipline_icon_id and discipline_icon_path are NOT NULL.
+--   The heal prevents the local smoke click path from failing with SQLSTATE 23000 on behavior saves.

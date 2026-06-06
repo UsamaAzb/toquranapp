@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Reward Discipline Points')
+@section('title', 'Points Lab')
 
 
 
@@ -15,7 +15,6 @@
     :last-reached-gift-id="$lastReached->id ?? null"
     :allow-reached-click="false"
     :circle-view="true"
-    :show-reward-details-toggle="true"
     label="Reward Points"
     />
     </div>

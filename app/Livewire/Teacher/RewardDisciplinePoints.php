@@ -15,6 +15,7 @@ use App\Models\StudentsSubject;
 use App\Models\TeacherSubjectClass;
 use App\Services\RewardProgressionService;
 use App\Support\LifecycleGate;
+use App\Support\MyDeenJourneyLaunchDefaults;
 use App\Support\ParentBehaviorSubjectResolver;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -266,6 +267,8 @@ class RewardDisciplinePoints extends Component
             $this->teacherSubjectClassesId = $this->resolveTeacherSubjectClassForStudent()?->id;
         }
 
+        app(MyDeenJourneyLaunchDefaults::class)->ensureBehaviorTemplates($this->studentId);
+
         $this->loadSubjectFilters();
         $this->resetPage('historyPage');
         $this->loadSessionDisciplines();
@@ -324,12 +327,14 @@ class RewardDisciplinePoints extends Component
 
         $this->slipBehaviors = (clone $baseQuery)
             ->where('type', 'Slip')
+            ->orderBy('teacher_desc', 'desc')
             ->orderBy('sort')
             ->get()
             ->toArray();
 
         $this->noWayBehaviors = (clone $baseQuery)
             ->where('type', 'No Way')
+            ->orderBy('teacher_desc', 'desc')
             ->orderBy('sort')
             ->get()
             ->toArray();
@@ -1197,7 +1202,8 @@ class RewardDisciplinePoints extends Component
             ->where('student_id', $this->studentId)
             ->where('punishment_type_id', $this->punishmentTypeId)
             ->where('status', 'active')
-            ->orderByDesc('id')
+            ->orderByRaw("CASE WHEN LOWER(TRIM(title)) = 'customized' THEN 0 ELSE 1 END")
+            ->orderBy('id')
             ->get(['id', 'title'])
             ->map(fn ($a) => ['id' => (int) $a->id, 'title' => $a->title])
             ->toArray();

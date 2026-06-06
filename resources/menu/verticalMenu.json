@@ -3,7 +3,7 @@
 
     
     {
-      "url": "https://toquran.org/book-consultation",
+      "url": "https://toquran.org/book-trial",
       "name": "Register",
       "icon": "menu-icon icon-base ti tabler-shield-lock",
       "slug": "auth-register-basic",

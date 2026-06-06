@@ -26,13 +26,14 @@
           <span><strong>Booking Ref:</strong> {{ $booking->booking_reference ?: '-' }}</span>
           <span><strong>Email:</strong> {{ $booking->parent_email ?: '-' }}</span>
           <span><strong>Phone:</strong> {{ $booking->parent_phone ?: '-' }}</span>
+          <span><strong>Country:</strong> {{ $intakeDetails['country'] ?? '-' }}</span>
           <span><strong>Child Rows:</strong> {{ $booking->children_count }}</span>
         </div>
 
         <div class="alert alert-info mt-4 mb-0">
           <div class="fw-semibold mb-1">Scope of this screen</div>
           <div class="small">
-            This page edits only booking-level parent/contact information and shared notes. Child workflow, evaluation, consultation details, and transfer state do not change here.
+            This page edits only booking-level parent/contact information. Child workflow, evaluation, consultation details, transfer state, and public intake payloads do not change here.
           </div>
         </div>
       </div>
@@ -87,13 +88,22 @@
           </div>
 
           <div class="col-12">
-            <label for="booking-notes" class="form-label">Shared Booking Notes</label>
-            <textarea id="booking-notes" class="form-control @error('notes') is-invalid @enderror" rows="5" wire:model.blur="notes"></textarea>
-            @error('notes')
-              <div class="invalid-feedback">{{ $message }}</div>
-            @else
-              <div class="form-text">These are booking-level notes only. Child-specific notes remain on each child record.</div>
-            @enderror
+            <div class="border rounded p-3">
+              <div class="fw-semibold mb-2">Public Intake Details</div>
+              <div class="row g-3 small">
+                <div class="col-md-6"><strong>Country:</strong> {{ $intakeDetails['country'] ?? '-' }}</div>
+                <div class="col-md-6"><strong>Preferred Time:</strong> {{ $intakeDetails['preferred_time'] ?? '-' }}</div>
+                <div class="col-md-6"><strong>Preferred Date:</strong> {{ $intakeDetails['preferred_date'] ?? '-' }}</div>
+                <div class="col-md-6"><strong>Children:</strong> {{ ! empty($intakeDetails['children']) ? implode(', ', $intakeDetails['children']) : '-' }}</div>
+                <div class="col-12"><strong>Main Concerns:</strong> {{ $intakeDetails['main_concerns'] ?? '-' }}</div>
+              </div>
+              @if ($sharedNotes)
+                <div class="border-top mt-3 pt-3">
+                  <div class="fw-semibold mb-1">Shared Booking Notes</div>
+                  <div class="text-body-secondary small">{{ $sharedNotes }}</div>
+                </div>
+              @endif
+            </div>
           </div>
 
           <div class="col-12 d-flex flex-wrap justify-content-end gap-2">

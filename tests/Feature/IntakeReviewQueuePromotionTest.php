@@ -332,6 +332,7 @@ class IntakeReviewQueuePromotionTest extends TestCase
             ->set('correctionForm.child_name', 'Jana')
             ->set('correctionForm.child_age', '8')
             ->set('correctionForm.child_grade', '3')
+            ->set('correctionForm.school_system', '')
             ->call('saveCorrection', true)
             ->assertHasNoErrors()
             ->assertSee('Correction saved and child approved for promotion.');
@@ -344,9 +345,11 @@ class IntakeReviewQueuePromotionTest extends TestCase
         $this->assertSame($existingChild->booking_id, $reviewChild->matched_booking_id);
         $this->assertNull($reviewChild->matched_child_id);
         $this->assertSame('promote_child', $reviewChild->resolution_status);
+        $this->assertSame('Other', $reviewChild->school_system);
         $this->assertSame('existing_family_new_child', $review->detection_reason);
         $this->assertSame('Jana', $review->child_name);
         $this->assertSame('Jana', $review->children_payload[0]['child_name']);
+        $this->assertSame('Other', $review->children_payload[0]['school_system']);
     }
 
     public function test_duplicate_child_correction_stays_blocked_when_data_still_matches_existing_child(): void

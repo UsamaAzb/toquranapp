@@ -10,6 +10,7 @@ use App\Models\Services_type;
 use App\Models\Student;
 use App\Models\StudentGift;
 use App\Models\User;
+use App\Support\MyDeenJourneyLaunchDefaults;
 use App\Support\RewardGiftVisibility;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -23,6 +24,8 @@ class StudentGiftController extends Controller
     {
         $student = Student::findOrFail($id);
         $academicYearId = AcademicYear::currentId();
+        app(MyDeenJourneyLaunchDefaults::class)->ensureRewardQueue($student->id, $academicYearId);
+
         $grade_levels = GradeLevel::where('active', 1)->orderBy('level_order', 'asc')->get();
         $programs = SchoolProgram::where('active', 1)->get();
         $services_types = Services_type::where('active', 1)->get();

@@ -2,7 +2,10 @@
 
 @section('title', 'Class Sessions')
 @section('vendor-script')
-  @vite(['resources/assets/vendor/libs/sortablejs/sortable.js'])
+  @vite([
+    'resources/assets/vendor/libs/sortablejs/sortable.js',
+    'resources/assets/vendor/libs/dropzone/dropzone.js',
+  ])
 @endsection
 
 
@@ -10,11 +13,6 @@
 
 @section('vendor-style')
   @vite(['resources/assets/vendor/libs/dropzone/dropzone.scss'])
-@endsection
-
-<!-- Vendor Scripts -->
-@section('vendor-script')
-  @vite(['resources/assets/vendor/libs/dropzone/dropzone.js'])
 @endsection
 
 <!-- Page Scripts -->
@@ -139,6 +137,8 @@
     @foreach(($teacher_students ?? collect()) as $teacherStudent)
       @php
         $reviewCount = (int) (($reviewCounts ?? collect())->get($teacherStudent->id, 0));
+        $automationItems = ($automationSummaries ?? collect())->get($teacherStudent->id, collect());
+        $automationCount = $automationItems->count();
       @endphp
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 border rounded p-2 w14-teacher-student-action-row" wire:key="teacher-student-actions-{{ $teacherStudent->id }}">
         <div class="w14-teacher-student-action-main">
@@ -151,6 +151,13 @@
             class="btn btn-sm {{ $reviewCount > 0 ? 'btn-warning' : 'btn-label-secondary' }}">
             <i class="ti tabler-checks me-1"></i> Review tasks
           </a>
+          <button
+            type="button"
+            class="btn btn-sm {{ $automationCount > 0 ? 'btn-label-info' : 'btn-label-secondary' }}"
+            data-bs-toggle="modal"
+            data-bs-target="#studentAutomationsModal{{ $teacherStudent->id }}">
+            <i class="ti tabler-bolt me-1"></i> Automations
+          </button>
           @livewire('teacher.add-behavior-button', [
             'studentId' => $teacherStudent->id,
             'teacherSubjectClassesId' => $teacherSubjectClass->id,
@@ -159,6 +166,32 @@
             'label' => 'Add behavior',
             'showLabel' => true,
           ], key('teacher-add-behavior-'.$teacherSubjectClass->id.'-'.$teacherStudent->id))
+        </div>
+      </div>
+      <div class="modal fade" id="studentAutomationsModal{{ $teacherStudent->id }}" tabindex="-1" aria-labelledby="studentAutomationsModalLabel{{ $teacherStudent->id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <div>
+                <h5 class="modal-title" id="studentAutomationsModalLabel{{ $teacherStudent->id }}">{{ $teacherStudent->display_name }} automations</h5>
+                <p class="mb-0 text-muted small">Active assignments for this subject today.</p>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              @forelse($automationItems as $automationItem)
+                <div class="border rounded p-2 mb-2">
+                  <div class="d-flex justify-content-between gap-2">
+                    <span class="fw-semibold">{{ $automationItem['title'] }}</span>
+                    <span class="badge bg-label-primary">{{ $automationItem['type'] }}</span>
+                  </div>
+                  <div class="small text-muted mt-1">{{ $automationItem['meta'] }}</div>
+                </div>
+              @empty
+                <div class="text-center text-muted py-3">No active automations for this student in this subject.</div>
+              @endforelse
+            </div>
+          </div>
         </div>
       </div>
     @endforeach

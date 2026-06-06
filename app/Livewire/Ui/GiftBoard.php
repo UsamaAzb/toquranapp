@@ -8,6 +8,7 @@ use App\Models\Student;
 use App\Models\StudentGift;
 use App\Services\RewardProgressionService;
 use App\Support\LifecycleGate;
+use App\Support\MyDeenJourneyLaunchDefaults;
 use App\Support\RewardGiftVisibility;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -77,6 +78,8 @@ class GiftBoard extends Component
     public function loadGifts(): void
     {
         $academicYearId = AcademicYear::currentId();
+        app(MyDeenJourneyLaunchDefaults::class)->ensureRewardQueue($this->student->id, $academicYearId);
+
         $this->currentPoints = app(RewardProgressionService::class)->currentPoints($this->student->id);
 
         $this->gifts = StudentGift::query()

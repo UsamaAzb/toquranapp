@@ -168,8 +168,27 @@ class BookingChildEmailService
 
         $attempt->update([
             'status' => 'failed',
-            'last_error_message' => $message,
+            'last_error_message' => $this->humanDeliveryFailureMessage($message),
         ]);
+    }
+
+    public function humanDeliveryFailureMessage(string $message): string
+    {
+        $normalized = strtolower($message);
+
+        if (str_contains($normalized, 'authenticat') || str_contains($normalized, 'username') || str_contains($normalized, 'password')) {
+            return 'The email service could not sign in. Please check the mail account settings, then resend.';
+        }
+
+        if (str_contains($normalized, 'recipient') || str_contains($normalized, 'mailbox') || str_contains($normalized, 'address')) {
+            return 'The recipient mailbox could not accept this email. Please confirm the email address, then resend.';
+        }
+
+        if (str_contains($normalized, 'timed out') || str_contains($normalized, 'timeout') || str_contains($normalized, 'connection') || str_contains($normalized, 'network')) {
+            return 'The email service was unreachable. Please try resending in a few minutes.';
+        }
+
+        return 'The email could not be delivered. The booking was saved, and you can resend from this screen.';
     }
 
     protected function resendTransferEmail(BookingChild $child, string $emailType): void

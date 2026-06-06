@@ -1,0 +1,59 @@
+-- Execution note: TQ5 MDJ behavior icon mapping refresh
+-- Date: 2026-06-05
+-- Repo: D:\xampp\htdocs\toquranapp
+-- Target DB: u504065335_to_quran
+-- Patch:
+--   database/manual/patches/2026-06-05-mdj-behavior-icon-mapping-refresh.sql
+-- Backup before execution:
+--   database/manual/backups/2026-06-05-u504065335_to_quran-before-mdj-behavior-icon-mapping-refresh.sql
+--
+-- Target verification:
+--   .env DB_CONNECTION=mysql
+--   .env DB_HOST=127.0.0.1
+--   .env DB_PORT=3306
+--   .env DB_DATABASE=u504065335_to_quran
+--   .env DB_USERNAME=root
+--
+-- First attempted execution:
+--   Guard passed, then failed before writing icon rows because the imported
+--   `discipline_icons` schema has only `id` and `path`; the patch initially
+--   tried to insert nonexistent timestamp columns. Patch corrected to insert
+--   only `path`.
+--
+-- Success-path execution:
+--   Get-Content database\manual\patches\2026-06-05-mdj-behavior-icon-mapping-refresh.sql |
+--     D:\xampp\mysql\bin\mysql.exe -h 127.0.0.1 -P 3306 -u root u504065335_to_quran
+--
+-- Success-path guard output:
+--   TQ5 MDJ icon mapping refresh guard passed.
+--
+-- Success-path verification output:
+--   discipline_icons = 12
+--   reward_discipline_transfer_with_icons = 12
+--   reward_discipline_points_with_icons = 132
+--
+-- Verified launch icon mapping:
+--   Task Completed => images/discipline/correct-check.png
+--   Good Adab => images/discipline/respect.png
+--   Helpful => images/discipline/shakehands.png
+--   Truthful => images/discipline/lamp.png
+--   Device Boundary => images/discipline/moving-policy.png
+--   Routine Missed => images/discipline/clock.png
+--   Task Not Done => images/discipline/keep-trying.png
+--   Disrespect => images/discipline/tag.png
+--   Untidy Space => images/discipline/leafpng.png
+--   Refusal => images/discipline/persistence_.png
+--   Hurtful Words => images/discipline/chatspng.png
+--   Safety Boundary => images/discipline/earth.png
+--
+-- Guard-failure verification:
+--   Get-Content database\manual\patches\2026-06-05-mdj-behavior-icon-mapping-refresh.sql |
+--     D:\xampp\mysql\bin\mysql.exe -h 127.0.0.1 -P 3306 -u root toquranapp_local
+--
+-- Guard-failure output:
+--   REFUSING TQ5 MDJ icon mapping refresh: wrong DB, missing confirmation, or subject 15/16 identity mismatch. Updates are gated off.
+--
+-- Notes:
+--   This fixes the launch smoke/current local rows that had all MDJ behavior
+--   templates pointing at the fallback heart icon. It does not remove icon
+--   assets or alter existing custom admin-added behavior titles.

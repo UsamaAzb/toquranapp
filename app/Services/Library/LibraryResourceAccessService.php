@@ -7,6 +7,7 @@ use App\Models\LibraryResource;
 use App\Models\LibrarySection;
 use App\Models\SessionTask;
 use App\Models\Student;
+use App\Models\StudentsSubject;
 use App\Models\TeacherSubjectClass;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -80,6 +81,63 @@ class LibraryResourceAccessService
 
         if (! $this->userCanActForStudent($user, $studentId)) {
             return false;
+        }
+
+        $task = $attachment->task;
+
+        if ($this->taskIsAssignedToAll($task->assign_to_all) || $this->taskIsLegacySharedNormalSession($task)) {
+            return true;
+        }
+
+        return $task->taskStudents()
+            ->where('student_id', $studentId)
+            ->exists();
+    }
+
+    public function canTeacherAccessAttachment(
+        User $user,
+        int $studentId,
+        int $sessionId,
+        AttachmentFile $attachment
+    ): bool {
+        if (! $user->hasRole('teacher')) {
+            return false;
+        }
+
+        if (! $this->attachmentBelongsToSession($attachment, $sessionId)) {
+            return false;
+        }
+
+        $session = $attachment->task?->classSession;
+
+        if (! $session) {
+            return false;
+        }
+
+        $teacherCanSeeStudent = TeacherSubjectClass::query()
+            ->whereKey($session->teacher_subject_classes_id)
+            ->where('user_teacher_coteacher_id', $user->id)
+            ->availableForTeacher()
+            ->whereHas('classSubject.studentsSubjects', fn ($query) => $query
+                ->where('student_id', $studentId)
+                ->where('status', 'active')
+                ->whereHas('student', fn ($studentQuery) => $studentQuery->visibleToTeacher()))
+            ->exists();
+
+        if (! $teacherCanSeeStudent) {
+            return false;
+        }
+
+        if ((int) $session->class_subject_id > 0) {
+            $hasEnrollment = StudentsSubject::query()
+                ->where('student_id', $studentId)
+                ->where('class_subject_id', $session->class_subject_id)
+                ->where('status', 'active')
+                ->exists();
+
+            if (! $hasEnrollment) {
+                return false;
+            }
         }
 
         $task = $attachment->task;

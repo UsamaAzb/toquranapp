@@ -40,7 +40,17 @@ class PunishmentAgreementsTabs extends Component
         'title' => '',
     ];
 
+    public ?int $editingAgreementId = null;
+
+    public array $editForm = [
+        'punishment_type_id' => null,
+        'title' => '',
+        'status' => 'active',
+    ];
+
     public ?string $successMessage = null;
+
+    public ?string $editSuccessMessage = null;
 
     // for tracher
     public array $applications = []; // applied punishments list (for the bottom list)
@@ -84,51 +94,6 @@ class PunishmentAgreementsTabs extends Component
 
         return TeacherSubjectClass::find($this->teacherSubjectId);
     }
-
-    //     protected array $suggestions = [
-    //         'minor-slip' => [
-    //             'Lose 2-3 reward points',
-    //             'Skip one fun activity or break time',
-    //             'Write a short reflection on “What I can do better next time',
-
-    //             'Spend 10–15 minutes extra reviewing what I missed',
-    //             'Say sorry in action (help someone or tidy the study area)',
-    //             'No phone during study time today',
-    //             'Lose PlayStation time for one day',
-    //             'Ask parent/teacher for one feedback note on improvement tomorrow',
-    //         ],
-    //         'significant-choice' => [
-    //             'Lose 5–10 reward points',
-    //             'No PlayStation or mobile for two days',
-    //             'Skip hanging out with friends for one day',
-    //           ' Postpone training or club activity for one session',
-    // 'Write a reflection letter to parent/teacher about what happened',
-    // 'Do extra responsible action (help with chores, teach a younger sibling)',
-    // 'Stay after class to re-do or correct your missed work',
-    // 'Restart one unfinished task from the beginning properly',
-    // 'Give a verbal or written apology and explain what you learned',
-    // 'Lose one gift progress (points toward the next gift reduced by 10%)',
-
-    //         ],
-    //         'serious-action' => [
-    //           'Lose 20–30 points or 1 full gift level',
-
-    // 'No phone or PlayStation for 3–5 days',
-
-    // 'No outings / training / sleepovers until a reflection plan is approved',
-
-    // 'Write a make-it-right plan and discuss it with parent and teacher',
-
-    // 'Do a helpful project (organize study materials, tutor someone younger, fix something at home)',
-
-    // 'Present verbally how you plan to rebuild trust next week',
-
-    // 'Temporary pause from special privileges (e.g., joining group games, being team leader)',
-
-    // 'Write 3 things learned from the incident and share one in class or at home',
-    // 'Parent reflection talk with student & teacher togethe',
-    //         ],
-    //     ];
 
     public function mount(int $studentId, string $defaultType = 'minor-slip', ?int $teacherSubjectId = null): void
     {
@@ -202,6 +167,7 @@ class PunishmentAgreementsTabs extends Component
         $this->activeType = $slug;
         $this->form['punishment_type_id'] = $this->typeIdBySlug($slug);
         $this->successMessage = null;
+        $this->editSuccessMessage = null;
         $this->loadAgreements();
     }
 
@@ -213,7 +179,7 @@ class PunishmentAgreementsTabs extends Component
     public function save(): void
     {
         if (! auth()->check() || ! auth()->user()->hasAnyRole(['admin', 'super_admin'])) {
-            abort(403); // or: return;  // but abort(403) أوضح
+            abort(403);
         }
 
         $this->validate($this->rules());
@@ -239,6 +205,76 @@ class PunishmentAgreementsTabs extends Component
         $this->successMessage = 'Consequence  has been added. You can add another one.';
     }
 
+    public function editAgreement(int $agreementId): void
+    {
+        $this->authorizeAdminAgreementWrite();
+
+        $agreement = PunishmentAgreement::query()
+            ->whereKey($agreementId)
+            ->where('student_id', $this->studentId)
+            ->firstOrFail();
+
+        $this->resetErrorBag();
+        $this->editingAgreementId = (int) $agreement->id;
+        $this->editForm = [
+            'punishment_type_id' => (int) $agreement->punishment_type_id,
+            'title' => (string) $agreement->title,
+            'status' => (string) $agreement->status,
+        ];
+        $this->editSuccessMessage = null;
+
+        $this->dispatch('open-edit-punishment-modal');
+    }
+
+    public function cancelEditAgreement(): void
+    {
+        $this->resetEditAgreementForm();
+        $this->dispatch('close-edit-punishment-modal');
+    }
+
+    public function updateAgreement(): void
+    {
+        $this->authorizeAdminAgreementWrite();
+
+        if (! $this->editingAgreementId) {
+            $this->addError('editForm.title', 'Choose an agreement to edit first.');
+
+            return;
+        }
+
+        $this->validate($this->editRules());
+
+        $agreement = PunishmentAgreement::query()
+            ->whereKey($this->editingAgreementId)
+            ->where('student_id', $this->studentId)
+            ->firstOrFail();
+
+        $agreement->update([
+            'punishment_type_id' => (int) $this->editForm['punishment_type_id'],
+            'title' => trim((string) $this->editForm['title']),
+            'status' => (string) $this->editForm['status'],
+        ]);
+
+        $newTypeSlug = $this->types[(int) $this->editForm['punishment_type_id']]['slug'] ?? $this->activeType;
+        $this->activeType = $newTypeSlug;
+        $this->form['punishment_type_id'] = (int) $this->editForm['punishment_type_id'];
+        $this->editSuccessMessage = 'Consequence agreement has been updated.';
+        $this->loadAgreements();
+        $this->loadApplyAgreements();
+    }
+
+    private function resetEditAgreementForm(): void
+    {
+        $this->resetErrorBag();
+        $this->editingAgreementId = null;
+        $this->editForm = [
+            'punishment_type_id' => null,
+            'title' => '',
+            'status' => 'active',
+        ];
+        $this->editSuccessMessage = null;
+    }
+
     protected function rules(): array
     {
         return [
@@ -251,6 +287,30 @@ class PunishmentAgreementsTabs extends Component
                 }),
             ],
         ];
+    }
+
+    protected function editRules(): array
+    {
+        return [
+            'editForm.punishment_type_id' => ['required', 'integer', Rule::in(array_keys($this->types))],
+            'editForm.title' => [
+                'required', 'string', 'max:255',
+                Rule::unique('punishment_agreements', 'title')
+                    ->ignore($this->editingAgreementId)
+                    ->where(function ($q) {
+                        return $q->where('student_id', $this->studentId)
+                            ->where('punishment_type_id', (int) $this->editForm['punishment_type_id']);
+                    }),
+            ],
+            'editForm.status' => ['required', Rule::in(['active', 'inactive'])],
+        ];
+    }
+
+    private function authorizeAdminAgreementWrite(): void
+    {
+        if (! auth()->check() || ! auth()->user()->hasAnyRole(['admin', 'super_admin'])) {
+            abort(403);
+        }
     }
 
     protected function typeIdBySlug(string $slug): ?int
@@ -277,7 +337,8 @@ class PunishmentAgreementsTabs extends Component
         $this->agreements = PunishmentAgreement::query()
             ->where('student_id', $this->studentId)
             ->where('punishment_type_id', $typeId)
-            ->orderByDesc('id')
+            ->orderByRaw("CASE WHEN LOWER(TRIM(title)) = 'customized' THEN 0 ELSE 1 END")
+            ->orderBy('id')
             ->get(['id', 'title', 'status'])
             ->map(fn ($a) => [
                 'id' => $a->id,
@@ -302,7 +363,8 @@ class PunishmentAgreementsTabs extends Component
             ->where('student_id', $this->studentId)
             ->where('punishment_type_id', $typeId)
             ->where('status', 'active')
-            ->orderByDesc('id')
+            ->orderByRaw("CASE WHEN LOWER(TRIM(title)) = 'customized' THEN 0 ELSE 1 END")
+            ->orderBy('id')
             ->get(['id', 'title'])
             ->map(fn ($a) => ['id' => $a->id, 'title' => $a->title])
             ->toArray();
@@ -400,7 +462,7 @@ class PunishmentAgreementsTabs extends Component
                 'type' => (string) $r->type_title,
                 'agreement' => (string) $r->agreement_title,
                 'description' => (string) ($r->description ?? ''),
-                'subject' => $r->subject_title ?? '—',
+                'subject' => $r->subject_title ?? '-',
             ];
         })->toArray();
     }

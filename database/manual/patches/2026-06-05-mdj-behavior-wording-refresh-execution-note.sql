@@ -1,0 +1,50 @@
+-- Execution note: TQ5 MDJ behavior/consequence wording refresh
+-- Date: 2026-06-05
+-- Repo: D:\xampp\htdocs\toquranapp
+-- Target DB: u504065335_to_quran
+-- Patch:
+--   database/manual/patches/2026-06-05-mdj-behavior-wording-refresh.sql
+-- Backup before execution:
+--   database/manual/backups/2026-06-05-u504065335_to_quran-before-mdj-behavior-wording-refresh.sql
+--
+-- Target verification:
+--   .env DB_CONNECTION=mysql
+--   .env DB_HOST=127.0.0.1
+--   .env DB_PORT=3306
+--   .env DB_DATABASE=u504065335_to_quran
+--   .env DB_USERNAME=root
+--
+-- Success-path execution:
+--   Get-Content database\manual\patches\2026-06-05-mdj-behavior-wording-refresh.sql |
+--     D:\xampp\mysql\bin\mysql.exe -h 127.0.0.1 -P 3306 -u root u504065335_to_quran
+--
+-- Success-path guard output:
+--   TQ5 MDJ wording refresh guard passed.
+--
+-- Success-path verification output:
+--   Positive:
+--     Task Completed | Good Adab | Helpful | Truthful | Device Boundary
+--   Slip:
+--     Routine Missed | Task Not Done | Disrespect | Untidy Space
+--   No Way / Red Flag:
+--     Refusal | Hurtful Words | Safety Boundary
+--   Minor Slip suggestions:
+--     The missed task is completed before screen time, games, or play.
+--     Entertainment phone, tablet, or game use is paused until the task is completed.
+--     A favorite activity or training may be paused for one time if the same slip repeats.
+--   Serious Action suggestions:
+--     Entertainment phone, games, or tablet use is paused for 24 hours.
+--     A favorite activity, outing, or training is paused until the learner completes the repair step.
+--     The learner makes things right through an apology, correction, or helping the affected person.
+--
+-- Guard-failure verification:
+--   Get-Content database\manual\patches\2026-06-05-mdj-behavior-wording-refresh.sql |
+--     D:\xampp\mysql\bin\mysql.exe -h 127.0.0.1 -P 3306 -u root toquranapp_local
+--
+-- Guard-failure output:
+--   REFUSING TQ5 MDJ wording refresh: wrong DB, missing confirmation, or subject 15/16 identity mismatch. Updates are gated off.
+--
+-- Notes:
+--   This is an update-only wording refresh for current local smoke/reference
+--   data. It does not create a new parent agreement workflow. Consequence
+--   agreements remain meeting-defined and editable per family/student.

@@ -124,7 +124,7 @@
           <a class="nav-link" href="{{ url('app/user/view/billing') }}"><i class="icon-base ti tabler-bookmark icon-sm me-1_5"></i>Billing & Plans</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ route('admin.students.show_reward', $student->id) }}"><i class="icon-base ti tabler-bell icon-sm me-1_5"></i>Reward System</a>
+          <a class="nav-link" href="{{ route('admin.students.show_reward', $student->id) }}"><i class="icon-base ti tabler-bell icon-sm me-1_5"></i>Rewards</a>
         </li>
       
       </ul>

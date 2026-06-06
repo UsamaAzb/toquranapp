@@ -5,44 +5,8 @@
   $clickable = $allowReachedClick && !empty($lastReachedGiftId);
 @endphp
 <div wire:poll.3s.visible="refreshProgressIfChanged">
-    @if($canToggleRewardDetails)
-      <div class="w14-progress-privacy-row">
-        <div class="form-check form-switch w14-progress-privacy-toggle" title="{{ $showRewardDetails ? 'Hide reward details' : 'Show reward details' }}">
-          <input
-            id="points-reward-details-toggle-{{ $studentId }}"
-            class="form-check-input"
-            type="checkbox"
-            role="switch"
-            wire:model.live="showRewardDetails"
-            aria-label="Show reward details"
-          >
-        </div>
-      </div>
-    @endif
-
     @once
     <style>
-    .w14-progress-privacy-row {
-        display:flex;
-        justify-content:flex-end;
-        margin-bottom:.45rem;
-    }
-    .w14-progress-privacy-toggle {
-        min-height:0;
-        margin:0;
-        padding-left:2.35rem;
-    }
-    .w14-progress-privacy-toggle .form-check-input {
-        width:2.15rem;
-        height:1.15rem;
-        margin-left:-2.35rem;
-        cursor:pointer;
-        box-shadow:none;
-    }
-    .w14-progress-privacy-toggle .form-check-input:focus {
-        border-color:rgba(var(--bs-primary-rgb), .38);
-        box-shadow:0 0 0 .16rem rgba(var(--bs-primary-rgb), .12);
-    }
     .w14-bar-layout{
         display:flex;
         gap:0.75rem;

@@ -48,7 +48,7 @@ $canAccessTransferredFamilies = auth()->check() && $user?->hasAnyRole(['admin', 
   <ul class="menu-inner py-1" id="vertical_menu">
        @if ($canManageAdminBookings)
        <li class="menu-item ">
-            <a href="https://toquran.org/book-consultation"
+            <a href="{{ rtrim(config('app.public_website_url', 'https://toquran.org'), '/') }}/book-trial"
                class="menu-link"
                 target="_blank" 
             >

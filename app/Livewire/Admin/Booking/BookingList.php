@@ -324,7 +324,7 @@ class BookingList extends Component
         $bookings = $this->orderedBookingsQuery()->paginate($this->perPage);
 
         $bookings->getCollection()->transform(function (Booking $booking) {
-            $allChildren = $this->sortChildrenForDisplay($booking->intakeChildren()->values(), $booking);
+            $allChildren = $this->sortChildrenForDisplay($this->displayableChildren($booking), $booking);
             $displayChildren = $this->filteredDisplayChildren($booking, $allChildren);
 
             $booking->displayChildren = $displayChildren;
@@ -364,6 +364,92 @@ class BookingList extends Component
         return $children
             ->filter(fn ($child) => $this->childMatchesActiveFilters($child, $booking))
             ->values();
+    }
+
+    protected function displayableChildren(Booking $booking, bool $materializeLegacyChild = true): Collection
+    {
+        $children = $booking->relationLoaded('children')
+            ? $booking->children
+            : $booking->children()->get();
+
+        if ($children->isNotEmpty()) {
+            return $children->values();
+        }
+
+        if (blank($booking->child_name)) {
+            return collect();
+        }
+
+        if (! $materializeLegacyChild) {
+            return collect();
+        }
+
+        $child = DB::transaction(function () use ($booking): BookingChild {
+            Booking::query()
+                ->whereKey($booking->id)
+                ->lockForUpdate()
+                ->first();
+
+            $existingChild = $booking->children()
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->first();
+
+            if ($existingChild) {
+                return $existingChild;
+            }
+
+            return $booking->children()->create($this->legacyChildPayload($booking));
+        });
+
+        $booking->setRelation('children', collect([$child]));
+
+        return collect([$child]);
+    }
+
+    protected function legacyChildPayload(Booking $booking): array
+    {
+        return [
+            'child_name' => $booking->child_name,
+            'child_age' => $booking->child_age,
+            'child_grade' => $booking->child_grade,
+            'school_system' => SchoolSystemOptions::normalize($booking->school_system) ?? SchoolSystemOptions::OTHER,
+            'current_school' => $booking->current_school ?: 'Not applicable',
+            'consultation_status' => match ($booking->status) {
+                'pending', 'confirmed', 'followup', 'cancelled' => $booking->status,
+                default => null,
+            },
+            'workflow_status' => match ($booking->status) {
+                'confirmed' => 'confirmed',
+                'followup' => 'followup_required',
+                'cancelled' => 'cancelled',
+                default => 'pending',
+            },
+            'evaluation_status' => match ($booking->status) {
+                'fit' => 'fit',
+                'unfit' => 'unfit',
+                default => null,
+            },
+            'evaluation_outcome' => match ($booking->status) {
+                'fit' => 'fit',
+                'unfit' => 'unfit',
+                default => 'undecided',
+            },
+            'consultation_type' => in_array($booking->consultation_type, ['online', 'in-person'], true)
+                ? $booking->consultation_type
+                : 'undecided',
+            'service_interests' => $booking->service_interest
+                ? collect(explode(',', (string) $booking->service_interest))
+                    ->map(fn (string $service): string => trim($service))
+                    ->filter()
+                    ->map(fn (string $service): ?string => Booking::normalizeServiceInterestValue($service))
+                    ->filter()
+                    ->values()
+                    ->all()
+                : [],
+            'transfer_status' => 'not_transferred',
+            'updated_by' => auth()->id(),
+        ];
     }
 
     protected function childMatchesActiveFilters(mixed $child, Booking $booking): bool
@@ -1149,10 +1235,7 @@ SQL;
             return null;
         }
 
-        $allowedSchoolAliases = $this->transferReadySchoolAliases();
         $gradeLevelExpression = 'COALESCE(NULLIF(booking_children.child_grade, 0), NULLIF(bookings.child_grade, 0))';
-        $childSchoolExpression = "LOWER(TRIM(COALESCE(booking_children.school_system, '')))";
-        $bookingSchoolExpression = "LOWER(TRIM(COALESCE(bookings.school_system, '')))";
         $blankChildServiceExpression = "(booking_children.service_interests IS NULL OR booking_children.service_interests IN ('', '[]', 'null'))";
 
         return BookingChild::query()
@@ -1168,13 +1251,6 @@ SQL;
             ->whereRaw("TRIM(COALESCE(bookings.parent_name, '')) != ''")
             ->whereRaw("TRIM(COALESCE(booking_children.child_name, '')) != ''")
             ->whereRaw($this->rawInExpression($gradeLevelExpression, $validGradeLevelIds), $validGradeLevelIds)
-            ->where(function (Builder $schoolQuery) use ($allowedSchoolAliases, $childSchoolExpression, $bookingSchoolExpression) {
-                $schoolQuery->whereRaw($this->rawInExpression($childSchoolExpression, $allowedSchoolAliases), $allowedSchoolAliases)
-                    ->orWhere(function (Builder $fallbackSchoolQuery) use ($allowedSchoolAliases, $childSchoolExpression, $bookingSchoolExpression) {
-                        $fallbackSchoolQuery->whereRaw("{$childSchoolExpression} = ''")
-                            ->whereRaw($this->rawInExpression($bookingSchoolExpression, $allowedSchoolAliases), $allowedSchoolAliases);
-                    });
-            })
             ->where(function (Builder $serviceQuery) use ($blankChildServiceExpression) {
                 $serviceQuery->where(function (Builder $childServiceQuery) {
                     $childServiceQuery->whereNotNull('booking_children.service_interests')
@@ -1464,7 +1540,7 @@ SQL;
             foreach ($bookings as $booking) {
                 $children = $this->filteredDisplayChildren(
                     $booking,
-                    $this->sortChildrenForDisplay($booking->intakeChildren()->values(), $booking)
+                    $this->sortChildrenForDisplay($this->displayableChildren($booking, materializeLegacyChild: false), $booking)
                 );
 
                 foreach ($children as $child) {

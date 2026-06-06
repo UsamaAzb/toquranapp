@@ -229,11 +229,6 @@
                 <span>{{ $gradeTitles[$child->child_grade] ?? ($child->child_grade ?: '-') }}</span>
               </li>
               <li class="mb-2">
-                <span class="h6">School System:</span>
-                <span>{{ $this->schoolSystemLabel($child->school_system ?: $booking?->school_system) }}</span>
-              </li>
-              <hr>
-              <li class="mb-2">
                 <span class="h6">Original Consultation:</span>
                 <span>{{ $originalBookingConsultationTypeLabel ?: 'Not captured' }}</span>
               </li>
@@ -683,39 +678,18 @@
 
             <div class="card mb-6" id="section-services" style="scroll-margin-top: 6rem;">
               <div class="card-header d-flex align-items-center gap-2">
-                <h5 class="card-title mb-0">Services &amp; School</h5>
+                <h5 class="card-title mb-0">Services</h5>
                 <details class="intake-info intake-info--inline">
                   <summary class="intake-info__trigger" aria-label="Services and school help">
                     <i class="icon-base ti tabler-info-circle icon-18px"></i>
                   </summary>
                   <div class="intake-info__panel intake-info__panel--header intake-info__panel--ltr" dir="ltr">
-                    Current school, school system, and at least one child-facing service are required before saving.
+                    Select the To Quran services this child needs. School metadata is filled automatically for launch compatibility.
                   </div>
                 </details>
               </div>
               <div class="card-body">
               <div class="row g-4">
-                <div class="col-md-6">
-                  <label class="form-label">Current School <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control @error('currentSchool') is-invalid @enderror" wire:model.blur="currentSchool">
-                  @error('currentSchool')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label">School System <span class="text-danger">*</span></label>
-                  <select class="form-select @error('schoolSystem') is-invalid @enderror" wire:model.live="schoolSystem">
-                    <option value="">Select school system</option>
-                    @foreach ($schoolSystemOptions as $schoolSystemValue => $schoolSystemLabel)
-                      <option value="{{ $schoolSystemValue }}">{{ $schoolSystemLabel }}</option>
-                    @endforeach
-                  </select>
-                  @error('schoolSystem')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                  @enderror
-                </div>
-
                 <div class="col-12">
                   <div class="d-flex align-items-center gap-1 mb-1">
                     <label class="form-label mb-0">Service Interests</label>
@@ -805,7 +779,7 @@
 
                         @if (filled($emailStatus?->last_error_message))
                           <div class="small text-danger mt-2">
-                            <strong>Error:</strong> {{ $emailStatus?->last_error_message }}
+                            <strong>Delivery note:</strong> {{ $emailStatus?->last_error_message }}
                           </div>
                         @endif
 

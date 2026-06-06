@@ -1,6 +1,6 @@
 # TQ5 My Deen Journey V1 Launch Plan
 
-Status: in progress; audit, DB starter-data patch, core app implementation, launch framing, focused automated checks, and closure-review fixes complete
+Status: complete for TQ5 app launch scope with post-review fixes in the current working tree; base TQ5 launch was committed in `813fde8`; no production deployment, merge, smoke cleanup, credential rotation, or public website work performed
 Date: 2026-06-04
 Sprint: TQ5 My Deen Journey V1
 Branch: `codex/tq5-my-deen-journey-launch`
@@ -14,7 +14,7 @@ TQ5 should make the existing app surfaces feel like one launch-ready MDJ workflo
 ## Sprint / Roadmap Relationship
 
 - TQ3/TQ3.5/TQ4 already established first launch access, family workspace, teacher assignment, task review, and core session/task smoke.
-- TQ5 is the active learner/parent accountability experience layer.
+- TQ5 is the completed learner/parent accountability experience layer for the app launch scope.
 - TQ9 deployment readiness remains separate. Do not do production deployment, smoke cleanup, temporary credential rotation, or merge-to-main work from this plan.
 - Public website copy already presents My Deen Journey as daily Islamic tasks, rewards, agreed consequences, parent involvement, and progress follow-up. No public website work is part of TQ5; this app sprint should document app reality if a later handoff needs it.
 
@@ -51,18 +51,17 @@ TQ5 should make the existing app surfaces feel like one launch-ready MDJ workflo
 - `ParentBehaviorSubjectResolver` already enforces the key boundary: parent-written behavior points resolve to the Well Being subject, not MDJ.
 - Transfer flow already creates the default 10-gift runway and attempts to seed behavior/consequence rows for each transferred student.
 
-### What Still Feels Week14 / Fragmented
+### What Was Week14 / Fragmented Before TQ5
 
-- Visible app labels still expose inherited Week14 framing:
+- Visible app labels previously exposed inherited Week14 framing:
   - `Reward System`
-  - `Rewards`
-  - `Points Lab`
   - `Discipline Points`
   - `Behavior Points`
   - route slug typo `reward-discpline`
+- Launch-visible reward/behavior labels have since been aligned to short To Quran labels such as `Rewards`, `Points Lab`, and `Task Completion PIN`; the route slug typo remains accepted URL debt.
 - Parent, student, and teacher entry points now have light My Deen Journey launch framing while keeping the short action labels selected for launch.
 - Teacher session quick cards still use simple titles such as `Rewards` and `Points Lab`, with an added My Deen Journey follow-up frame.
-- Admin student account tabs still use `Reward System` and `Reward System PIN`.
+- Admin student account tabs and PIN wording were updated after launch testing showed those inherited labels were confusing.
 - Parent consequence agreement visibility is indirect. TQ5 will not add a parent agreement link or recording workflow because agreements are handled through meetings.
 - Student consequence agreement is visible when a `teacherSubjectId` is available, but the card still uses inherited wording.
 - Trusted-child auto-approval is launch-visible to parents. Admin may receive read-only support visibility only; admin/staff must not manage the setting in TQ5.
@@ -379,6 +378,39 @@ TQ5 local execution evidence:
 - post-patch counts: `punishment_types=2`, `punishments_suggestions=6`, `reward_discipline_transfer=12`.
 - post-review safety correction: the reusable patch now uses a read-only guard variable before any insert, with every insert gated by the guard; rerunning the corrected patch on `u504065335_to_quran` was idempotent and returned the same counts.
 - guard-failure path verified on 2026-06-04 by running the same patch through a temporary Laravel connection pointed at non-target local DB `toquranapp_local`; the guard emitted the refusal message and counts stayed unchanged: `punishment_types=0`, `punishments_suggestions=0`, `reward_discipline_transfer=0`.
+- behavior/consequence wording refresh executed on 2026-06-05 after focused backup `database/manual/backups/2026-06-05-u504065335_to_quran-before-mdj-behavior-wording-refresh.sql`;
+- wording refresh patch: `database/manual/patches/2026-06-05-mdj-behavior-wording-refresh.sql`;
+- wording refresh execution note: `database/manual/patches/2026-06-05-mdj-behavior-wording-refresh-execution-note.sql`;
+- first-pass refreshed behavior titles verified as a compact 12-card launch set, but owner review rejected that as too narrow after the full ChatGPT behavior list was restored;
+- first-pass consequence suggestions used meeting-editable sentences, but owner review rejected them as too robotic for student-visible agreement buttons;
+- wording refresh guard-failure path was verified on `toquranapp_local`; the patch refused the wrong target and gated updates off.
+- behavior icon mapping refresh executed on 2026-06-05 after focused backup `database/manual/backups/2026-06-05-u504065335_to_quran-before-mdj-behavior-icon-mapping-refresh.sql`;
+- icon mapping patch: `database/manual/patches/2026-06-05-mdj-behavior-icon-mapping-refresh.sql`;
+- icon mapping execution note: `database/manual/patches/2026-06-05-mdj-behavior-icon-mapping-refresh-execution-note.sql`;
+- icon mapping verified `discipline_icons=12`, `reward_discipline_transfer_with_icons=12`, and `reward_discipline_points_with_icons=132`, replacing the single fallback heart icon with distinct existing discipline icons for launch behaviors;
+- icon mapping guard-failure path was verified on `toquranapp_local`; the patch refused the wrong target and gated updates off.
+- LMS-style behavior/consequence refresh executed on 2026-06-06 after focused backup `database/manual/backups/2026-06-06-u504065335_to_quran-before-mdj-lms-consequence-behavior-refresh.sql`;
+- LMS-style refresh patch: `database/manual/patches/2026-06-06-mdj-lms-consequence-behavior-refresh.sql`;
+- LMS-style refresh execution note: `database/manual/patches/2026-06-06-mdj-lms-consequence-behavior-refresh-execution-note.sql`;
+- refreshed starter behavior counts now verify as `Positive=11`, `Slip=11`, and `No Way=9`; copied student rows verify as `Positive=121`, `Slip=121`, and `No Way=99`;
+- refreshed behavior titles now verify as `Good Job`, `Good Effort`, `Focused`, `Good Adab`, `Honesty`, `Responsibility`, `Self-Control`, `Helping Others`, `Good Deed`, `Good Question`, `On Time`, `Oops!`, `Not Ready`, `Distracted`, `Time Wasted`, `Task Not Done`, `Low Practice`, `Adab Slip`, `Device Slip`, `Small Excuse`, `No Response`, `Rule Reminder`, `Serious Matter`, `Hurtful Words`, `Dishonesty`, `Cheating`, `Bullying`, `Aggression`, `Major Disrespect`, `Device Misuse`, and `Rule Broken`;
+- consequence suggestions now verify as `10` Minor Slip and `10` Serious Action options, starting from Week14 LMS practical agreement language such as `No phone during study time today`, `Lose PlayStation time for one day`, `No phone or PlayStation for 3-5 days`, and `No outings / training / sleepovers until a reflection plan is approved`;
+- LMS-style refresh guard-failure path was verified on `toquranapp_local`; the patch refused the wrong target and gated updates off.
+- behavior icon remap executed on 2026-06-06 after focused backup `database/manual/backups/2026-06-06-u504065335_to_quran-before-mdj-behavior-icon-remap.sql`;
+- behavior icon remap patch: `database/manual/patches/2026-06-06-mdj-behavior-icon-remap.sql`;
+- behavior icon remap execution note: `database/manual/patches/2026-06-06-mdj-behavior-icon-remap-execution-note.sql`;
+- remap fixed visually weak launch choices including thumbs-up `Oops!`, thumbs-up `Device Slip`, and crown `Rule Reminder` by reusing better-fitting Week14 icon files already copied to To Quran;
+- icon remap guard-failure path was verified on `toquranapp_local`; the patch refused the wrong target and gated updates off.
+- popup category flag fix executed on 2026-06-06 after focused backup `database/manual/backups/2026-06-06-u504065335_to_quran-before-mdj-popup-category-flag-fix.sql`;
+- popup category flag patch: `database/manual/patches/2026-06-06-mdj-popup-category-flag-fix.sql`;
+- popup category flag execution note: `database/manual/patches/2026-06-06-mdj-popup-category-flag-fix-execution-note.sql`;
+- `Oops!` and `Serious Matter` now verify as `teacher_desc=1` popup category cards in both starter templates and copied student rows, so parent/teacher quick actions open the behavior/consequence modal instead of adding or deducting points directly;
+- popup category flag guard-failure path was verified on `toquranapp_local`; the patch refused the wrong target and gated updates off.
+- Good Job popup category flag fix executed on 2026-06-06 after focused backup `database/manual/backups/2026-06-06-u504065335_to_quran-before-mdj-good-job-popup-flag-fix.sql`;
+- Good Job popup category flag patch: `database/manual/patches/2026-06-06-mdj-good-job-popup-flag-fix.sql`;
+- Good Job popup category flag execution note: `database/manual/patches/2026-06-06-mdj-good-job-popup-flag-fix-execution-note.sql`;
+- `Good Job` now verifies as `teacher_desc=1` in both starter templates and all 11 copied student rows, so the Positive first card opens the parent/teacher behavior modal instead of adding points directly;
+- Good Job popup category flag guard-failure path was verified on `toquranapp_local`; the patch refused the wrong target and gated updates off.
 
 Known baseline/backup evidence:
 
@@ -405,6 +437,17 @@ Completed in this pass:
 - added automated coverage proving parent behavior resolution stays on Well Being even when an MDJ teacher-subject context is passed;
 - added automated Livewire write-path coverage proving a parent behavior modal save opened from an MDJ teacher-subject context persists through the Well Being teacher-subject and ledger subject;
 - replaced MySQL-only subject priority ordering in `ParentBehaviorSubjectResolver` with portable SQL ordering;
+- moved the reward-detail visibility switch out of the shared Points Lab progress bar; the toggle remains only on the rewards/gift board surface;
+- refreshed starter behavior titles first to a compact launch set, then expanded them to the broader ChatGPT-reviewed set after owner review;
+- refreshed default consequence suggestions first to practical sentences, then replaced them with the Week14 LMS practical agreement list plus a small To Quran layer after owner review;
+- refreshed starter/copied behavior icon mappings so the admin/student behavior cards no longer all use the fallback heart icon;
+- remapped visually weak behavior icons after manual review so launch cards use better-fitting Week14 icon files;
+- restored the first Positive, Slip, and No Way behavior cards as popup category actions so they open the behavior/consequence modal instead of saving instant point changes;
+- ordered `Customized` next to `None` in parent/teacher consequence agreement popups so it no longer appears in the middle of the practical agreement list;
+- hardened the launch-default helper so existing copied behavior rows with stale fallback-heart icons are repaired on future default checks, not only by the manual DB patch;
+- renamed the admin student behavior section from inherited `Reward Discipline Points` to the launch-facing `Points Lab`;
+- renamed visible inherited reward/PIN labels to `Rewards`, `Points Lab`, and `Task Completion PIN` after manual testing exposed launch confusion;
+- aligned activation email PIN wording to `Task Completion PIN`;
 - updated stale Week14/manual-SQL contract tests to assert To Quran baseline evidence instead of old Week14 database names;
 - updated student task approval surface tests to reflect the current extracted task-action component, 10-second polling, and shared attachment study viewer.
 
@@ -415,6 +458,36 @@ D:\php\php-8.4\php.exe artisan test tests/Feature/CoreLms/StudentTaskApprovalSur
 ```
 
 Final closure-review result after adding the parent modal write-path test: 77 passed, 758 assertions.
+
+Post-manual-testing label/icon cleanup verification:
+
+```powershell
+D:\php\php-8.4\php.exe artisan test tests\Feature\MyDeenJourneyLaunchDefaultsTest.php tests\Feature\CoreLms\ParentBehaviorSubjectResolverTest.php tests\Unit\FamilyLifecycleServiceTest.php
+```
+
+Result before the June 6 LMS-style refresh: 34 passed, 125 assertions. This includes coverage that old copied behavior rows using the fallback heart icon are healed to the mapped launch icon.
+
+Post-LMS-style behavior/consequence refresh verification:
+
+```powershell
+D:\php\php-8.4\php.exe artisan test tests\Feature\MyDeenJourneyLaunchDefaultsTest.php tests\Feature\CoreLms\ParentBehaviorSubjectResolverTest.php tests\Unit\FamilyLifecycleServiceTest.php
+D:\php\php-8.4\php.exe artisan test tests\Feature\CoreLms\LifecycleGateTest.php tests\Feature\CoreLms\TeacherAttachmentStateTest.php tests\Feature\CoreLms\StudentTaskApprovalSurfaceTest.php tests\Feature\StudentWorkplaceLoadTest.php
+git diff --check
+```
+
+Result: 34 passed, 125 assertions; 85 passed, 391 assertions; diff whitespace check clean.
+
+Post-popup-category flag fix verification:
+
+```powershell
+D:\php\php-8.4\php.exe artisan test tests\Feature\MyDeenJourneyLaunchDefaultsTest.php tests\Feature\CoreLms\ParentBehaviorSubjectResolverTest.php
+D:\php\php-8.4\php.exe -l app\Support\MyDeenJourneyLaunchDefaults.php
+D:\php\php-8.4\php.exe -l app\Livewire\Teacher\RewardDisciplinePoints.php
+D:\php\php-8.4\php.exe -l app\Livewire\Parent\BehaviorModal.php
+D:\php\php-8.4\php.exe -l app\Livewire\Teacher\BehaviorModal.php
+```
+
+Result: 6 passed, 25 assertions. `Good Job`, `Oops!`, and `Serious Matter` verified in `reward_discipline_points` as `teacher_desc=1` for all 11 existing local student copies.
 
 Teacher reward privacy subset:
 
@@ -478,7 +551,7 @@ If shared decisions change, update `docs/shared/` and state implementation owner
 - Keep the inherited `session-agreement-reword-header` filename/class typo as accepted route/include debt for TQ5 because the user-facing text is correct and changing it would create avoidable churn.
 - Keep the one-current/active-student-per-class launch assumption for teacher per-student MDJ actions. Multi-student classes require a future deliberate UX pass.
 - Keep parent/student-facing labels simple and short for launch.
-- Keep admin/internal `Reward System` and `Reward System PIN` labels as explicit V1 deferrals unless a specific launch confusion is reported; parent/student-facing labels remain short (`Rewards`, `Points Lab`, `Consequence Agreement`).
+- Visible admin reward/PIN labels were changed to `Rewards`, `Points Lab`, and `Task Completion PIN` after launch confusion was reported during manual testing. Internal class names, filenames, and existing route slugs can remain inherited debt when changing them would create avoidable churn.
 - Keep `reward_discipline_transfer` idempotency limited to `NOT EXISTS (title, type)` for this one-shot manual starter-data patch. A future admin-editable seed catalog would need a durable key or separate migration strategy.
 
 ## Completion Definition

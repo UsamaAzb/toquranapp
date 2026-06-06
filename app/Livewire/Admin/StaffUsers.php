@@ -45,6 +45,8 @@ class StaffUsers extends Component
 
     public string $phone = '';
 
+    public string $country = '';
+
     public string $role = 'teacher';
 
     public string $status = 'active';
@@ -115,6 +117,7 @@ class StaffUsers extends Component
         $this->lastName = (string) ($user->last_name ?? '');
         $this->email = (string) $user->email;
         $this->phone = (string) ($user->phone ?? '');
+        $this->country = (string) ($user->country ?? '');
         $this->role = $this->primaryStaffRole($user) ?? 'teacher';
         $this->status = (string) ($user->status ?? 'active');
         $this->password = '';
@@ -213,6 +216,7 @@ class StaffUsers extends Component
                 Rule::unique('users', 'email')->ignore($userId),
             ],
             'phone' => ['nullable', 'string', 'max:40'],
+            'country' => [Schema::hasColumn('users', 'country') ? 'required' : 'nullable', 'string', 'max:100'],
             'role' => ['required', Rule::in(array_keys(self::STAFF_ROLES))],
             'status' => ['required', Rule::in(['active', 'inactive', 'suspended'])],
             'password' => [$user ? 'nullable' : 'required', 'string', 'min:8', 'same:passwordConfirmation'],
@@ -241,6 +245,7 @@ class StaffUsers extends Component
             'first_name' => $firstName,
             'last_name' => $lastName !== '' ? $lastName : null,
             'phone' => trim((string) ($data['phone'] ?? '')) ?: null,
+            'country' => trim((string) ($data['country'] ?? '')),
             'status' => $data['status'],
         ] as $column => $value) {
             if (Schema::hasColumn($user->getTable(), $column)) {
@@ -343,6 +348,7 @@ class StaffUsers extends Component
             'lastName',
             'email',
             'phone',
+            'country',
             'password',
             'passwordConfirmation',
         ]);

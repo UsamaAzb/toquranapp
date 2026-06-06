@@ -88,6 +88,7 @@ class BookingParentIdentityResolver
                 ->whereRaw($this->normalizedEmailExpression('email').' = ?', [$normalizedEmail])
                 ->pluck('id')
                 ->map(fn ($id): int => (int) $id);
+            $emailIds = $this->parentAccountUserIds($emailIds);
         }
 
         if ($normalizedPhone !== '' && $this->tableHasColumn('users', 'phone')) {
@@ -95,6 +96,7 @@ class BookingParentIdentityResolver
                 ->whereRaw($this->normalizedPhoneExpression('phone').' = ?', [$normalizedPhone])
                 ->pluck('id')
                 ->map(fn ($id): int => (int) $id);
+            $phoneIds = $this->parentAccountUserIds($phoneIds);
         }
 
         $result = $this->contactMatchResult('user', $normalizedEmail, $normalizedPhone, $emailIds, $phoneIds);
@@ -770,6 +772,50 @@ class BookingParentIdentityResolver
             ->reject(fn (int $id): bool => $linkedUserId > 0 && $id === $linkedUserId)
             ->values()
             ->all();
+    }
+
+    protected function parentAccountUserIds(Collection $userIds): Collection
+    {
+        $userIds = $userIds
+            ->map(fn ($id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($userIds->isEmpty()) {
+            return collect();
+        }
+
+        $parentLinkedIds = collect();
+
+        if ($this->tableHasColumn('parents', 'user_id')) {
+            $parentLinkedIds = DB::table('parents')
+                ->whereIn('user_id', $userIds->all())
+                ->pluck('user_id')
+                ->map(fn ($id): int => (int) $id);
+        }
+
+        $parentRoleIds = collect();
+
+        if (
+            Schema::hasTable('roles')
+            && Schema::hasTable('model_has_roles')
+            && $this->tableHasColumn('roles', 'name')
+            && $this->tableHasColumn('model_has_roles', 'model_id')
+        ) {
+            $parentRoleIds = DB::table('model_has_roles')
+                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+                ->where('roles.name', 'parent')
+                ->whereIn('model_has_roles.model_id', $userIds->all())
+                ->where('model_has_roles.model_type', User::class)
+                ->pluck('model_has_roles.model_id')
+                ->map(fn ($id): int => (int) $id);
+        }
+
+        return $parentLinkedIds
+            ->merge($parentRoleIds)
+            ->unique()
+            ->values();
     }
 
     protected function contactUpdateAction(?string $previousEmail, ?string $previousPhone, ?string $nextEmail, ?string $nextPhone): string

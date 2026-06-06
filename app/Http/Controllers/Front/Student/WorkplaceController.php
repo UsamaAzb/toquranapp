@@ -25,6 +25,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class WorkplaceController extends Controller
 {
@@ -156,6 +157,36 @@ class WorkplaceController extends Controller
                         BookingSubjectProvisioning::displayPayloadForStudentSubject($studentSubject)
                     );
                 });
+
+            $classSubjectIds = $student_subjects
+                ->pluck('class_subject_id')
+                ->map(fn ($id): int => (int) $id)
+                ->filter()
+                ->unique()
+                ->values();
+
+            $openTaskCountsByClassSubject = $classSubjectIds->isEmpty()
+                ? collect()
+                : SessionTask::query()
+                    ->select('class_sessions.class_subject_id', DB::raw('COUNT(DISTINCT session_tasks.id) as open_task_count'))
+                    ->join('class_sessions', 'class_sessions.id', '=', 'session_tasks.class_session_id')
+                    ->join('session_task_student', 'session_task_student.session_task_id', '=', 'session_tasks.id')
+                    ->whereIn('session_tasks.class_session_id', $this->visibleStudentSessionQuery((int) $student_id)->select('id'))
+                    ->whereIn('class_sessions.class_subject_id', $classSubjectIds->all())
+                    ->where('session_task_student.student_id', $student_id)
+                    ->where(fn (Builder $query) => $query
+                        ->whereNull('session_task_student.status')
+                        ->orWhere('session_task_student.status', '!=', SessionTaskStudent::STATUS_COMPLETED))
+                    ->groupBy('class_sessions.class_subject_id')
+                    ->pluck('open_task_count', 'class_sessions.class_subject_id')
+                    ->map(fn ($count): int => (int) $count);
+
+            $student_subjects->each(function (StudentsSubject $studentSubject) use ($openTaskCountsByClassSubject): void {
+                $studentSubject->setAttribute(
+                    'open_task_count',
+                    (int) $openTaskCountsByClassSubject->get((int) $studentSubject->class_subject_id, 0)
+                );
+            });
 
             $PunishmentCount = PunishmentAgreement::where('student_id', $student_id)->where('status', 'active')->count();
 

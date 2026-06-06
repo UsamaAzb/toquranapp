@@ -1,10 +1,112 @@
 <div>
+<style>
+  .behavior-agreement-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .behavior-agreement-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .behavior-agreement-chip,
+  .behavior-agreement-option {
+    border: 1px solid #d8dbe7;
+    background: #fff;
+    color: #697085;
+    font-weight: 600;
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+  }
+
+  .behavior-agreement-chip {
+    min-height: 2.15rem;
+    padding: 0.42rem 0.85rem;
+    border-radius: 0.42rem;
+  }
+
+  .behavior-agreement-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    max-height: 13.5rem;
+    overflow-y: auto;
+    padding: 0.1rem 0.2rem 0.1rem 0;
+  }
+
+  .behavior-agreement-option {
+    min-height: 3.25rem;
+    width: 100%;
+    border-radius: 0.5rem;
+    padding: 0.7rem 0.8rem;
+    text-align: left;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  .behavior-agreement-chip:hover,
+  .behavior-agreement-option:hover {
+    border-color: #aeb4c8;
+    box-shadow: 0 0.25rem 0.75rem rgba(75, 70, 92, 0.08);
+  }
+
+  .behavior-agreement-chip.is-selected,
+  .behavior-agreement-option.is-selected {
+    color: #2f3144;
+    border-color: currentColor;
+    box-shadow: 0 0.35rem 1rem rgba(75, 70, 92, 0.1);
+  }
+
+  .behavior-agreement-chip.is-neutral {
+    background: #6f7382;
+    border-color: #6f7382;
+    color: #fff;
+  }
+
+  .behavior-agreement-chip.is-success,
+  .behavior-agreement-option.is-success {
+    background: color-mix(in sRGB, #fff 84%, var(--bs-success));
+    color: var(--bs-success);
+  }
+
+  .behavior-agreement-chip.is-warning,
+  .behavior-agreement-option.is-warning {
+    background: color-mix(in sRGB, #fff 82%, var(--bs-warning));
+    color: #d97912;
+  }
+
+  .behavior-agreement-chip.is-danger,
+  .behavior-agreement-option.is-danger {
+    background: color-mix(in sRGB, #fff 84%, var(--bs-danger));
+    color: var(--bs-danger);
+  }
+
+  @media (max-width: 575.98px) {
+    .behavior-agreement-list {
+      grid-template-columns: 1fr;
+      max-height: 14.5rem;
+    }
+
+    .behavior-agreement-option {
+      min-height: 2.9rem;
+      padding: 0.62rem 0.72rem;
+    }
+  }
+</style>
 @php
   $popupColor = $this->behaviorTone;
   $selectedType = $this->selectedBehaviorType;
   $opts = $this->behaviorPointOptions;
   $selectableModalBehaviors = $this->selectableModalBehaviors;
   $selected = $this->selectedModalBehavior;
+  $customizedPunishmentAgreements = collect($punishmentAgreements)
+      ->filter(fn ($agreement) => strtolower(trim($agreement['title'] ?? '')) === 'customized')
+      ->values();
+  $standardPunishmentAgreements = collect($punishmentAgreements)
+      ->reject(fn ($agreement) => strtolower(trim($agreement['title'] ?? '')) === 'customized')
+      ->values();
 @endphp
 
 <div
@@ -21,7 +123,12 @@
           <p class="text-uppercase text-muted small fw-semibold mb-1">Behavior</p>
           <h5 class="modal-title mb-0">Add behavior for <span class="text-primary">{{ $studentName }}</span></h5>
         </div>
-        <button type="button" class="btn-close" aria-label="Close" wire:click="cancelBehaviorDescription"></button>
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Close"
+          data-bs-dismiss="modal"
+          wire:click="cancelBehaviorDescription"></button>
       </div>
 
       <div class="modal-body">
@@ -82,25 +189,40 @@
           <hr>
           <div class="mb-3">
             <label class="form-label">Agreement</label>
-            <div class="d-flex flex-wrap gap-2">
+            <div class="behavior-agreement-picker">
+              <div class="behavior-agreement-toolbar">
               <button
-                class="btn btn-sm {{ $selectedPunishmentAgreementId ? 'btn-outline-secondary' : 'btn-secondary' }}"
+                class="behavior-agreement-chip {{ $selectedPunishmentAgreementId ? '' : 'is-selected is-neutral' }}"
                 type="button"
                 wire:click="clearPunishmentSelection"
               >
                 None
               </button>
 
-              @foreach($punishmentAgreements as $agreement)
+              @foreach($customizedPunishmentAgreements as $agreement)
                 <button
                   wire:key="parent-punishment-agreement-{{ $pendingType }}-{{ $agreement['id'] }}"
-                  class="btn btn-sm {{ (int) $selectedPunishmentAgreementId === (int) $agreement['id'] ? 'btn-'.$popupColor : 'btn-outline-secondary' }}"
+                  class="behavior-agreement-chip {{ (int) $selectedPunishmentAgreementId === (int) $agreement['id'] ? 'is-selected is-'.$popupColor : '' }}"
                   type="button"
                   wire:click="selectPunishment({{ (int) $agreement['id'] }})"
                 >
                   {{ $agreement['title'] }}
                 </button>
               @endforeach
+              </div>
+
+              <div class="behavior-agreement-list">
+                @foreach($standardPunishmentAgreements as $agreement)
+                  <button
+                    wire:key="parent-standard-punishment-agreement-{{ $pendingType }}-{{ $agreement['id'] }}"
+                    class="behavior-agreement-option {{ (int) $selectedPunishmentAgreementId === (int) $agreement['id'] ? 'is-selected is-'.$popupColor : '' }}"
+                    type="button"
+                    wire:click="selectPunishment({{ (int) $agreement['id'] }})"
+                  >
+                    {{ $agreement['title'] }}
+                  </button>
+                @endforeach
+              </div>
             </div>
           </div>
         @endif
@@ -120,7 +242,11 @@
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-label-secondary" type="button" wire:click="cancelBehaviorDescription">Cancel</button>
+        <button
+          class="btn btn-label-secondary"
+          type="button"
+          data-bs-dismiss="modal"
+          wire:click="cancelBehaviorDescription">Cancel</button>
         <button class="btn btn-primary" type="button" wire:click="confirmBehaviorWithDescription" wire:loading.attr="disabled">
           <span wire:loading.remove wire:target="confirmBehaviorWithDescription">
             <i class="ti tabler-device-floppy me-1"></i> Save

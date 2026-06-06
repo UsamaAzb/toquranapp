@@ -30,7 +30,7 @@
         .hero {
             padding: 30px 28px;
             color: #ffffff;
-            background: linear-gradient(135deg, #1b365d 0%, #2c5282 100%);
+            background: linear-gradient(135deg, #46412f 0%, #6f6848 100%);
         }
 
         h1 {
@@ -52,7 +52,7 @@
         .notice {
             margin: 22px 0;
             padding: 16px 18px;
-            border: 1px solid #d4af37;
+            border: 1px solid #c9a24d;
             border-radius: 12px;
             background: #fff8e5;
             color: #4f3b0c;
@@ -68,7 +68,7 @@
             margin: 6px;
             padding: 12px 22px;
             border-radius: 8px;
-            background: #1b365d;
+            background: #46412f;
             color: #ffffff !important;
             font-weight: 700;
             text-decoration: none;
@@ -84,7 +84,7 @@
         }
 
         a {
-            color: #1b365d;
+            color: #46412f;
         }
 
         @media (max-width: 600px) {
@@ -136,8 +136,8 @@
             </div>
 
             <div class="footer">
-                <strong style="color:#1b365d;">To Quran</strong><br>
-                Transforming study resistance into academic excellence<br>
+                <strong style="color:#46412f;">To Quran</strong><br>
+                Quran learning, Arabic, My Deen Journey, and thoughtful family follow-up.<br>
                 <a href="mailto:{{ $supportEmail }}">{{ $supportEmail }}</a> | <a href="{{ $publicWebsiteUrl }}">{{ $publicWebsiteLabel }}</a>
             </div>
         </div>

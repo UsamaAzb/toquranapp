@@ -60,21 +60,27 @@ For any new or changed form UI, review mobile/tablet behavior for native `select
 - Do not change backend contracts while improving the UI. The real field must remain in the form with the same `id`, `name`, value, validation attributes, disabled/readonly state, and submitted payload.
 - Custom controls must write to the real field and dispatch real DOM `input` and `change` events on that field so Livewire, Alpine, browser validation, and normal form submission all stay aligned.
 - Visible custom triggers must mirror programmatic changes to the real field value, selected options, disabled state, and validation state.
+- Programmatic changes are part of the contract. If JavaScript, Livewire, Alpine, Select2, Flatpickr, or another plugin changes the real field after enhancement, the visible custom trigger/input must update without requiring a page reload.
 - Custom menus/calendars must stay inside their parent width using `inset-inline: 0` or equivalent logical containment, mobile-safe max height, and internal scrolling.
-- Dynamic rows, modal content, and Livewire-rendered fields must be enhanced after insertion and cleaned up if the field, row, modal, or form is removed.
+- Date/calendar UI must keep previous/next month buttons touch-safe and reliable on phones/tablets. Use localized day/month labels where practical instead of hardcoded English labels.
+- Dynamic rows, modal content, and Livewire-rendered fields must be enhanced after insertion and cleaned up if the field, row, modal, or form is removed. Open menus/calendars must close if their backing field is removed.
 - Hidden native fields must not create duplicate keyboard tab stops or duplicate screen-reader entries while enhanced.
-- Guard global listeners and observers against duplicate binding, and disconnect per-field observers when enhanced fields are removed.
+- Guard global listeners and observers against duplicate binding, and disconnect per-field observers when enhanced fields are removed. Enhancement scripts should be safe if bundled more than once on a page.
+- Do not enhance controls already managed by a plugin such as Select2, Choices, or a project-specific searchable select class unless the plugin itself is being replaced. Detect plugin-managed controls before and after initialization so a late Select2 setup is not left with two competing UIs.
 - Server validation UI must stay visually attached to the visible control. If a native field is hidden/enhanced and has adjacent `.invalid-feedback`, move or mirror the invalid state so the visible custom trigger/input is red and the feedback appears below it.
-- Flatpickr fields inside `wire:ignore` need special review. If the real input has an `@error(...) is-invalid @enderror` class but Flatpickr renders an `altInput`, mirror the invalid state to the visible `altInput`, and clear it when the user selects a valid value.
+- Invalid/red states should clear after the user chooses a valid value, but do not hide fresh server errors blindly. Clear only when the real field now passes its relevant client-side validity check or when the server error node is no longer present.
+- Flatpickr fields inside `wire:ignore` need special review. If the real input has an `@error(...) is-invalid @enderror` class but Flatpickr renders an `altInput`, mirror the invalid state to the visible `altInput`, including adjacent-feedback detection for cases where Livewire updates the feedback node but not the ignored real input. Clear the visible invalid state when the user selects a valid value.
 - Submit-time focus/scroll should target the visible custom trigger/input, not a hidden native field.
+- If native browser validation is used, intercept invalid-field focus/scroll carefully so the browser does not focus a 1px hidden backing field or show validation UI in the wrong place.
 - Desktop should keep native behavior unless the task explicitly calls for a desktop redesign.
 - Use Bootstrap/theme CSS variables for custom controls; do not hardcode colors.
+- Use logical CSS properties (`inset-inline`, `margin-inline`, `padding-inline`) where possible so Arabic/RTL layouts do not regress.
 
 Minimum verification for these changes:
 
 - Search changed views for native `<select>`, `input[type="date"]`, `input[type="time"]`, and `input[type="datetime-local"]` controls.
-- Test one normal form select, one select inside a modal or Livewire section, one date/picker field, one time or datetime field when present, and one dynamic row if the page has add/remove rows.
-- Confirm real field values update, submitted names/values are unchanged, validation errors display below the visible control, invalid states clear after a valid selection, and date picker previous/next navigation works on touch/mobile.
+- Test one normal form select, one select inside a modal or Livewire section, one date/picker field, one time or datetime field when present, one dynamic row if the page has add/remove rows, and one plugin-managed searchable select if present.
+- Confirm real field values update, submitted names/values are unchanged, visible triggers mirror programmatic value changes, validation errors display below the visible control, invalid states clear after a valid selection without masking new server errors, removed rows do not leave open menus/listeners behind, and date picker previous/next navigation works on touch/mobile.
 - Rebuild assets when the implementation touches Vite-managed JS/CSS, and confirm manifests point to generated files that exist in both `public/build/` and `build/` while legacy root-build sync is still enabled. Those build directories are intentionally gitignored in this repo; `docs/BUILD-DEPLOY-MARKER.md` is the tracked signal that generated assets changed and must be uploaded with deployment.
 
 ## Plan Requirements

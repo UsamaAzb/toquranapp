@@ -532,7 +532,7 @@ class FamilyLifecycleServiceTest extends TestCase
         $this->assertStringContainsString($childUser->email, $html);
         $this->assertStringContainsString(e($childUser->name), $html);
         $this->assertStringContainsString('parent dashboard', $html);
-        $this->assertStringContainsString('Reward System PIN', $html);
+        $this->assertStringContainsString('Task Completion PIN', $html);
         $this->assertStringContainsString('Help Me Study', $html);
     }
 

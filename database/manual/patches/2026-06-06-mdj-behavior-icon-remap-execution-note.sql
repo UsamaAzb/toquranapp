@@ -1,0 +1,41 @@
+-- Execution note: TQ5 My Deen Journey behavior icon remap
+-- Date: 2026-06-06
+-- Target: u504065335_to_quran
+--
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-06-u504065335_to_quran-before-mdj-behavior-icon-remap.sql
+--   Exported tables:
+--     discipline_icons
+--     reward_discipline_transfer
+--     reward_discipline_points
+--
+-- Patch:
+--   database/manual/patches/2026-06-06-mdj-behavior-icon-remap.sql
+--
+-- Reason:
+--   Manual review showed some launch mappings were visually misleading:
+--     - Oops! and Task Not Done used a thumbs-up icon.
+--     - Device Slip used a thumbs-up icon.
+--     - Rule Reminder used a crown icon.
+--   Week14's fuller discipline image catalog was already copied to this repo,
+--   so this patch remapped To Quran behavior titles to better-fitting existing
+--   Week14 icon files.
+--
+-- Successful target run output:
+--   TQ5 MDJ behavior icon remap guard passed.
+--   Examples verified:
+--     Good Job => images/discipline/34-ud0vRyQq.png
+--     Oops! => images/discipline/42-CcVNxBRq.png
+--     Not Ready => images/discipline/26-coCa5JE0.png
+--     Distracted => images/discipline/51-CZkeNwpv.png
+--     Task Not Done => images/discipline/61-DWTOj_T6.png
+--     Device Slip => images/discipline/63-C0dY3Flz.png
+--     Rule Reminder => images/discipline/40-CVyPO1Sf.png
+--     Serious Matter => images/discipline/41-D3kTTAuf.png
+--     Device Misuse => images/discipline/63-C0dY3Flz.png
+--     Rule Broken => images/discipline/40-CVyPO1Sf.png
+--
+-- Guard-failure evidence:
+--   Running the same patch against toquranapp_local emitted:
+--     REFUSING TQ5 MDJ behavior icon remap: wrong DB, missing confirmation,
+--     or subject 15/16 identity mismatch. Updates are gated off.

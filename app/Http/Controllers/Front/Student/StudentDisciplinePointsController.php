@@ -28,7 +28,7 @@ class StudentDisciplinePointsController extends Controller
             //   $class_subject_id=TeacherSubjectClass::where('id',$teachersubjectid)->value('class_subject_id');
             $show_bar = 'true';
             $breadcrumb_links = [
-                'Discipline Points' => null,
+                'Points Lab' => null,
 
             ];
 

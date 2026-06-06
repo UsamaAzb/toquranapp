@@ -1,0 +1,28 @@
+-- Execution note: booking child service/grade cleanup
+-- Date: 2026-06-05
+-- Target verified before execution:
+--   Laravel DB connection database = u504065335_to_quran
+--   driver = mysql
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-05-u504065335_to_quran-before-service-grade-cleanup-booking-children.sql
+--   Focused restore backup of booking_children.
+-- Code path executed:
+--   Guarded local PHP cleanup that normalized child-prefixed service values,
+--   removed parent-only Paid Parental Consultation from child service arrays,
+--   and defaulted blank booking_children.child_grade to the launch Beginner grade.
+-- Guard result:
+--   Refused unless DB connection database was exactly u504065335_to_quran.
+-- Pre-check:
+--   problem service rows with ":" or Paid Parental Consultation = 4
+--   booking_children missing child_grade = 7
+-- Execution result:
+--   default_grade_id = 2
+--   service rows updated = 4
+--   grade rows updated = 7
+-- Post-check:
+--   problem service rows with ":" or Paid Parental Consultation = 0
+--   booking_children missing child_grade = 0
+-- Reason:
+--   Legacy/public payload residue such as "Ahmed: Quran Memorization" should normalize to Quran Memorization.
+--   Paid Parental Consultation is app-supported but not a child-facing launch service selector.
+--   Grade is optional in the public handoff, so launch transfer must not block on blank legacy child grade.

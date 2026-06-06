@@ -3,7 +3,7 @@
   <div class="card-header d-flex justify-content-between align-items-center">
     <div class="card-title m-0">
       <h5 class="mb-1">Consequence Agreements</h5>
-      <p class="card-subtitle">Mistakes Levels:</p> 
+      <p class="card-subtitle">Mistake levels</p>
     </div>
 
     
@@ -80,15 +80,22 @@
   @foreach($agreements as $item)
   @hasanyrole('admin|super_admin')
     <li class="list-group-item d-flex justify-content-between align-items-center py-3" wire:key="agreement-admin-{{ $item['id'] }}">
-      <div>
+      <div class="me-3">
         <h6 class="mb-0 fw-semibold">{{ $item['title'] }}</h6>
      
       </div>
-        
-      <span class="badge rounded-pill 
-            {{ $item['status'] === 'active' ? 'bg-label-success text-success' : 'bg-label-secondary text-muted' }}">
-        {{ ucfirst($item['status']) }}
-      </span>
+      <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        <span class="badge rounded-pill
+              {{ $item['status'] === 'active' ? 'bg-label-success text-success' : 'bg-label-secondary text-muted' }}">
+          {{ ucfirst($item['status']) }}
+        </span>
+        <button type="button"
+                class="btn btn-sm btn-icon btn-outline-secondary"
+                title="Edit agreement"
+                wire:click="editAgreement({{ (int) $item['id'] }})">
+          <i class="ti tabler-pencil"></i>
+        </button>
+      </div>
     
     </li>
       @endhasanyrole
@@ -144,8 +151,8 @@
               </div>
 
               <div class="col-md-8">
-                <label class="form-label"> title</label>
-                <input type="text" class="form-control" placeholder="e.g., No phone for 30 minutes" wire:model="form.title">
+                <label class="form-label">Agreement</label>
+                <input type="text" class="form-control" placeholder="e.g., The missed task is completed before screen time." wire:model="form.title">
                 @error('form.title') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
               </div>
 
@@ -177,6 +184,67 @@
     </div>
   </div>
   
+  @endhasanyrole
+
+  @hasanyrole('admin|super_admin')
+  <div class="modal fade" id="editPunishmentModal" tabindex="-1" aria-labelledby="editPunishmentLabel" aria-hidden="true" wire:ignore.self>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editPunishmentLabel">Edit Consequence Agreement</h5>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Close"
+            data-bs-dismiss="modal"
+            wire:click="cancelEditAgreement"></button>
+        </div>
+
+        <form wire:submit.prevent="updateAgreement">
+          <div class="modal-body">
+            @if ($editSuccessMessage)
+              <div class="alert alert-success">{{ $editSuccessMessage }}</div>
+            @endif
+
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Type</label>
+                <select class="form-select" wire:model="editForm.punishment_type_id">
+                  @foreach($types as $id => $meta)
+                    <option value="{{ $id }}">{{ $meta['title'] }}</option>
+                  @endforeach
+                </select>
+                @error('editForm.punishment_type_id') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select class="form-select" wire:model="editForm.status">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                @error('editForm.status') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+              </div>
+
+              <div class="col-md-12">
+                <label class="form-label">Agreement</label>
+                <input type="text" class="form-control" wire:model="editForm.title">
+                @error('editForm.title') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" wire:click="cancelEditAgreement">Close</button>
+            <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="updateAgreement">
+              <span wire:loading.remove wire:target="updateAgreement">Save Changes</span>
+              <span wire:loading wire:target="updateAgreement">Saving...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   @endhasanyrole
 </div>
 
@@ -308,5 +376,40 @@
 
 
 
+
+<script>
+document.addEventListener('livewire:initialized', () => {
+  if (window.tqConsequenceAgreementEditorInitialized) return;
+  window.tqConsequenceAgreementEditorInitialized = true;
+
+  function cleanupAgreementModal() {
+    document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('padding-right');
+  }
+
+  window.addEventListener('open-edit-punishment-modal', () => {
+    const el = document.getElementById('editPunishmentModal');
+    if (!el) return;
+
+    requestAnimationFrame(() => {
+      bootstrap.Modal.getOrCreateInstance(el, { backdrop: 'static' }).show();
+    });
+  });
+
+  window.addEventListener('close-edit-punishment-modal', () => {
+    const el = document.getElementById('editPunishmentModal');
+    if (!el) return;
+
+    bootstrap.Modal.getInstance(el)?.hide();
+    setTimeout(cleanupAgreementModal, 150);
+  });
+
+  const el = document.getElementById('editPunishmentModal');
+  if (el) {
+    el.addEventListener('hidden.bs.modal', () => setTimeout(cleanupAgreementModal, 50));
+  }
+});
+</script>
 
 </div>

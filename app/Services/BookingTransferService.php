@@ -13,10 +13,6 @@ use App\Models\ClassModel;
 use App\Models\ClassSubject;
 use App\Models\GradeLevel;
 use App\Models\ParentModel;
-use App\Models\PunishmentAgreement;
-use App\Models\PunishmentsSuggestion;
-use App\Models\RewardDisciplinePoint;
-use App\Models\RewardDisciplineTransfer;
 use App\Models\Services_type;
 use App\Models\Student;
 use App\Models\StudentClassesHistory;
@@ -29,6 +25,7 @@ use App\Support\BookingServiceInterest;
 use App\Support\BookingSubjectProvisioning;
 use App\Support\BookingTransferReadiness;
 use App\Support\DefaultTeacherResolver;
+use App\Support\MyDeenJourneyLaunchDefaults;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -36,6 +33,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use InvalidArgumentException;
+use Spatie\Permission\Models\Role;
 
 class BookingTransferService
 {
@@ -105,7 +103,7 @@ class BookingTransferService
                 'age' => $lockedChild->child_age,
                 'grade_level_id' => $gradeLevelId,
                 'program_id' => $programId,
-                'current_school' => $lockedChild->current_school ?: $booking->current_school,
+                'current_school' => $lockedChild->current_school ?: $booking->current_school ?: 'Not applicable',
                 'school_system' => BookingTransferReadiness::effectiveSchoolSystem($lockedChild, $booking),
                 'service_type_id' => $serviceType->id,
             ]);
@@ -117,8 +115,9 @@ class BookingTransferService
             }
 
             $this->ensureStudentHasClass($student, $lockedChild, $booking);
-            $parentUserResult = $this->createOrGetUserForParent($parent, $shouldSyncParentUserStatus);
-            $studentUserResult = $this->createOrGetUserForStudent($student);
+            $country = $this->countryFromBooking($booking);
+            $parentUserResult = $this->createOrGetUserForParent($parent, $shouldSyncParentUserStatus, $country);
+            $studentUserResult = $this->createOrGetUserForStudent($student, $country);
             $this->syncLifecycleUserStatuses($parent, $student, $shouldSyncParentUserStatus);
             $this->seedTenDefaultGifts($student->id);
             $this->seedBehaviors($student->id);
@@ -552,7 +551,7 @@ class BookingTransferService
         }
     }
 
-    protected function createOrGetUserForParent(ParentModel $parent, bool $syncExistingUserStatus): array
+    protected function createOrGetUserForParent(ParentModel $parent, bool $syncExistingUserStatus, ?string $country = null): array
     {
         $user = null;
 
@@ -560,16 +559,24 @@ class BookingTransferService
             $user = User::where('email', $parent->email)->first();
         }
         if (! $user && $parent->phone) {
-            $user = User::where('phone', $parent->phone)->first();
+            $user = $this->existingParentAccountUserByPhone($parent->phone);
         }
 
         $username = null;
 
         if ($user) {
             $username = $user->name;
+            $this->ensureParentRole($user);
 
             if ($syncExistingUserStatus) {
                 $user->status = $this->familyUserStatus($parent);
+            }
+
+            if (Schema::hasColumn($user->getTable(), 'country') && blank($user->country) && filled($country)) {
+                $user->country = $country;
+            }
+
+            if ($user->isDirty()) {
                 $user->save();
             }
 
@@ -587,7 +594,7 @@ class BookingTransferService
             $parent->first_name ?: 'Parent'
         );
 
-        $user = User::create([
+        $attributes = [
             'name' => $username,
             'first_name' => trim((string) ($parent->first_name ?? '')),
             'last_name' => trim((string) ($parent->last_name ?? '')),
@@ -596,7 +603,13 @@ class BookingTransferService
             'phone' => $parent->phone,
             'status' => $this->familyUserStatus($parent),
             'recoverable_password_encrypted' => $plain,
-        ]);
+        ];
+
+        if (Schema::hasColumn('users', 'country') && filled($country)) {
+            $attributes['country'] = $country;
+        }
+
+        $user = User::create($attributes);
         $user->assignRole('parent');
 
         if (Schema::hasColumn($parent->getTable(), 'user_id') && ! $parent->user_id) {
@@ -608,7 +621,63 @@ class BookingTransferService
         return ['user' => $user, 'username' => $username ?: ($user->username ?? null)];
     }
 
-    protected function createOrGetUserForStudent(Student $student): array
+    protected function ensureParentRole(User $user): void
+    {
+        if (! Schema::hasTable('roles') || ! Schema::hasTable('model_has_roles')) {
+            return;
+        }
+
+        Role::findOrCreate('parent', 'web');
+
+        if (! $user->hasRole('parent')) {
+            $user->assignRole('parent');
+        }
+    }
+
+    protected function existingParentAccountUserByPhone(string $phone): ?User
+    {
+        $userIds = User::query()
+            ->where('phone', $phone)
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($userIds->isEmpty()) {
+            return null;
+        }
+
+        $parentLinkedIds = collect();
+
+        if (Schema::hasTable('parents') && Schema::hasColumn('parents', 'user_id')) {
+            $parentLinkedIds = DB::table('parents')
+                ->whereIn('user_id', $userIds->all())
+                ->pluck('user_id')
+                ->map(fn ($id): int => (int) $id);
+        }
+
+        $parentRoleIds = collect();
+
+        if (Schema::hasTable('roles') && Schema::hasTable('model_has_roles')) {
+            $parentRoleIds = DB::table('model_has_roles')
+                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+                ->where('roles.name', 'parent')
+                ->where('model_has_roles.model_type', User::class)
+                ->whereIn('model_has_roles.model_id', $userIds->all())
+                ->pluck('model_has_roles.model_id')
+                ->map(fn ($id): int => (int) $id);
+        }
+
+        $parentAccountUserId = $parentLinkedIds
+            ->merge($parentRoleIds)
+            ->unique()
+            ->first();
+
+        return $parentAccountUserId ? User::find((int) $parentAccountUserId) : null;
+    }
+
+    protected function createOrGetUserForStudent(Student $student, ?string $country = null): array
     {
         $user = null;
         if (Schema::hasColumn($student->getTable(), 'user_id') && $student->user_id) {
@@ -620,7 +689,14 @@ class BookingTransferService
         if ($user) {
             $username = $user->name;
             $user->status = $this->childUserStatus($student);
-            $user->save();
+
+            if (Schema::hasColumn($user->getTable(), 'country') && blank($user->country) && filled($country)) {
+                $user->country = $country;
+            }
+
+            if ($user->isDirty()) {
+                $user->save();
+            }
 
             return ['user' => $user, 'username' => $username ?: ($user->username ?? null)];
         }
@@ -629,7 +705,7 @@ class BookingTransferService
         $plain = app(CredentialService::class)->generateChildPassword();
 
         $studentEmail = $username.'@app.toquran.org';
-        $user = User::create([
+        $attributes = [
             'name' => $username,
             'first_name' => trim((string) ($student->first_name ?? '')),
             'last_name' => trim((string) ($student->last_name ?? '')),
@@ -638,7 +714,13 @@ class BookingTransferService
             'phone' => $student->student_phone,
             'status' => $this->childUserStatus($student),
             'recoverable_password_encrypted' => $plain,
-        ]);
+        ];
+
+        if (Schema::hasColumn('users', 'country') && filled($country)) {
+            $attributes['country'] = $country;
+        }
+
+        $user = User::create($attributes);
 
         $user->assignRole('student');
 
@@ -650,6 +732,30 @@ class BookingTransferService
         }
 
         return ['user' => $user, 'username' => $username ?: ($user->username ?? null)];
+    }
+
+    protected function countryFromBooking(?Booking $booking): ?string
+    {
+        $notes = trim((string) $booking?->notes);
+
+        if ($notes === '') {
+            return null;
+        }
+
+        $json = json_decode($notes, true);
+        if (is_array($json)) {
+            $country = trim((string) data_get($json, 'parent.country'));
+
+            return $country !== '' ? $country : null;
+        }
+
+        if (preg_match('/^Country:\s*(.+)$/mi', $notes, $matches)) {
+            $country = trim($matches[1]);
+
+            return $country !== '' ? $country : null;
+        }
+
+        return null;
     }
 
     protected function seedTenDefaultGifts(int $studentId): array
@@ -747,44 +853,7 @@ class BookingTransferService
 
     protected function seedBehaviors(int $studentId): string
     {
-        $allReward = RewardDisciplineTransfer::all();
-
-        foreach ($allReward as $reward) {
-            RewardDisciplinePoint::updateOrCreate(
-                [
-                    'student_id' => $studentId,
-                    'title' => $reward->title,
-                    'status' => 'active',
-                ],
-                [
-                    'description' => $reward->description,
-                    'type' => $reward->type,
-                    'points' => $reward->points,
-                    'discipline_icon_id' => $reward->discipline_icon_id,
-                    'discipline_icon_path' => $reward->discipline_icon_path,
-                    'sort' => $reward->sort,
-                    'teacher_desc' => $reward->teacher_desc,
-                    'selected' => $reward->selected,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            );
-        }
-
-        $punishments = PunishmentsSuggestion::all();
-
-        foreach ($punishments as $punishment) {
-            PunishmentAgreement::updateOrCreate(
-                [
-                    'student_id' => $studentId,
-                    'punishment_type_id' => $punishment->punishment_type_id,
-                    'title' => $punishment->suggestion_text,
-                ],
-                [
-                    'status' => 'active',
-                ]
-            );
-        }
+        app(MyDeenJourneyLaunchDefaults::class)->ensureBehaviorTemplates($studentId);
 
         return 'Behaviors seeded successfully';
     }

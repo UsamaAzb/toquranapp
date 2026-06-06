@@ -27,7 +27,7 @@ class DisciplinePointsController extends Controller
         $stu_name = $studentModel->first_name;
         $breadcrumb_links = [
             $stu_name => url('students'),
-            'Reward System' => null,
+            'Points Lab' => null,
 
         ];
 

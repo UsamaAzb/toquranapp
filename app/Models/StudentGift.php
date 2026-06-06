@@ -12,6 +12,8 @@ class StudentGift extends Model
 {
     use HasFactory;
 
+    public const DEFAULT_GIFT_IMAGE_PATH = 'plugins/rs-plugin-6.custom/assets/svg/action/ic_card_giftcard_24px.svg';
+
     public const DEFAULT_UPCOMING_COUNT = 9;
 
     public const DEFAULT_POINTS_INTERVAL = 100;
@@ -82,7 +84,7 @@ class StudentGift extends Model
         $path = trim((string) $path);
 
         if ($path === '') {
-            return asset('storage/gifts/default_gift.png');
+            return asset(self::DEFAULT_GIFT_IMAGE_PATH);
         }
 
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
@@ -97,7 +99,7 @@ class StudentGift extends Model
         $existsCache[$path] ??= Storage::disk('public')->exists($path);
 
         if (! $existsCache[$path]) {
-            return asset('storage/gifts/default_gift.png');
+            return asset(self::DEFAULT_GIFT_IMAGE_PATH);
         }
 
         return asset('storage/'.$path);

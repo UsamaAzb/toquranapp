@@ -173,7 +173,7 @@ class ParentBehaviorSubjectResolverTest extends TestCase
         $student = $this->createParentOwnedStudent();
 
         $behavior = RewardDisciplinePoint::create([
-            'title' => 'Showed good adab',
+            'title' => 'Good Adab',
             'type' => 'Positive',
             'points' => 4,
             'status' => 'active',

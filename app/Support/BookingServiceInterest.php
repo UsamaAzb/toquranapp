@@ -34,8 +34,19 @@ class BookingServiceInterest
     {
         return array_map(
             fn (string $value): array => ['value' => $value, 'label' => self::display($value)],
-            self::canonicalValues()
+            self::childFacingValues()
         );
+    }
+
+    public static function childFacingValues(): array
+    {
+        return [
+            self::QURAN_MEMORIZATION,
+            self::QURANIC_ARABIC,
+            self::ARABIC_LANGUAGE,
+            self::MY_DEEN_JOURNEY,
+            self::SANAD_IJAZAH,
+        ];
     }
 
     public static function normalize(?string $value): ?string
@@ -50,6 +61,7 @@ class BookingServiceInterest
             return null;
         }
 
+        $trimmed = self::stripChildServicePrefix($trimmed);
         $normalized = strtolower(preg_replace('/\s+/', ' ', $trimmed));
 
         return match ($normalized) {
@@ -104,6 +116,12 @@ class BookingServiceInterest
 
     public static function isChildFacingOption(array $option): bool
     {
+        $normalizedValue = self::normalize((string) ($option['value'] ?? ''));
+
+        if ($normalizedValue === self::PAID_PARENTAL_CONSULTATION) {
+            return false;
+        }
+
         $haystacks = [
             strtolower(trim((string) ($option['value'] ?? ''))),
             strtolower(trim((string) ($option['label'] ?? ''))),
@@ -128,5 +146,20 @@ class BookingServiceInterest
         }
 
         return true;
+    }
+
+    private static function stripChildServicePrefix(string $value): string
+    {
+        if (! str_contains($value, ':')) {
+            return $value;
+        }
+
+        [$prefix, $candidate] = array_map('trim', explode(':', $value, 2));
+
+        if ($prefix === '' || $candidate === '') {
+            return $value;
+        }
+
+        return $candidate;
     }
 }

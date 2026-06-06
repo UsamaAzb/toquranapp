@@ -1,0 +1,18 @@
+-- Execution note: intake review clean_new_customer enum patch
+-- Date: 2026-06-04
+-- Target verified before execution:
+--   Laravel DB connection database = u504065335_to_quran
+--   driver = mysql
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-04-u504065335_to_quran-before-intake-review-clean-new-customer-enum-structure.sql
+--   Focused structure-only backup of booking_intake_review; no row data, auth data, sessions, credentials, or contacts exported.
+-- Patch executed:
+--   database/manual/patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql
+-- Guard result:
+--   Applying intake review clean_new_customer enum patch to To Quran app DB.
+-- Post-check:
+--   booking_intake_review.detection_reason COLUMN_TYPE =
+--   enum('duplicate_child','repeat_submission','blocked_parent','existing_family_new_child','mixed_children','suspected_contact_mismatch','clean_new_customer')
+-- Reason:
+--   Intake review correction can resolve a flagged row into a clean new customer.
+--   The code already writes clean_new_customer in that path; the manual schema patch aligns the durable enum with the app contract.

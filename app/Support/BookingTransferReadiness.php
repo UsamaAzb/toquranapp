@@ -10,6 +10,7 @@ use App\Models\BookingChild;
 use App\Models\ParentModel;
 use App\Models\Services_type;
 use App\Services\BookingParentIdentityResolver;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class BookingTransferReadiness
@@ -77,10 +78,6 @@ class BookingTransferReadiness
 
         if ($unresolvedServiceValues !== []) {
             return 'Transfer is blocked until the service interest mapping is corrected.';
-        }
-
-        if (self::effectiveSchoolSystem($child, $booking) === null) {
-            return 'Transfer is blocked until a valid school system is selected.';
         }
 
         $gradeLevelId = self::effectiveGradeLevelId($child, $booking);
@@ -169,7 +166,8 @@ class BookingTransferReadiness
     {
         $booking ??= $child->booking;
 
-        return SchoolSystemOptions::normalize($child->school_system ?: $booking?->school_system);
+        return SchoolSystemOptions::normalize($child->school_system ?: $booking?->school_system)
+            ?? SchoolSystemOptions::OTHER;
     }
 
     public static function effectiveGradeLevelId(BookingChild $child, ?Booking $booking = null): ?int
@@ -177,7 +175,41 @@ class BookingTransferReadiness
         $booking ??= $child->booking;
         $gradeLevelId = $child->child_grade ?: $booking?->child_grade;
 
-        return $gradeLevelId ? (int) $gradeLevelId : null;
+        return $gradeLevelId ? (int) $gradeLevelId : self::defaultGradeLevelId();
+    }
+
+    public static function defaultGradeLevelId(): ?int
+    {
+        if (! Schema::hasTable('grade_levels')) {
+            return null;
+        }
+
+        $query = DB::table('grade_levels');
+
+        if (Schema::hasColumn('grade_levels', 'active')) {
+            $query->where(function ($activeQuery): void {
+                $activeQuery->whereNull('active')->orWhere('active', 1);
+            });
+        }
+
+        $defaultId = (clone $query)
+            ->where(function ($defaultQuery): void {
+                $defaultQuery->whereRaw('LOWER(title) = ?', ['beginner']);
+
+                if (Schema::hasColumn('grade_levels', 'code')) {
+                    $defaultQuery->orWhereRaw('LOWER(code) = ?', ['beginner']);
+                }
+            })
+            ->value('id');
+
+        if ($defaultId) {
+            return (int) $defaultId;
+        }
+
+        return (int) $query
+            ->when(Schema::hasColumn('grade_levels', 'level_order'), fn ($gradeQuery) => $gradeQuery->orderBy('level_order'))
+            ->orderBy('id')
+            ->value('id') ?: null;
     }
 
     private static function existingFamilyHasValidLifecycleStatus(array $identityResolution): bool

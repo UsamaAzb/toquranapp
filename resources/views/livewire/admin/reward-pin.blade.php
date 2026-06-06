@@ -1,6 +1,6 @@
 <div class="card mb-6">
   <div class="card-header">
-    <h5 class="mb-0">Reward System PIN</h5>
+    <h5 class="mb-0">Task Completion PIN</h5>
     <span class="card-subtitle mt-0">This Pin used for confirm on redeem gift by student.</span>
   </div>
 

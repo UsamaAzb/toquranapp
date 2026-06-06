@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Your To Quran Consultation is Confirmed!</title>
+    <title>Your To Quran consultation is confirmed</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,7 +14,7 @@
             padding: 20px;
         }
         .header {
-            background: linear-gradient(135deg, #1B365D 0%, #2C5282 100%);
+            background: linear-gradient(135deg, #46412f 0%, #6f6848 100%);
             color: white;
             padding: 30px 20px;
             text-align: center;
@@ -35,7 +35,7 @@
         }
         .highlight {
             background: #e6ffed;
-            border: 1px solid #38a169;
+            border: 1px solid #c9a24d;
             border-radius: 6px;
             padding: 15px;
             margin: 20px 0;
@@ -54,11 +54,11 @@
         .details-table th {
             background: #f8fafc;
             font-weight: 600;
-            color: #1B365D;
+            color: #46412f;
         }
         .btn {
             display: inline-block;
-            background: #1B365D;
+            background: #46412f;
             color: #ffffff !important;
             padding: 12px 24px;
             text-decoration: none;
@@ -67,11 +67,11 @@
             margin: 10px 5px;
         }
         .btn-secondary {
-            background: #d4af37;
+            background: #c9a24d;
             color: #ffffff !important;
         }
         .icon {
-            color: #38a169;
+            color: #c9a24d;
             margin-right: 8px;
         }
         @media (max-width: 600px) {
@@ -92,22 +92,22 @@
     @endphp
     <div class="header">
         <h1 style="margin: 0; font-size: 28px;">To Quran</h1>
-        <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">Consultation Confirmed</p>
+        <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">Family Consultation Confirmed</p>
     </div>
 
     <div class="content">
-        <h2 style="color:#1B365D; margin-top:0;">Dear {{ $booking->parent_name }},</h2>
+        <h2 style="color:#46412f; margin-top:0;">Assalamu Alaikum {{ $booking->parent_name }},</h2>
 
-        <p>Your consultation with Dr. Osama has been <strong>confirmed</strong>. We're excited to meet you and {{ $booking->child_name }}.</p>
+        <p>Your To Quran consultation has been <strong>confirmed</strong>. We look forward to speaking with you about {{ $booking->child_name }} and the best next step for your family.</p>
 
         <div class="highlight">
-            <h3 style="margin-top:0; color:#1B365D;">
-                <span class="icon">Appointment</span> Details
+            <h3 style="margin-top:0; color:#46412f;">
+                <span class="icon">Appointment</span> Reference
             </h3>
             <p style="margin:0;"><strong>Booking Reference:</strong> {{ $booking->booking_reference }}</p>
         </div>
 
-        <h3 style="color:#1B365D;">Consultation</h3>
+        <h3 style="color:#46412f;">Consultation</h3>
         <table class="details-table">
             <tr><th>Date</th><td>{{ $booking->formatted_consultation_date ?? '-' }}</td></tr>
             <tr><th>Time</th><td>{{ $booking->formatted_consultation_time ?? '-' }}</td></tr>
@@ -119,17 +119,17 @@
                 <tr><th>Meeting Address</th><td>{{ $booking->meeting_address }}</td></tr>
             @endif
             <tr>
-                <th>Child</th>
-                <td>{{ $booking->child_name }} ({{ $booking->child_age }} years, Grade {{ $booking->child_grade }})</td>
+                <th>Learner</th>
+                <td>{{ $booking->child_name }}@if(filled($booking->child_age)) ({{ $booking->child_age }} years)@endif</td>
             </tr>
-            <tr><th>Service Interest</th><td>{{ filled($booking->service_interest) ? $booking->service_interest : '-' }}</td></tr>
+            <tr><th>Services</th><td>{{ filled($booking->service_interest) ? $booking->service_interest : '-' }}</td></tr>
         </table>
 
-        <h3 style="color:#1B365D;">How to Prepare</h3>
+        <h3 style="color:#46412f;">Before We Meet</h3>
         <ul>
-            <li>Gather recent report cards/teacher feedback.</li>
-            <li>Note your top concerns and goals.</li>
-            <li>Ensure a quiet 60 minutes (camera & mic ready if Online).</li>
+            <li>Think about your Quran, Arabic, or My Deen Journey goals for this learner.</li>
+            <li>Note any routines, habits, or concerns you would like us to understand.</li>
+            <li>If the meeting is online, please choose a quiet place and keep your camera and microphone ready.</li>
         </ul>
 
         <div style="text-align:center; margin:30px 0;">
@@ -139,8 +139,8 @@
     </div>
 
     <div class="footer">
-        <h4 style="color: #1B365D; margin-top: 0;">To Quran</h4>
-        <p style="margin: 5px 0;">Transforming study resistance into academic excellence</p>
+        <h4 style="color: #46412f; margin-top: 0;">To Quran</h4>
+        <p style="margin: 5px 0;">Quran learning, Arabic, My Deen Journey, and thoughtful family follow-up.</p>
         <p style="margin: 5px 0;">
             <strong>Email:</strong> {{ $supportEmail }}<br>
             <strong>Website:</strong> {{ $publicWebsiteLabel }}

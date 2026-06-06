@@ -12,6 +12,7 @@ use App\Models\Student_Session_Discipline;
 use App\Models\TeacherSubjectClass;
 use App\Services\RewardProgressionService;
 use App\Support\LifecycleGate;
+use App\Support\MyDeenJourneyLaunchDefaults;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -190,6 +191,8 @@ class BehaviorModal extends Component
             return;
         }
 
+        app(MyDeenJourneyLaunchDefaults::class)->ensureBehaviorTemplates($this->studentId);
+
         $behaviors = RewardDisciplinePoint::query()
             ->where(function ($query) {
                 $query->whereNull('student_id')
@@ -269,7 +272,8 @@ class BehaviorModal extends Component
             ->where('student_id', $this->studentId)
             ->where('punishment_type_id', $this->punishmentTypeId)
             ->where('status', 'active')
-            ->orderByDesc('id')
+            ->orderByRaw("CASE WHEN LOWER(TRIM(title)) = 'customized' THEN 0 ELSE 1 END")
+            ->orderBy('id')
             ->get(['id', 'title'])
             ->map(fn ($a) => ['id' => (int) $a->id, 'title' => $a->title])
             ->toArray();

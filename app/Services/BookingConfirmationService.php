@@ -59,7 +59,7 @@ class BookingConfirmationService
             Mail::send('emails.consultation-scheduled-admin-confirmed', ['booking' => $emailBooking], function ($message) use ($emailBooking, $supportAddress, $adminAddress, $adminName) {
                 $message->from($supportAddress, 'To Quran Booking System')
                     ->to($adminAddress, $adminName)
-                    ->subject('New Consultation Booking - '.$emailBooking->booking_reference);
+                    ->subject('To Quran Consultation Confirmed - '.$emailBooking->booking_reference);
             });
 
             $this->markAttemptSent($attempt, $isResend);
@@ -212,7 +212,7 @@ class BookingConfirmationService
 
         return str_replace(
             ['Online', 'In Person', 'Zoom/Camera Needed : Video Call'],
-            ['Online', 'In-Person', 'Zoom/Camera Needed: Video Call'],
+            ['Online', 'In-Person', 'Online'],
             ucwords(str_replace(['_', '-'], ' ', (string) $value))
         );
     }

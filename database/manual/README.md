@@ -49,6 +49,28 @@ timestamp, and checksum.
   - focused structure-only real-target backup of `contacts` before making `contacts.child_age` nullable for generic public Contact Us submissions; no contact rows exported
 - `backups/2026-06-02-205300-u504065335_to_quran-before-tq9-smoke-selected-subject-correction.sql`
   - redacted evidence note before correcting the TQ9 transferred smoke child's selected-service subject activation
+- `backups/2026-06-04-u504065335_to_quran-before-intake-review-clean-new-customer-enum-structure.sql`
+  - focused structure-only real-target backup of `booking_intake_review` before allowing `clean_new_customer` intake review summaries; no row data, auth/session/contact data, or credentials exported
+- `backups/2026-06-04-u504065335_to_quran-before-family-workspace-permissions.sql`
+  - focused restore backup of Spatie roles, permissions, and role-permission links before adding family workspace lifecycle permissions for launch admin operations
+- `backups/2026-06-04-u504065335_to_quran-before-mdj-behavior-icon-heal.sql`
+  - focused restore backup of MDJ behavior/reward icon tables before healing missing behavior icon metadata in local launch smoke data
+- `backups/2026-06-04-u504065335_to_quran-before-users-country-structure.sql`
+  - focused structure-only backup of `users` before adding first-class `country`; no user/auth/contact row data exported
+- `backups/2026-06-04-u504065335_to_quran-before-legacy-booking-child-normalization.sql`
+  - focused restore backup of `bookings` and `booking_children` before normalizing legacy booking-level child rows into editable child workflow rows
+- `backups/2026-06-05-u504065335_to_quran-before-mdj-behavior-wording-refresh.sql`
+  - focused restore backup of MDJ behavior templates and consequence agreement tables before refreshing launch behavior/consequence wording
+- `backups/2026-06-05-u504065335_to_quran-before-mdj-behavior-icon-mapping-refresh.sql`
+  - focused restore backup of MDJ behavior icon/template/history tables before replacing the single fallback behavior icon with distinct launch icon mappings
+- `backups/2026-06-06-u504065335_to_quran-before-mdj-lms-consequence-behavior-refresh.sql`
+  - focused restore backup of MDJ behavior/consequence reference and copied student rows before expanding launch behavior cards and replacing robotic consequence sentences with practical Week14 LMS-style agreements
+- `backups/2026-06-06-u504065335_to_quran-before-mdj-behavior-icon-remap.sql`
+  - focused restore backup of MDJ behavior icon/template rows before remapping visually weak launch icon choices to better-fitting Week14 icon files
+- `backups/2026-06-06-u504065335_to_quran-before-mdj-popup-category-flag-fix.sql`
+  - focused restore backup of MDJ behavior/agreement/history rows before restoring the first Slip and No Way cards as popup category actions
+- `backups/2026-06-06-u504065335_to_quran-before-mdj-good-job-popup-flag-fix.sql`
+  - focused restore backup of MDJ behavior template rows before restoring the first Positive card as a popup category action
 - `patches/2026-05-28-create-toquranapp-local-baseline.sql`
   - guarded structure-only baseline patch used to create `toquranapp_local`
 - `patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql`
@@ -115,6 +137,56 @@ timestamp, and checksum.
   - guarded real-target smoke-data correction patch that activates only transferred smoke child subjects selected in `booking_children.service_interests`
 - `patches/2026-06-02-correct-tq9-smoke-selected-service-subjects-execution-note.sql`
   - execution note for the TQ9 smoke selected-service subject correction
+- `patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql`
+  - guarded real-target schema patch that aligns `booking_intake_review.detection_reason` with the intake correction flow by adding `clean_new_customer`
+- `patches/2026-06-04-add-clean-new-customer-intake-review-enum-execution-note.sql`
+  - execution note for the intake review enum patch
+- `patches/2026-06-04-add-family-workspace-permissions.sql`
+  - guarded insert-only real-target data patch that adds family lifecycle/security permissions and assigns them to the `admin` role
+- `patches/2026-06-04-add-family-workspace-permissions-execution-note.sql`
+  - execution note for the family workspace permissions patch
+- `patches/2026-06-04-mdj-behavior-icon-heal-execution-note.sql`
+  - execution note for the local launch MDJ behavior icon heal
+- `patches/2026-06-04-add-users-country.sql`
+  - guarded real-target schema/data patch that adds `users.country` and backfills existing local smoke users
+- `patches/2026-06-04-add-users-country-execution-note.sql`
+  - execution note for the users.country patch
+- `patches/2026-06-04-legacy-booking-child-normalization-execution-note.sql`
+  - execution note for the local legacy booking child normalization
+- `patches/2026-06-04-normalize-legacy-booking-children.sql`
+  - guarded replayable patch for normalizing legacy booking-level child rows into booking_children
+- `patches/2026-06-04-booking-child-school-default-heal-execution-note.sql`
+  - execution note for the local booking child school-default heal
+- `patches/2026-06-04-heal-booking-child-school-defaults.sql`
+  - guarded replayable patch for silently defaulting blank booking child school metadata
+- `patches/2026-06-05-mdj-reward-preflight-execution-note.sql`
+  - execution note for local MDJ reward queue preflight before owner manual testing
+- `patches/2026-06-05-booking-child-service-grade-cleanup-execution-note.sql`
+  - execution note for local child service-prefix cleanup and Beginner grade default before owner manual testing
+- `patches/2026-06-05-mdj-behavior-wording-refresh.sql`
+  - guarded update-only wording refresh for MDJ behavior titles and default consequence agreement sentences
+- `patches/2026-06-05-mdj-behavior-wording-refresh-execution-note.sql`
+  - execution note for the local MDJ behavior/consequence wording refresh, including success and guard-failure evidence
+- `patches/2026-06-05-mdj-behavior-icon-mapping-refresh.sql`
+  - guarded icon metadata refresh that maps the TQ5 behavior labels to distinct existing discipline icons
+- `patches/2026-06-05-mdj-behavior-icon-mapping-refresh-execution-note.sql`
+  - execution note for the local MDJ behavior icon mapping refresh, including success and guard-failure evidence
+- `patches/2026-06-06-mdj-lms-consequence-behavior-refresh.sql`
+  - guarded refresh that expands the TQ5 behavior cards to the broader launch set and replaces the consequence defaults with practical Week14 LMS-style agreements plus a small To Quran layer
+- `patches/2026-06-06-mdj-lms-consequence-behavior-refresh-execution-note.sql`
+  - execution note for the local LMS-style behavior/consequence refresh, including backup evidence, success counts, collation correction note, and guard-failure evidence
+- `patches/2026-06-06-mdj-behavior-icon-remap.sql`
+  - guarded icon remap that replaces weak launch icon choices such as thumbs-up Oops/Device Slip and crown Rule Reminder with better-fitting Week14 icon files
+- `patches/2026-06-06-mdj-behavior-icon-remap-execution-note.sql`
+  - execution note for the behavior icon remap, including backup evidence and guard-failure evidence
+- `patches/2026-06-06-mdj-popup-category-flag-fix.sql`
+  - guarded flag fix that restores `Oops!` and `Serious Matter` as popup category cards instead of instant point actions
+- `patches/2026-06-06-mdj-popup-category-flag-fix-execution-note.sql`
+  - execution note for the popup category flag fix, including backup evidence, success counts, and guard-failure evidence
+- `patches/2026-06-06-mdj-good-job-popup-flag-fix.sql`
+  - guarded flag fix that restores `Good Job` as the Positive popup category card instead of an instant point action
+- `patches/2026-06-06-mdj-good-job-popup-flag-fix-execution-note.sql`
+  - execution note for the Good Job popup category flag fix, including backup evidence, success counts, and guard-failure evidence
 
 ## Current Local App Target
 
@@ -131,6 +203,21 @@ timestamp, and checksum.
 - Default transfer teacher assignment is configured by `TOQURAN_DEFAULT_TEACHER_EMAIL`; the current launch default teacher is `drosamaqandil@gmail.com` in `u504065335_to_quran`.
 - Launch task-type rows exist for Assignment, Lesson, Project, and Quiz so teacher session-task modals can create normal tasks during TQ4 smoke.
 - Public website Contact Us handoff requires `contacts.child_age` to be nullable because generic contact rows do not always belong to a child. The app-owned manual patch was executed locally against `u504065335_to_quran` on 2026-06-02 after target verification and focused structure backup evidence.
+- Intake review correction can resolve a flagged row into `clean_new_customer`; the app-owned manual enum patch was executed locally against `u504065335_to_quran` on 2026-06-04 after target verification and focused structure backup evidence.
+- Family workspace lifecycle controls require the `families.*` Spatie permission rows. The app-owned insert-only permission patch was executed locally against `u504065335_to_quran` on 2026-06-04 after target verification and focused backup evidence.
+- MDJ behavior template rows have fallback icon metadata for local launch testing. Existing local smoke rows were healed on 2026-06-04 after target verification and focused backup evidence.
+- Users now have first-class `country` for launch operations. Existing local smoke users were backfilled to Egypt on 2026-06-04; future transferred parent/student users copy country from public intake notes when available.
+- Legacy booking-level child rows were normalized locally into `booking_children` rows on 2026-06-04 so every visible child can open the child workflow editor; transfer may still be gated separately.
+- Booking child school metadata is silently defaulted locally for launch. Existing local `booking_children` rows have zero blank `school_system` and `current_school` values after the 2026-06-04 guarded check.
+- MDJ reward queues were preflighted locally on 2026-06-05 by running the launch-default service for every local student after a focused `student_gifts` backup; current-year reward gaps are now zero for manual testing.
+- Booking child service/grade cleanup was run locally on 2026-06-05 after a focused `booking_children` backup; child-prefixed service labels, parent-only consultation service residue, and blank child grades are now cleared for manual testing.
+- Local duplicate Osama intake rows were cleaned on 2026-06-05 after a focused booking-table backup; remaining pending Booking Admin rows are smoke/test rows only.
+- MDJ behavior titles and consequence suggestions were refreshed locally on 2026-06-05 after a focused behavior/agreement backup; the first pass made labels short but was later superseded because the consequence sentences were too robotic for student-visible agreement buttons.
+- MDJ behavior icons were refreshed locally on 2026-06-05 after a focused icon/template/history backup; starter templates and copied student behavior rows now use distinct existing discipline icons instead of the single fallback heart icon.
+- MDJ behavior and consequence defaults were expanded locally on 2026-06-06 after a focused behavior/consequence backup; current starter cards are the broader ChatGPT-reviewed launch set, and consequence suggestions now start from the practical Week14 LMS agreement list before To Quran-specific additions.
+- MDJ behavior icons were remapped locally on 2026-06-06 after manual review showed a few visually weak choices; Oops, Task Not Done, Device Slip, Rule Reminder, and several red-flag cards now use better-fitting Week14 icon files already present in the repo.
+- MDJ popup category flags were restored locally on 2026-06-06 after manual testing showed `Oops!` and `Serious Matter` were deducting points directly; both now open the parent/teacher behavior and consequence agreement popup before saving.
+- MDJ Positive popup category flag was restored locally on 2026-06-06 after manual testing showed `Good Job` was adding points directly; it now opens the parent/teacher behavior popup before saving.
 
 ## Current Real-Target Replay Order
 
@@ -146,6 +233,17 @@ For a fresh accelerated To Quran app DB target, use the documented real-target a
 8. `patches/2026-05-29-add-launch-task-types.sql`
 9. `patches/2026-05-29-correct-launch-task-types.sql`
 10. `patches/2026-06-02-make-contacts-child-age-nullable.sql`
+11. `patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql`
+12. `patches/2026-06-04-add-family-workspace-permissions.sql`
+13. `patches/2026-06-04-add-users-country.sql`
+14. `patches/2026-06-04-normalize-legacy-booking-children.sql`
+15. `patches/2026-06-04-heal-booking-child-school-defaults.sql`
+16. `patches/2026-06-05-mdj-behavior-wording-refresh.sql`
+17. `patches/2026-06-05-mdj-behavior-icon-mapping-refresh.sql`
+18. `patches/2026-06-06-mdj-lms-consequence-behavior-refresh.sql`
+19. `patches/2026-06-06-mdj-behavior-icon-remap.sql`
+20. `patches/2026-06-06-mdj-popup-category-flag-fix.sql`
+21. `patches/2026-06-06-mdj-good-job-popup-flag-fix.sql`
 
 The framework infrastructure correction is part of the current real-target baseline shape even though it is stored as a follow-up patch, because the original structure dump omitted several Laravel/Sanctum/Spatie runtime keys and indexes. The Library column correction is also part of the current real-target baseline shape; the To Quran-owned baseline replay files have been corrected, and the follow-up patch remains idempotent for already-created targets.
 

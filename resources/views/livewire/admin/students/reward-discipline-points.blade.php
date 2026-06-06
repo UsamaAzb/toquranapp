@@ -113,8 +113,8 @@
   {{-- Tabs --}}
    <div class="card p-5 mt-5">
    <div class="card-title m-0">
-      <h5 class="mb-1">Reward Discipline Points</h5>
-      <p class="card-subtitle">Student Behaviors:</p> 
+      <h5 class="mb-1">Points Lab</h5>
+      <p class="card-subtitle">Student behaviors</p>
     </div>
   <div class="d-flex flex-column flex-lg-row  flex-md-row flex-sm-row  align-items-lg-center align-items-md-center align-items-sm-center align-items-start justify-content-between flex-lg-nowrap gap-2 w-100 mt-3 mb-3">
       

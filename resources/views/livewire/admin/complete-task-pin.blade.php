@@ -1,7 +1,7 @@
 <div class="card mb-6">
   <div class="card-header">
-    <h5 class="mb-0">Complete Task PIN</h5>
-    <span class="card-subtitle mt-0">This Pin used for confirm on Complete Task by parent.</span>
+    <h5 class="mb-0">Task Completion PIN</h5>
+    <span class="card-subtitle mt-0">Parents use this PIN to confirm task completion.</span>
   </div>
 
   <div class="card-body pt-0">

@@ -319,16 +319,10 @@ class IntakeReviewQueue extends Component
         $childName = $this->normalizedText($this->correctionForm['child_name'] ?? null);
         $childAge = $this->normalizedText($this->correctionForm['child_age'] ?? null);
         $childGrade = $this->normalizedText($this->correctionForm['child_grade'] ?? null);
-        $schoolSystem = SchoolSystemOptions::normalize($this->correctionForm['school_system'] ?? null);
+        $schoolSystem = SchoolSystemOptions::normalize($this->correctionForm['school_system'] ?? null) ?? SchoolSystemOptions::OTHER;
 
         if (! $childName) {
             $this->addError('correctionForm.child_name', 'Enter the corrected child name.');
-
-            return;
-        }
-
-        if (! $schoolSystem) {
-            $this->addError('correctionForm.school_system', 'Select a valid school system.');
 
             return;
         }

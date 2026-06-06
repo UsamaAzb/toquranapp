@@ -133,6 +133,10 @@ class Journey extends Component
             }
         }
 
+        if ($this->currentUserIsTeacher() && ! $this->teacherCanViewSessionForStudent($this->sessionId, $this->studentId)) {
+            abort(403, 'Unauthorized access to student journey.');
+        }
+
         $lifecycleGate = LifecycleGate::inspect($this->studentId);
         abort_if($lifecycleGate->denied(), 403, LifecycleGate::NEUTRAL_MESSAGE);
 
@@ -298,8 +302,36 @@ class Journey extends Component
             ->exists();
 
         abort_unless($hasEnrollment, 403);
+        abort_if($this->currentUserIsTeacher() && ! $this->teacherCanViewSessionForStudent($this->sessionId, $this->studentId), 403);
 
         return $sessionModel;
+    }
+
+    protected function currentUserIsTeacher(): bool
+    {
+        if (! Auth::check()) {
+            return false;
+        }
+
+        $user = Auth::user();
+
+        return $user->getRoleNames()->diff(['teacher'])->isEmpty()
+            && $user->hasRole('teacher');
+    }
+
+    protected function teacherCanViewSessionForStudent(int $sessionId, int $studentId): bool
+    {
+        return ClassSession::query()
+            ->whereKey($sessionId)
+            ->visibleToLearner($studentId)
+            ->whereHas('teacherSubjectClass', fn ($query) => $query
+                ->where('user_teacher_coteacher_id', Auth::id())
+                ->availableForTeacher()
+                ->whereHas('classSubject.studentsSubjects', fn ($studentSubjectQuery) => $studentSubjectQuery
+                    ->where('student_id', $studentId)
+                    ->where('status', 'active')
+                    ->whereHas('student', fn ($studentQuery) => $studentQuery->visibleToTeacher())))
+            ->exists();
     }
 
     protected function mapAttachmentForDisplay(AttachmentFile $attachment): array

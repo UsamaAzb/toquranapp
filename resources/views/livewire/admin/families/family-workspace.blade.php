@@ -42,6 +42,7 @@
     $parentInitials = strtoupper(substr($this->parent->first_name ?: 'P', 0, 1)).strtoupper(substr($this->parent->last_name ?: '', 0, 1));
     $parentLoginEmail = $this->parent->user?->email ?: ($this->parent->email ?: '-');
     $parentPhone = $this->parent->phone ?: '-';
+    $parentCountry = $this->parentCountry ?: '-';
     $parentJoinedDate = $this->parent->created_at?->format('d M Y') ?: 'Not recorded';
     $parentUpdatedDate = $this->parent->updated_at?->format('d M Y') ?: 'Not recorded';
     $parentLifecycleTone = $this->statusTone($this->parent->lifecycle_status);
@@ -130,6 +131,10 @@
                 <dd>{{ $parentPhone }}</dd>
               </div>
               <div>
+                <dt>Country:</dt>
+                <dd>{{ $parentCountry }}</dd>
+              </div>
+              <div>
                 <dt>Joined Date:</dt>
                 <dd>{{ $parentJoinedDate }}</dd>
               </div>
@@ -216,6 +221,10 @@
               <div>
                 <dt>Phone:</dt>
                 <dd>{{ $parentPhone }}</dd>
+              </div>
+              <div>
+                <dt>Country:</dt>
+                <dd>{{ $parentCountry }}</dd>
               </div>
               <div>
                 <dt>Joined Date:</dt>
@@ -360,7 +369,7 @@
                               aria-label="Open rewards page for {{ $child->display_name }}"
                               data-bs-toggle="tooltip"
                               data-bs-placement="top"
-                              title="Reward System"
+                              title="Rewards"
                             >
                               <i class="icon-base ti tabler-gift icon-18px"></i>
                             </a>
@@ -480,7 +489,7 @@
                           aria-label="Open rewards page for {{ $child->display_name }}"
                           data-bs-toggle="tooltip"
                           data-bs-placement="top"
-                          title="Reward System"
+                          title="Rewards"
                         >
                           <i class="icon-base ti tabler-gift icon-18px"></i>
                         </a>
@@ -952,6 +961,18 @@
                   wire:model.defer="parentEditForm.phone"
                 >
                 @error('parentEditForm.phone')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+              <div class="col-12">
+                <label for="parentEditCountry" class="form-label">Country</label>
+                <input
+                  id="parentEditCountry"
+                  type="text"
+                  class="form-control @error('parentEditForm.country') is-invalid @enderror"
+                  wire:model.defer="parentEditForm.country"
+                >
+                @error('parentEditForm.country')
                   <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
               </div>

@@ -56,6 +56,10 @@ class AttachmentStudyViewer extends Component
             ->visibleToLearner($this->studentId)
             ->firstOrFail();
 
+        if ($this->currentUserIsTeacher() && ! $this->teacherCanViewSessionForStudent($session)) {
+            abort(403);
+        }
+
         abort_unless(
             StudentsSubject::query()
                 ->where('student_id', $this->studentId)
@@ -80,12 +84,9 @@ class AttachmentStudyViewer extends Component
         $returnTo = $this->returnTarget($session);
 
         $this->items = $task->attachments
-            ->filter(fn (AttachmentFile $attachment): bool => $access->canLearnerAccessAttachment(
-                $user,
-                $this->studentId,
-                $sessionId,
-                $attachment
-            ))
+            ->filter(fn (AttachmentFile $attachment): bool => $this->currentUserIsTeacher()
+                ? $access->canTeacherAccessAttachment($user, $this->studentId, $sessionId, $attachment)
+                : $access->canLearnerAccessAttachment($user, $this->studentId, $sessionId, $attachment))
             ->map(fn (AttachmentFile $attachment): array => $presenter->forLearner(
                 $attachment,
                 $sessionId,
@@ -235,6 +236,33 @@ class AttachmentStudyViewer extends Component
         };
 
         return $base.'?'.http_build_query(['open_session' => $session->id]).'#task-'.$this->taskId;
+    }
+
+    private function currentUserIsTeacher(): bool
+    {
+        if (! Auth::check()) {
+            return false;
+        }
+
+        $user = Auth::user();
+
+        return $user->getRoleNames()->diff(['teacher'])->isEmpty()
+            && $user->hasRole('teacher');
+    }
+
+    private function teacherCanViewSessionForStudent(ClassSession $session): bool
+    {
+        return ClassSession::query()
+            ->whereKey($session->id)
+            ->visibleToLearner($this->studentId)
+            ->whereHas('teacherSubjectClass', fn ($query) => $query
+                ->where('user_teacher_coteacher_id', Auth::id())
+                ->availableForTeacher()
+                ->whereHas('classSubject.studentsSubjects', fn ($studentSubjectQuery) => $studentSubjectQuery
+                    ->where('student_id', $this->studentId)
+                    ->where('status', 'active')
+                    ->whereHas('student', fn ($studentQuery) => $studentQuery->visibleToTeacher())))
+            ->exists();
     }
 
     public function render()

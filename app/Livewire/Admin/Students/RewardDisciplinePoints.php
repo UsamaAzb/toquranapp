@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Students;
 use App\Models\DisciplineIcon;
 use App\Models\RewardDisciplinePoint;
 use App\Models\Student_Session_Discipline;
+use App\Support\MyDeenJourneyLaunchDefaults;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -40,6 +41,7 @@ class RewardDisciplinePoints extends Component
     public function mount(int $studentId): void
     {
         $this->studentId = $studentId;
+        app(MyDeenJourneyLaunchDefaults::class)->ensureBehaviorTemplates($this->studentId);
 
         $this->icons = DisciplineIcon::query()
             ->orderBy('id')
@@ -75,6 +77,7 @@ class RewardDisciplinePoints extends Component
         $this->positiveBehaviors = (clone $baseQuery)
             ->where('type', 'Positive')
             ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderBy('teacher_desc', 'desc')
             ->orderBy('sort')
             ->orderBy('id')
             ->get()
@@ -83,6 +86,7 @@ class RewardDisciplinePoints extends Component
         $this->slipBehaviors = (clone $baseQuery)
             ->where('type', 'Slip')
             ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderBy('teacher_desc', 'desc')
             ->orderBy('sort')
             ->orderBy('id')
             ->get()
@@ -91,6 +95,7 @@ class RewardDisciplinePoints extends Component
         $this->noWayBehaviors = (clone $baseQuery)
             ->where('type', 'No Way')
             ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderBy('teacher_desc', 'desc')
             ->orderBy('sort')
             ->orderBy('id')
             ->get()
@@ -268,6 +273,7 @@ class RewardDisciplinePoints extends Component
             ->where('student_id', $this->studentId)
             ->where('type', $type)
             ->where('status', 'active')
+            ->where('teacher_desc', 0)
             ->whereIn('id', $orderedIds)
             ->pluck('id')
             ->all();

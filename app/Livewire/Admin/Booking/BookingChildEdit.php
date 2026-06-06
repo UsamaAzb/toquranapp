@@ -28,6 +28,7 @@ class BookingChildEdit extends Component
     use RecordsAuditLog;
 
     private const AUDIT_LOG_LIMIT = 20;
+    private const DEFAULT_CURRENT_SCHOOL = 'Not applicable';
 
     public BookingChild $child;
 
@@ -166,8 +167,8 @@ class BookingChildEdit extends Component
                 }
             }],
             'followupDate' => ['nullable', 'date', 'required_if:workflowStatus,followup_required'],
-            'currentSchool' => ['required', 'string', 'max:255'],
-            'schoolSystem' => ['required', 'in:'.implode(',', SchoolSystemOptions::values())],
+            'currentSchool' => ['nullable', 'string', 'max:255'],
+            'schoolSystem' => ['nullable', 'in:'.implode(',', SchoolSystemOptions::values())],
             'notes' => ['nullable', 'string'],
             'serviceInterests' => ['required', 'array', 'min:1'],
             'serviceInterests.*' => ['string', 'max:255'],
@@ -177,8 +178,6 @@ class BookingChildEdit extends Component
     protected function messages(): array
     {
         return [
-            'currentSchool.required' => 'Current School is required before saving.',
-            'schoolSystem.required' => 'School System is required before saving.',
             'schoolSystem.in' => 'Choose one of the active school system options.',
             'serviceInterests.required' => 'Select at least one service interest before saving.',
             'serviceInterests.min' => 'Select at least one service interest before saving.',
@@ -206,7 +205,7 @@ class BookingChildEdit extends Component
             $this->evaluationOutcome = 'undecided';
         }
 
-        if ($value !== 'confirmed' && $this->meetingDisposition === 'completed') {
+        if (! in_array($value, ['confirmed', 'followup_required'], true) && $this->meetingDisposition === 'completed') {
             $this->meetingDisposition = null;
         }
 
@@ -261,7 +260,7 @@ class BookingChildEdit extends Component
 
     public function save(): void
     {
-        $this->resetErrorBag('stale');
+        $this->resetErrorBag();
         $this->validate();
 
         if (! $this->passesCrossStatusValidation()) {
@@ -316,6 +315,7 @@ class BookingChildEdit extends Component
             app(BookingConfirmationService::class)->sendConfirmationEmails($freshChild->booking, $freshChild);
         }
 
+        $this->resetErrorBag();
         $this->child = $freshChild;
         $this->syncFormFromChild($freshChild);
         $this->refreshAuditTrailIfLoaded();
@@ -652,6 +652,12 @@ class BookingChildEdit extends Component
         $evaluationOutcome = $this->evaluationOutcome;
         $consultationType = $this->consultationType;
         $meetingDisposition = filled($this->meetingDisposition) ? $this->meetingDisposition : null;
+
+        if ($this->isUnscheduledFollowupState()) {
+            $consultationType = 'undecided';
+            $meetingDisposition = null;
+        }
+
         $meetingDispositionReason = $meetingDisposition === 'no_meeting_required'
           ? $this->normalizedText($this->meetingDispositionReason)
           : null;
@@ -676,8 +682,8 @@ class BookingChildEdit extends Component
               ? $this->normalizedDateTimeValue($this->followupDate)
               : null,
             'service_interests' => $this->normalizedServiceInterests(),
-            'current_school' => $this->normalizedText($this->currentSchool),
-            'school_system' => SchoolSystemOptions::normalize($this->schoolSystem),
+            'current_school' => $this->normalizedText($this->currentSchool) ?? self::DEFAULT_CURRENT_SCHOOL,
+            'school_system' => SchoolSystemOptions::normalize($this->schoolSystem) ?? SchoolSystemOptions::OTHER,
             'notes' => $this->normalizedText($this->notes),
             'updated_by' => auth()->id(),
             // Legacy compatibility until the booking-level fallback path is retired.
@@ -751,8 +757,8 @@ class BookingChildEdit extends Component
         $this->scheduledDate = $this->formatDateInput($child->scheduled_date ?: $booking?->consultation_date);
         $this->scheduledTime = $this->formatTimeInput($child->scheduled_time ?: $booking?->consultation_time);
         $this->followupDate = $this->formatDateTimeInput($child->followup_date ?: $booking?->follow_up_date);
-        $this->currentSchool = $child->current_school ?: $booking?->current_school;
-        $this->schoolSystem = SchoolSystemOptions::normalize($child->school_system ?: $booking?->school_system);
+        $this->currentSchool = $child->current_school ?: $booking?->current_school ?: self::DEFAULT_CURRENT_SCHOOL;
+        $this->schoolSystem = SchoolSystemOptions::normalize($child->school_system ?: $booking?->school_system) ?? SchoolSystemOptions::OTHER;
         $this->notes = $child->notes;
         $this->serviceInterests = $this->resolvedServiceInterests($child, $booking);
         $this->expectedUpdatedAt = optional($child->updated_at)?->toISOString();
@@ -916,8 +922,11 @@ class BookingChildEdit extends Component
 
     protected function shouldStoreScheduledFields(): bool
     {
+        if ($this->isUnscheduledFollowupState()) {
+            return false;
+        }
+
         return $this->workflowStatus === 'confirmed'
-          || $this->workflowStatus === 'followup_required'
           || in_array($this->meetingDisposition, ['completed', 'cancelled'], true)
           || filled($this->scheduledDate)
           || filled($this->scheduledTime);
@@ -925,10 +934,20 @@ class BookingChildEdit extends Component
 
     protected function requiresConsultationDetails(): bool
     {
+        if ($this->isUnscheduledFollowupState()) {
+            return false;
+        }
+
         return $this->workflowStatus === 'confirmed'
           || in_array($this->meetingDisposition, ['completed', 'cancelled'], true)
           || filled($this->scheduledDate)
           || filled($this->scheduledTime);
+    }
+
+    protected function isUnscheduledFollowupState(): bool
+    {
+        return $this->workflowStatus === 'followup_required'
+          && ! in_array($this->meetingDisposition, ['completed', 'cancelled'], true);
     }
 
     protected function meetingDispositionOptions(): array
@@ -942,6 +961,7 @@ class BookingChildEdit extends Component
             $options['completed'] = 'Meeting Completed';
             $options['cancelled'] = 'Meeting Cancelled';
         } elseif ($this->workflowStatus === 'followup_required' && $this->canChooseScheduledMeetingDisposition()) {
+            $options['completed'] = 'Meeting Completed';
             $options['cancelled'] = 'Meeting Cancelled';
         }
 
@@ -1301,8 +1321,8 @@ class BookingChildEdit extends Component
             $valid = false;
         }
 
-        if ($this->meetingDisposition === 'completed' && $this->workflowStatus !== 'confirmed') {
-            $this->addError('meetingDisposition', 'Meeting Disposition = Completed is only valid when Workflow Status is Confirmed.');
+        if ($this->meetingDisposition === 'completed' && ! in_array($this->workflowStatus, ['confirmed', 'followup_required'], true)) {
+            $this->addError('meetingDisposition', 'Meeting Disposition = Completed is only valid when Workflow Status is Confirmed or Follow-Up Required.');
             $valid = false;
         }
 

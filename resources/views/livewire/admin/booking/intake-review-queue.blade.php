@@ -571,18 +571,6 @@
                 <label class="form-label" for="correction-child-grade">Grade</label>
                 <input id="correction-child-grade" type="text" class="form-control" wire:model.live.debounce.300ms="correctionForm.child_grade">
               </div>
-              <div class="col-12 col-md-6">
-                <label class="form-label" for="correction-school-system">School System</label>
-                <select id="correction-school-system" class="form-select" wire:model.live="correctionForm.school_system">
-                  <option value="">Select school system</option>
-                  @foreach ($schoolSystemOptions as $schoolSystemValue => $schoolSystemLabel)
-                    <option value="{{ $schoolSystemValue }}">{{ $schoolSystemLabel }}</option>
-                  @endforeach
-                </select>
-                @error('correctionForm.school_system')
-                  <div class="text-danger small mt-1">{{ $message }}</div>
-                @enderror
-              </div>
             </div>
           </div>
           <div class="modal-footer">

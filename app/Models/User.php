@@ -40,6 +40,7 @@ class User extends Authenticatable
         'first_name',
         'last_name',
         'phone',
+        'country',
         'status',
     ];
 

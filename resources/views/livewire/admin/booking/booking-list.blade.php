@@ -395,14 +395,17 @@
                         );
                         $childSchoolSystem = data_get($child, 'school_system', $booking->school_system) ?: '-';
                         $childGradeLabel = $this->gradeLabel(data_get($child, 'child_grade'), $gradeTitles);
-                        $childMeta =
-                            collect([
+                        $usesLaunchCompatibilityDefaults = $childSchoolSystem === 'Other' && $childGradeLabel === 'Beginner';
+                        $childMeta = '-';
+                        if (! $usesLaunchCompatibilityDefaults) {
+                            $childMeta = collect([
                                 $childSchoolSystem !== '-' ? $childSchoolSystem : null,
                                 $childGradeLabel !== '-' ? $childGradeLabel : null,
                             ])
                                 ->filter()
                                 ->implode(' | ') ?:
                             '-';
+                        }
                         $consultationTypeLabel = $this->consultationTypeLabel(
                             data_get($child, 'consultation_type', $booking->consultation_type),
                         );
@@ -861,10 +864,14 @@
                             );
                             $childSchoolSystem = data_get($child, 'school_system', $booking->school_system) ?: '-';
                             $childGradeLabel = $this->gradeLabel(data_get($child, 'child_grade'), $gradeTitles);
-                            $childMeta = collect([
-                                $childSchoolSystem !== '-' ? $childSchoolSystem : null,
-                                $childGradeLabel !== '-' ? $childGradeLabel : null,
-                            ])->filter()->implode(' | ') ?: '-';
+                            $usesLaunchCompatibilityDefaults = $childSchoolSystem === 'Other' && $childGradeLabel === 'Beginner';
+                            $childMeta = '-';
+                            if (! $usesLaunchCompatibilityDefaults) {
+                                $childMeta = collect([
+                                    $childSchoolSystem !== '-' ? $childSchoolSystem : null,
+                                    $childGradeLabel !== '-' ? $childGradeLabel : null,
+                                ])->filter()->implode(' | ') ?: '-';
+                            }
                             $consultationTypeLabel = $this->consultationTypeLabel(
                                 data_get($child, 'consultation_type', $booking->consultation_type),
                             );

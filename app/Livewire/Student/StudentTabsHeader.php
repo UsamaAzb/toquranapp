@@ -29,7 +29,7 @@ class StudentTabsHeader extends Component
         ];
         if ($this->studentId !== null) {
             $cards[] = [
-                'title' => 'Reward System',
+                'title' => 'Rewards',
                 'icon' => 'ti tabler-bell',
                 'color' => 'success',
                 'link' => url("student/journey/board/{$this->studentId}"),
@@ -43,7 +43,7 @@ class StudentTabsHeader extends Component
                     'link' => url("student/consequence-agreement/{$this->studentId}/{$this->teacherSubjectId}"),
                 ];
                 $cards[] = [
-                    'title' => 'Discipline Points',
+                    'title' => 'Points Lab',
                     'icon' => 'ti tabler-brand-google-fit',
                     'color' => 'danger',
                     'link' => url("student/discipline-points/{$this->studentId}/{$this->teacherSubjectId}"),                ];

@@ -272,7 +272,7 @@
           <a class="nav-link" href="{{ url('app/user/view/billing') }}"><i class="icon-base ti tabler-bookmark icon-sm me-1_5"></i>Billing & Plans</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active" href="{{ route('admin.students.show_reward', $student->id) }}"><i class="icon-base ti tabler-bell icon-sm me-1_5"></i>Reward System</a>
+          <a class="nav-link active" href="{{ route('admin.students.show_reward', $student->id) }}"><i class="icon-base ti tabler-bell icon-sm me-1_5"></i>Rewards</a>
         </li>
 
       </ul>
@@ -359,7 +359,7 @@
     <div class="card mb-6 reward-queue-card">
       <div class="reward-queue-toolbar">
         <div>
-          <h5 class="mb-1">{{ $student->first_name }} Reward System</h5>
+          <h5 class="mb-1">{{ $student->first_name }} Rewards</h5>
           <div class="d-flex flex-wrap gap-2">
             <span class="badge bg-label-warning">{{ $studentgifts->where('status', \App\Models\StudentGift::STATUS_PENDING)->count() }} pending</span>
             <span class="badge bg-label-primary">{{ $studentgifts->where('status', \App\Models\StudentGift::STATUS_WAITING)->count() }} waiting</span>

@@ -31,6 +31,10 @@ Track database and runtime items that affect both To Quran repos.
 | 2026-06-02 | Public website shared-DB handoff was implemented in `toquran` commit `6dfb71f`: booking writes target app-owned booking/review tables, Contact Us writes target `contacts`, references use `TQ-` / `CNT-`, and the public contact phone is `+201091051913` | Website implementation | `toquran` consuming app contract | Implemented; local shared-DB smoke passed |
 | 2026-06-02 | Contact Us shared-DB contract was clarified and executed locally: generic public Contact Us submissions write to `contacts` without requiring or faking `child_age`; app-owned patch `database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql` made `contacts.child_age` nullable after focused structure backup evidence | Website handoff review + manual patch | `toquranapp` | Executed locally; production import/deploy must preserve this shape |
 | 2026-06-02 | TQ9 production-equivalent local smoke passed from public website booking/contact into app review/transfer/login. A transfer provisioning bug was found and fixed so selected optional service interests activate their matching app subjects, e.g. Arabic Language subject id 3. | Local HTTP/DB smoke | `toquranapp` | Complete locally; see audit evidence |
+| 2026-06-04 | Intake Review correction can resolve a flagged row into `clean_new_customer`; app-owned patch `database/manual/patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql` added that enum value after focused structure backup evidence | Manual schema patch | `toquranapp` | Executed locally; production import/deploy must preserve this shape |
+| 2026-06-04 | Family workspace lifecycle buttons require app-owned `families.*` Spatie permissions; app-owned patch `database/manual/patches/2026-06-04-add-family-workspace-permissions.sql` added the launch permission rows and assigned them to the `admin` role after focused backup evidence | Manual reference-data patch | `toquranapp` | Executed locally; production import/deploy must preserve this shape |
+| 2026-06-04 | Country became first-class app user data via `users.country`; existing local smoke users were backfilled to Egypt because there are no real users in the local target | Manual schema/data patch | `toquranapp` | Executed locally; production import/deploy must preserve this shape |
+| 2026-06-04 | Legacy booking-level child rows were normalized into `booking_children`, and blank inherited school metadata is silently defaulted for launch | Manual data cleanup patches | `toquranapp` | Executed locally through guarded PHP; replayable guarded SQL patches now exist for production import/deploy |
 
 ## Current Backup/Baseline Evidence
 
@@ -68,6 +72,22 @@ Track database and runtime items that affect both To Quran repos.
 - Launch task type correction execution note: `database/manual/patches/2026-05-29-correct-launch-task-types-execution-note.sql`
 - Contact Us `contacts.child_age` nullable patch: `database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql`
 - Contact Us `contacts.child_age` nullable patch execution note: `database/manual/patches/2026-06-02-make-contacts-child-age-nullable-execution-note.sql`
+- Intake Review `clean_new_customer` enum patch: `database/manual/patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql`
+- Intake Review `clean_new_customer` enum patch execution note: `database/manual/patches/2026-06-04-add-clean-new-customer-intake-review-enum-execution-note.sql`
+- Family workspace permissions backup: `database/manual/backups/2026-06-04-u504065335_to_quran-before-family-workspace-permissions.sql`
+- Family workspace permissions patch: `database/manual/patches/2026-06-04-add-family-workspace-permissions.sql`
+- Family workspace permissions patch execution note: `database/manual/patches/2026-06-04-add-family-workspace-permissions-execution-note.sql`
+- MDJ behavior icon heal backup: `database/manual/backups/2026-06-04-u504065335_to_quran-before-mdj-behavior-icon-heal.sql`
+- MDJ behavior icon heal execution note: `database/manual/patches/2026-06-04-mdj-behavior-icon-heal-execution-note.sql`
+- Users country backup: `database/manual/backups/2026-06-04-u504065335_to_quran-before-users-country-structure.sql`
+- Users country patch: `database/manual/patches/2026-06-04-add-users-country.sql`
+- Users country patch execution note: `database/manual/patches/2026-06-04-add-users-country-execution-note.sql`
+- Legacy booking child normalization backup: `database/manual/backups/2026-06-04-u504065335_to_quran-before-legacy-booking-child-normalization.sql`
+- Legacy booking child normalization replay patch: `database/manual/patches/2026-06-04-normalize-legacy-booking-children.sql`
+- Legacy booking child normalization execution note: `database/manual/patches/2026-06-04-legacy-booking-child-normalization-execution-note.sql`
+- Booking child school default backup: `database/manual/backups/2026-06-04-u504065335_to_quran-before-booking-child-school-default-heal.sql`
+- Booking child school default replay patch: `database/manual/patches/2026-06-04-heal-booking-child-school-defaults.sql`
+- Booking child school default execution note: `database/manual/patches/2026-06-04-booking-child-school-default-heal-execution-note.sql`
 - TQ9 shared DB smoke/hardening audit: `docs/audits/2026-06-02-tq9-shared-db-smoke-and-hardening.md`
 - TQ9 smoke selected-service subject correction patch: `database/manual/patches/2026-06-02-correct-tq9-smoke-selected-service-subjects.sql`
 - TQ9 smoke selected-service subject correction execution note: `database/manual/patches/2026-06-02-correct-tq9-smoke-selected-service-subjects-execution-note.sql`
@@ -115,5 +135,9 @@ Document before destructive cleanup:
 9. Treat public website booking/contact as a shared app-DB writer: website may write only to app-approved tables and columns, primarily `bookings`, `booking_children`, `booking_intake_review`, `booking_intake_review_children`, `booking_intake_submission_locks`, and `contacts`.
 10. Do not make `contact_us` or legacy website-only booking JSON the long-term handoff target if the website can write to the shared app DB.
 11. Preserve the locally executed `contacts.child_age NULL DEFAULT NULL` shape before public Contact Us writes directly to the production app DB; a generic contact message should not require a child age or fake placeholder value.
-12. Preserve the Quran YouTube/video list later through a Library/content migration.
-13. Keep destructive cleanup documented before execution.
+12. Preserve the locally executed `booking_intake_review.detection_reason` enum shape that includes `clean_new_customer`; the app correction flow can legitimately classify a reviewed row as a clean new customer.
+13. Preserve the locally executed family workspace `families.*` permission rows for launch admin lifecycle operations.
+14. Preserve `users.country` and ensure public intake/transfer keeps parent/student country populated.
+15. Apply/preserve the legacy booking child normalization and silent school-default shape so admins do not see dead child workflow locks or inherited Week14 school blockers.
+16. Preserve the Quran YouTube/video list later through a Library/content migration.
+17. Keep destructive cleanup documented before execution.

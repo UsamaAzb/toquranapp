@@ -1,0 +1,19 @@
+-- Execution note: legacy booking child normalization
+-- Date: 2026-06-04
+-- Target verified before execution:
+--   Laravel DB connection database = u504065335_to_quran
+--   driver = mysql
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-04-u504065335_to_quran-before-legacy-booking-child-normalization.sql
+--   Focused restore backup of bookings and booking_children.
+-- Code path executed:
+--   Guarded local PHP normalization that creates one booking_children row for each booking that still had child_name on the booking row but no child row.
+-- Guard result:
+--   Refused unless DB connection database was exactly u504065335_to_quran.
+-- Pre-check:
+--   bookings with child_name and no booking_children row = 4
+-- Post-check:
+--   created booking_children rows = 4
+--   bookings with child_name and no booking_children row = 0
+-- Reason:
+--   Launch admins must always be able to open the child workflow editor. Transfer can be gated, but a child/family row should not show a dead workflow lock with no edit path.

@@ -34,6 +34,13 @@
       background: color-mix(in sRGB, var(--bs-paper-bg, var(--bs-card-bg)) 94%, var(--bs-primary));
       min-width: 0;
       padding: 1rem;
+      transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .w14-attachment-input--dragging {
+      border-color: var(--bs-primary);
+      background: color-mix(in sRGB, var(--bs-paper-bg, var(--bs-card-bg)) 86%, var(--bs-primary));
+      box-shadow: 0 0 0 0.18rem color-mix(in sRGB, var(--bs-primary) 18%, transparent);
     }
 
     .w14-attachment-input .form-control {
@@ -229,8 +236,72 @@
           progress: 0,
           files: [],
           warning: '',
+          isDragging: false,
           allowedExtensions: config.allowedExtensions || [],
           maxFileBytes: config.maxFileBytes || 0,
+          dragOver(event) {
+            if (!this.$refs.taskFilesInput || this.$refs.taskFilesInput.disabled) return;
+            event.preventDefault();
+            this.isDragging = true;
+          },
+          dragLeave(event) {
+            if (event.currentTarget.contains(event.relatedTarget)) return;
+            this.isDragging = false;
+          },
+          dropFiles(event) {
+            event.preventDefault();
+            this.isDragging = false;
+
+            const input = this.$refs.taskFilesInput;
+            const droppedFiles = Array.from(event.dataTransfer?.files || []);
+
+            if (!input || input.disabled || droppedFiles.length === 0) {
+              return;
+            }
+
+            const keptFiles = droppedFiles.filter((file) => this.fileAllowed(file));
+            const blockedFiles = droppedFiles.filter((file) => !this.fileAllowed(file));
+
+            this.files = droppedFiles.map((file) => ({
+              name: file.name,
+              size: this.formatSize(file.size),
+              allowed: this.fileAllowed(file),
+              reason: this.blockReason(file),
+            }));
+            this.warning = this.warningMessage(blockedFiles, false);
+            this.uploading = false;
+            this.uploadFailed = false;
+            this.uploadComplete = false;
+            this.progress = 0;
+
+            if (keptFiles.length === 0) {
+              return;
+            }
+
+            if (typeof this.$wire?.uploadMultiple === 'function') {
+              this.uploadStarted();
+              this.$wire.uploadMultiple(
+                'files',
+                keptFiles,
+                () => this.uploadFinished(),
+                () => this.uploadErrored(),
+                (progressEvent) => {
+                  this.progress = progressEvent?.detail?.progress ?? progressEvent?.progress ?? this.progress;
+                }
+              );
+              return;
+            }
+
+            if (window.DataTransfer) {
+              const dataTransfer = new DataTransfer();
+              keptFiles.forEach((file) => dataTransfer.items.add(file));
+              input.files = dataTransfer.files;
+              input.dispatchEvent(new Event('change', { bubbles: true }));
+              return;
+            }
+
+            this.warning = 'Your browser could not attach dropped files. Please choose files instead.';
+          },
           setFiles(event) {
             const selectedFiles = Array.from(event.target.files || []);
             const keptFiles = selectedFiles.filter((file) => this.fileAllowed(file));
@@ -347,6 +418,20 @@
         };
       };
 
+      window.w14CallTaskAttachmentComponent = function(el, method, ...args) {
+        const root = el?.closest('[wire\\:id]');
+        const componentId = root?.getAttribute('wire:id');
+        const component = componentId && window.Livewire?.find(componentId);
+
+        if (!component || typeof component.call !== 'function') {
+          console.warn('Task attachment component was not found for', method);
+          return false;
+        }
+
+        component.call(method, ...args);
+        return true;
+      };
+
       window.w14InitTaskAttachmentSortable = function(el, taskId, locked) {
         if (!el || locked || !taskId) return;
         if (el.dataset.w14SortableReady === '1') return;
@@ -396,7 +481,7 @@
               .map(node => node.getAttribute('data-pending-file-key'))
               .filter(Boolean);
 
-            Livewire.find(el.closest('[wire\\:id]')?.getAttribute('wire:id'))?.call('reorderPendingFiles', keys);
+            window.w14CallTaskAttachmentComponent(el, 'reorderPendingFiles', keys);
           }
         });
       };
@@ -428,9 +513,6 @@
           dragClass: 'sortable-drag',
           filter: 'a, button:not(.w14-attachment-drag-handle), input, textarea, select',
           preventOnFilter: true,
-          forceFallback: true,
-          fallbackOnBody: true,
-          fallbackTolerance: 4,
           scroll: true,
           bubbleScroll: true,
           onEnd() {
@@ -438,7 +520,7 @@
               .map(node => node.getAttribute('data-draft-attachment-key'))
               .filter(Boolean);
 
-            Livewire.find(el.closest('[wire\\:id]')?.getAttribute('wire:id'))?.call('reorderAttachmentDraftItems', keys);
+            window.w14CallTaskAttachmentComponent(el, 'reorderAttachmentDraftItems', keys);
           }
         });
       };
@@ -476,6 +558,10 @@
     x-on:livewire-upload-finish="uploadFinished()"
     x-on:livewire-upload-error="uploadErrored()"
     x-on:livewire-upload-progress="progress = $event.detail.progress"
+    x-on:dragover.prevent="dragOver($event)"
+    x-on:dragleave="dragLeave($event)"
+    x-on:drop.prevent="dropFiles($event)"
+    x-bind:class="{ 'w14-attachment-input--dragging': isDragging }"
   >
     <div class="w14-attachment-primary-row">
       <input id="{{ $inputId }}"
@@ -499,7 +585,7 @@
     </div>
 
     <div class="w14-attachment-help">
-      Documents, images, audio, and video. Max 50 MB per file.
+      Drop files here or choose documents, images, audio, and video. Max 50 MB per file.
     </div>
 
     <div class="w14-attachment-list mt-3" x-show="files.length" x-cloak>

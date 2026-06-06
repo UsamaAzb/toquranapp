@@ -19,6 +19,7 @@ class BookingServiceInterestTest extends TestCase
     public function test_to_quran_public_aliases_normalize_to_canonical_services(): void
     {
         $this->assertSame('Quran Memorization', BookingServiceInterest::normalize('hifz'));
+        $this->assertSame('Quran Memorization', BookingServiceInterest::normalize('Ahmed: Quran Memorization'));
         $this->assertSame('Arabic Language', BookingServiceInterest::normalize('Arabic Language'));
         $this->assertSame('Arabic Language', BookingServiceInterest::normalize('Arabic'));
         $this->assertSame('Quranic Arabic', BookingServiceInterest::normalize('Quranic Arabic'));
@@ -47,5 +48,21 @@ class BookingServiceInterestTest extends TestCase
         );
 
         $this->assertSame([], BookingSubjectProvisioning::subjectIdsForServiceInterests('consultation'));
+    }
+
+    public function test_parental_consultation_is_not_child_facing_for_launch(): void
+    {
+        $this->assertFalse(BookingServiceInterest::isChildFacingOption([
+            'value' => 'Paid Parental Consultation',
+            'label' => 'Paid Parental Consultation',
+        ]));
+
+        $this->assertSame([
+            'Quran Memorization',
+            'Quranic Arabic',
+            'Arabic Language',
+            'My Deen Journey',
+            'Sanad Ijazah',
+        ], BookingServiceInterest::childFacingValues());
     }
 }

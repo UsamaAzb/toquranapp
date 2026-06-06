@@ -63,7 +63,7 @@ class AddSession extends Component
                         'session_end_time' => $now->copy()->addMinutes(60)->format('H:i'),
                         'unit_id' => $unit->id,
                         'class_subject_id' => $tsc->class_subject_id,
-                        'title' => 'Session Title',
+                        'title' => $now->format('j F Y'),
                     ]);
                 SessionMaterial::create([
                     'teacher_subject_classes_id' => $tsc->id,

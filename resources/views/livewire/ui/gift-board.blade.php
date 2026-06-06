@@ -1,7 +1,7 @@
 <div class="w14-reward-board">
   <section class="w14-reward-hero" aria-label="Reward progress">
     <div class="w14-reward-hero-copy">
-      <span class="w14-reward-kicker">Reward System</span>
+      <span class="w14-reward-kicker">Rewards</span>
       <h2>Keep climbing.</h2>
       <p>{{ number_format($currentPoints) }} of {{ number_format($targetPoints) }} points toward the active reward.</p>
     </div>

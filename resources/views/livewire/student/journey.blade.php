@@ -112,6 +112,7 @@
             @php
               $topicStatus = $topic['pivot']['status'] ?? null;
               $topicCompleted = $topicStatus === 'completed';
+              $topicInReview = in_array($topicStatus, ['in_review', 'pending_review'], true);
               $topicPoints = $topicCompleted
                 ? ($topic['pivot']['student_points'] ?? null)
                 : ($topic['points'] ?? null);
@@ -124,7 +125,7 @@
     @endif --}}
 
     <button type="button"
-          class="topic-circle text-center @if($topicCompleted) topic-circle-completed @endif"
+          class="topic-circle text-center @if($topicCompleted) topic-circle-completed @elseif($topicInReview) topic-circle-in-review @endif"
           wire:key="journey-topic-{{ $topic['id'] }}"
           wire:click="openTask({{ $topic['id'] }})">
 
@@ -133,6 +134,10 @@
            @if($topicCompleted)
             <span class="journey-topic-status-mark" aria-label="{{ __('Completed') }}">
               <i class="ti tabler-check"></i>
+            </span>
+           @elseif($topicInReview)
+            <span class="journey-topic-status-mark journey-topic-status-mark-review" aria-label="{{ __('In review') }}">
+              <i class="ti tabler-hourglass"></i>
             </span>
            @endif
            <span class="journey-topic-title">
@@ -1095,6 +1100,11 @@ justify-content: flex-start;
     border: 5px solid var(--bs-primary);
 }
 
+.topic-circle-in-review {
+    border: 5px solid var(--bs-warning);
+    box-shadow: 0 0 0 0.35rem rgba(var(--bs-warning-rgb), 0.16), var(--w14-journey-shadow);
+}
+
 .journey-topic-status-mark {
     position: absolute;
     top: 0.45rem;
@@ -1111,6 +1121,11 @@ justify-content: flex-start;
     border: 2px solid currentColor;
     font-size: 0.85rem;
     line-height: 1;
+}
+
+.journey-topic-status-mark-review {
+    color: var(--bs-warning);
+    background: color-mix(in sRGB, var(--bs-paper-bg, var(--bs-card-bg)) 90%, var(--bs-warning));
 }
 
 .topic-circle:hover {

@@ -126,7 +126,7 @@
           <a class="nav-link" href="{{ url('app/user/view/billing') }}"><i class="icon-base ti tabler-bookmark me-1_5 icon-sm"></i>Billing & Plans</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link " href="{{ route('admin.students.show_reward', $student->id) }}"><i class="icon-base ti tabler-bell icon-sm me-1_5"></i>Reward System</a>
+          <a class="nav-link " href="{{ route('admin.students.show_reward', $student->id) }}"><i class="icon-base ti tabler-bell icon-sm me-1_5"></i>Rewards</a>
         </li>
 
       </ul>
@@ -175,7 +175,7 @@
 <!-- reward system pin -->
   <!-- <div class="card mb-6">
     <div class="card-header">
-      <h5 class="mb-0">Reward System PIN</h5>
+      <h5 class="mb-0">Task Completion PIN</h5>
       <span class="card-subtitle mt-0">Keep your account secure with authentication step.</span>
     </div>
     <div class="card-body pt-0">

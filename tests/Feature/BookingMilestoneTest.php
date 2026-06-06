@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Locked;
 use Livewire\Livewire;
 use Mockery;
+use ReflectionMethod;
 use Tests\TestCase;
 
 class BookingMilestoneTest extends TestCase
@@ -75,6 +76,30 @@ class BookingMilestoneTest extends TestCase
             'field_name' => 'workflow_status',
             'changed_by' => $admin->id,
         ]);
+    }
+
+    public function test_child_workflow_silently_defaults_school_metadata(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $child = $this->createBookingChild([
+            'current_school' => null,
+            'school_system' => null,
+        ], [
+            'current_school' => null,
+            'school_system' => null,
+        ]);
+
+        Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
+            ->set('currentSchool', null)
+            ->set('schoolSystem', null)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $child->refresh();
+
+        $this->assertSame('Not applicable', $child->current_school);
+        $this->assertSame('Other', $child->school_system);
     }
 
     public function test_cancelled_workflow_status_saves_to_legacy_consultation_status(): void
@@ -264,6 +289,65 @@ class BookingMilestoneTest extends TestCase
             ->set('filterQueueState', 'confirmed_upcoming')
             ->assertSee('Confirmed Child')
             ->assertDontSee('Pending Child');
+    }
+
+    public function test_booking_list_normalizes_legacy_child_row_so_workflow_can_be_edited(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $booking = Booking::create([
+            'parent_name' => 'Legacy Parent',
+            'parent_email' => 'legacy-parent@example.test',
+            'parent_phone' => '201000111222',
+            'child_name' => 'Legacy Queue Child',
+            'child_age' => 10,
+            'child_grade' => 1,
+            'current_school' => null,
+            'school_system' => null,
+            'service_interest' => 'My Deen Journey',
+            'status' => 'pending',
+            'booking_reference' => 'BK-LEGACY-EDIT',
+        ]);
+
+        $this->assertSame(0, BookingChild::where('booking_id', $booking->id)->count());
+
+        $component = Livewire::test(BookingList::class)
+            ->assertSee('Legacy Queue Child')
+            ->assertDontSee('Child row required before workflow details are available');
+
+        $child = BookingChild::where('booking_id', $booking->id)->sole();
+
+        $this->assertSame('Legacy Queue Child', $child->child_name);
+        $this->assertSame('Other', $child->school_system);
+        $this->assertSame('Not applicable', $child->current_school);
+        $component->assertSee(route('admin.bookings.children.edit', ['bookingChild' => $child->id]), false);
+    }
+
+    public function test_booking_list_hides_launch_default_school_grade_metadata(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        DB::table('grade_levels')
+            ->where('id', 1)
+            ->update([
+                'title' => 'Beginner',
+                'code' => 'beginner',
+            ]);
+
+        $this->createBookingChild([
+            'parent_name' => 'Default Metadata Parent',
+            'parent_email' => 'default-metadata-parent@example.test',
+            'booking_reference' => 'BK-DEFAULT-METADATA',
+        ], [
+            'child_name' => 'Default Metadata Child',
+            'child_grade' => 1,
+            'school_system' => 'Other',
+            'current_school' => 'Not applicable',
+        ]);
+
+        Livewire::test(BookingList::class)
+            ->assertSee('Default Metadata Child')
+            ->assertDontSee('Other | Beginner');
     }
 
     public function test_booking_list_default_sort_matches_operational_urgency(): void
@@ -670,6 +754,24 @@ class BookingMilestoneTest extends TestCase
         ]);
 
         $this->createBookingChild([
+            'parent_name' => 'Unknown School Transfer Parent',
+            'parent_email' => 'unknown-school-transfer@example.test',
+            'booking_reference' => 'BK-TRANSFER-3001-UNKNOWN-SCHOOL',
+            'school_system' => 'Unexpected local school metadata',
+        ], [
+            'child_name' => 'Unknown School Transfer Child',
+            'workflow_status' => 'confirmed',
+            'consultation_status' => 'confirmed',
+            'meeting_disposition' => 'completed',
+            'evaluation_outcome' => 'fit',
+            'evaluation_status' => 'fit',
+            'school_system' => 'Unexpected local school metadata',
+            'service_interests' => ['Help Me Study'],
+            'scheduled_date' => now()->toDateString(),
+            'scheduled_time' => '09:45',
+        ]);
+
+        $this->createBookingChild([
             'parent_name' => 'Blocked Transfer Parent',
             'parent_email' => 'blocked-transfer@example.test',
             'booking_reference' => 'BK-TRANSFER-3002',
@@ -688,7 +790,7 @@ class BookingMilestoneTest extends TestCase
         $stats = Livewire::test(BookingList::class)->instance()->stats();
         $statsByLabel = collect($stats)->keyBy('label');
 
-        $this->assertSame(2, $statsByLabel['Fit / Ready']['value']);
+        $this->assertSame(3, $statsByLabel['Fit / Ready']['value']);
 
         Livewire::test(BookingList::class)
             ->call('filterBy', 'queue_state', 'transfer_ready')
@@ -696,6 +798,8 @@ class BookingMilestoneTest extends TestCase
             ->assertSee('Ready Transfer Child')
             ->assertSee('Fallback Transfer Parent')
             ->assertSee('Fallback Transfer Child')
+            ->assertSee('Unknown School Transfer Parent')
+            ->assertSee('Unknown School Transfer Child')
             ->assertDontSee('Blocked Transfer Parent')
             ->assertDontSee('Blocked Transfer Child');
     }
@@ -1071,7 +1175,6 @@ class BookingMilestoneTest extends TestCase
             ->set('parentEmail', 'updated@example.test')
             ->set('parentPhone', '201123456789')
             ->set('bookingReference', 'BK-PARENT-UPDATED')
-            ->set('notes', 'Updated booking note')
             ->call('save')
             ->assertHasNoErrors();
 
@@ -1083,7 +1186,7 @@ class BookingMilestoneTest extends TestCase
         $this->assertSame('updated@example.test', $booking->parent_email);
         $this->assertSame('201123456789', $booking->parent_phone);
         $this->assertSame('BK-PARENT-UPDATED', $booking->booking_reference);
-        $this->assertSame('Updated booking note', $booking->notes);
+        $this->assertSame('Original booking note', $booking->notes);
 
         $this->assertSame('confirmed', $firstChild->workflow_status);
         $this->assertSame('completed', $firstChild->meeting_disposition);
@@ -1117,15 +1220,81 @@ class BookingMilestoneTest extends TestCase
             ->assertHasErrors(['meetingLink']);
     }
 
-    public function test_current_school_is_required_when_saving_child_workflow(): void
+    public function test_blank_school_fields_default_when_saving_child_workflow(): void
     {
         $this->actingAs(User::factory()->create());
         $child = $this->createBookingChild();
 
         Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
             ->set('currentSchool', '')
+            ->set('schoolSystem', '')
             ->call('save')
-            ->assertHasErrors(['currentSchool']);
+            ->assertHasNoErrors();
+
+        $child->refresh();
+
+        $this->assertSame('Not applicable', $child->current_school);
+        $this->assertSame('Other', $child->school_system);
+    }
+
+    public function test_unscheduled_followup_does_not_require_consultation_mode(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $child = $this->createBookingChild([], [
+            'scheduled_date' => '2026-04-09',
+            'scheduled_time' => '13:00',
+            'consultation_type' => 'online',
+            'meeting_link' => 'https://meet.example.com/stale-followup',
+            'meeting_address' => null,
+        ]);
+
+        Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
+            ->set('workflowStatus', 'followup_required')
+            ->set('followupDate', '2026-04-15 10:00')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $child->refresh();
+
+        $this->assertSame('followup_required', $child->workflow_status);
+        $this->assertSame('followup', $child->consultation_status);
+        $this->assertSame('undecided', $child->consultation_type);
+        $this->assertNull($child->meeting_link);
+        $this->assertNull($child->scheduled_date);
+        $this->assertNull($child->scheduled_time);
+        $this->assertNotNull($child->followup_date);
+    }
+
+    public function test_followup_after_completed_meeting_preserves_meeting_details(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $child = $this->createBookingChild([], [
+            'workflow_status' => 'confirmed',
+            'consultation_status' => 'confirmed',
+            'meeting_disposition' => 'completed',
+            'evaluation_outcome' => 'fit',
+            'consultation_type' => 'in-person',
+            'meeting_address' => 'Nasr City',
+            'scheduled_date' => '2026-04-09',
+            'scheduled_time' => '12:00',
+        ]);
+
+        Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
+            ->set('workflowStatus', 'followup_required')
+            ->set('followupDate', '2026-04-15 10:00')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $child->refresh();
+
+        $this->assertSame('followup_required', $child->workflow_status);
+        $this->assertSame('completed', $child->meeting_disposition);
+        $this->assertSame('fit', $child->evaluation_outcome);
+        $this->assertSame('in-person', $child->consultation_type);
+        $this->assertSame('Nasr City', $child->meeting_address);
+        $this->assertSame('2026-04-09', $child->scheduled_date->toDateString());
+        $this->assertSame('12:00', $child->scheduled_time);
+        $this->assertNotNull($child->followup_date);
     }
 
     public function test_scheduled_time_must_use_15_minute_intervals(): void
@@ -1140,7 +1309,10 @@ class BookingMilestoneTest extends TestCase
             ->set('scheduledDate', '2026-04-09')
             ->set('scheduledTime', '13:01')
             ->call('save')
-            ->assertHasErrors(['scheduledTime']);
+            ->assertHasErrors(['scheduledTime'])
+            ->set('scheduledTime', '13:15')
+            ->call('save')
+            ->assertHasNoErrors();
     }
 
     public function test_legacy_non_url_booking_meeting_link_does_not_block_confirmed_save(): void
@@ -1193,6 +1365,59 @@ class BookingMilestoneTest extends TestCase
         $this->assertSame('in-person', $emailBooking->consultation_type);
         $this->assertNull($emailBooking->meeting_link);
         $this->assertSame('5th Settlement', $emailBooking->meeting_address);
+    }
+
+    public function test_consultation_email_templates_use_to_quran_launch_language(): void
+    {
+        $child = $this->createBookingChild([], [
+            'child_name' => 'Ahmed',
+            'child_age' => 9,
+            'child_grade' => 1,
+            'school_system' => 'Other',
+            'current_school' => 'Not applicable',
+            'service_interests' => ['Quranic Arabic', 'Sanad Ijazah'],
+            'consultation_type' => 'in-person',
+            'meeting_address' => 'Nasr City',
+            'scheduled_date' => '2026-04-19',
+            'scheduled_time' => '18:00',
+        ]);
+
+        $service = app(BookingConfirmationService::class);
+
+        $emailBooking = Closure::bind(function () use ($service, $child) {
+            return $service->buildEmailBooking($child->booking, $child);
+        }, null, BookingConfirmationService::class)();
+
+        $parentHtml = view('emails.consultation-confirmed-parent', ['booking' => $emailBooking])->render();
+        $adminHtml = view('emails.consultation-scheduled-admin-confirmed', ['booking' => $emailBooking])->render();
+        $combinedHtml = $parentHtml."\n".$adminHtml;
+
+        foreach ([
+            'Grade',
+            'School Name',
+            'report cards',
+            'teacher feedback',
+            'study resistance',
+            'academic excellence',
+            'Zoom',
+        ] as $forbiddenText) {
+            $this->assertStringNotContainsString($forbiddenText, $combinedHtml);
+        }
+
+        foreach (['#1B365D', '#1b365d', '#2C5282', '#2c5282'] as $week14Color) {
+            $this->assertStringNotContainsString($week14Color, $combinedHtml);
+        }
+
+        $this->assertStringContainsString('Learner', $combinedHtml);
+        $this->assertStringContainsString('Services', $combinedHtml);
+        $this->assertStringContainsString('Quranic Arabic, Sanad Ijazah', $combinedHtml);
+        $this->assertStringContainsString('My Deen Journey', $parentHtml);
+        $this->assertStringContainsString('#46412f', $combinedHtml);
+        $this->assertStringContainsString('#c9a24d', $combinedHtml);
+
+        $formatConsultationType = new ReflectionMethod(BookingConfirmationService::class, 'formatConsultationType');
+
+        $this->assertSame('Online', $formatConsultationType->invoke($service, 'Zoom/Camera Needed : Video Call'));
     }
 
     public function test_confirmation_email_uses_sort_order_when_children_relation_is_loaded(): void
@@ -1461,6 +1686,43 @@ class BookingMilestoneTest extends TestCase
         ]);
     }
 
+    public function test_confirmation_email_failure_does_not_block_child_save_and_shows_human_message(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $child = $this->createBookingChild();
+
+        Mail::shouldReceive('send')
+            ->twice()
+            ->andThrow(new \Exception('Failed to authenticate on SMTP server with username "support@toquran.org" using 2 possible authenticators.'));
+
+        Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
+            ->set('workflowStatus', 'confirmed')
+            ->set('consultationType', 'online')
+            ->set('meetingLink', 'https://meet.example.com/non-blocking-mail')
+            ->set('scheduledDate', '2026-04-20')
+            ->set('scheduledTime', '15:00')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $child->refresh();
+
+        $this->assertSame('confirmed', $child->workflow_status);
+        $this->assertSame('https://meet.example.com/non-blocking-mail', $child->meeting_link);
+
+        $humanMessage = 'The email service could not sign in. Please check the mail account settings, then resend.';
+
+        $this->assertSame(2, DB::table('booking_child_emails')
+            ->where('booking_child_id', $child->id)
+            ->where('status', 'failed')
+            ->where('last_error_message', $humanMessage)
+            ->count());
+
+        $this->assertSame(0, DB::table('booking_child_emails')
+            ->where('booking_child_id', $child->id)
+            ->where('last_error_message', 'like', '%support@toquran.org%')
+            ->count());
+    }
+
     public function test_service_interests_initially_load_from_persisted_child_values_only(): void
     {
         $this->actingAs(User::factory()->create());
@@ -1617,19 +1879,29 @@ class BookingMilestoneTest extends TestCase
         $this->assertSame('cancelled', $child->consultation_status);
     }
 
-    public function test_meeting_disposition_completed_requires_confirmed_workflow(): void
+    public function test_meeting_disposition_completed_requires_confirmed_or_followup_workflow(): void
     {
         $this->actingAs(User::factory()->create());
         $child = $this->createBookingChild();
 
         Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
-            ->set('workflowStatus', 'followup_required')
-            ->set('followupDate', now()->addDays(14)->toDateString())
+            ->set('workflowStatus', 'pending')
             ->set('meetingDisposition', 'completed')
             ->set('scheduledDate', '2026-04-21')
             ->set('scheduledTime', '15:30')
             ->call('save')
             ->assertHasErrors(['meetingDisposition']);
+
+        Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
+            ->set('workflowStatus', 'followup_required')
+            ->set('followupDate', now()->addDays(14)->toDateString())
+            ->set('meetingDisposition', 'completed')
+            ->set('consultationType', 'online')
+            ->set('meetingLink', 'https://meet.example.com/completed-followup')
+            ->set('scheduledDate', '2026-04-21')
+            ->set('scheduledTime', '15:30')
+            ->call('save')
+            ->assertHasNoErrors();
 
         Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
             ->set('workflowStatus', 'confirmed')

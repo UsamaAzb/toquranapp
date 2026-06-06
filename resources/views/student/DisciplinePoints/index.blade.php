@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Reward Discipline Points')
+@section('title', 'Points Lab')
 
 
 
