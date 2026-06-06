@@ -553,6 +553,7 @@ If shared decisions change, update `docs/shared/` and state implementation owner
 - Keep parent/student-facing labels simple and short for launch.
 - Visible admin reward/PIN labels were changed to `Rewards`, `Points Lab`, and `Task Completion PIN` after launch confusion was reported during manual testing. Internal class names, filenames, and existing route slugs can remain inherited debt when changing them would create avoidable churn.
 - Keep `reward_discipline_transfer` idempotency limited to `NOT EXISTS (title, type)` for this one-shot manual starter-data patch. A future admin-editable seed catalog would need a durable key or separate migration strategy.
+- Defer legacy booking CSV/export fallback cleanup. A future booking pass should make `BookingList::displayableChildren(..., materializeLegacyChild: false)` return a synthetic legacy child payload instead of hiding old single-child rows from export, and should copy `consultation_date`, `consultation_time`, and `follow_up_date` into `scheduled_date`, `scheduled_time`, and `followup_date` when materializing a legacy child. This is not a TQ5 launch blocker because current launch smoke uses `booking_children` rows and CSV export is not part of the current operational path.
 
 ## Completion Definition
 

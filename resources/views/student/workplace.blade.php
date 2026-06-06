@@ -638,7 +638,10 @@ $configData = Helper::appClasses();
 
 <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
          <div class="card mb-0 w14-subject-card w14-subject-tone-{{ $subjectTone }}">
-           <span class="w14-subject-task-badge" aria-label="{{ __(':count open tasks', ['count' => $openTaskCount]) }}">{{ $openTaskCount }}</span>
+           <span
+             class="w14-subject-task-badge"
+             aria-label="{{ trans_choice('{1} :count open task|[2,*] :count open tasks', $openTaskCount, ['count' => $openTaskCount]) }}"
+           >{{ $openTaskCount }}</span>
            <a href="{{ $subjectHref }}" class="w14-subject-card-link" aria-label="{{ __('Open :subject tasks', ['subject' => $subjectTitle]) }}">
                <div class="card-body">
                  <span class="w14-subject-icon" aria-hidden="true">

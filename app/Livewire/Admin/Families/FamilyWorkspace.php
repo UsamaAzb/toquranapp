@@ -654,30 +654,8 @@ class FamilyWorkspace extends Component
             return null;
         }
 
-        $parent = $this->parent;
-        $emails = collect([$parent->email, $parent->user?->email])
-            ->map(fn ($email): string => strtolower(trim((string) $email)))
-            ->filter()
-            ->unique()
-            ->values();
-        $phones = collect([$parent->phone, $parent->user?->phone])
-            ->map(fn ($phone): string => trim((string) $phone))
-            ->filter()
-            ->unique()
-            ->values();
-
         $notes = DB::table('bookings')
-            ->where(function ($query) use ($emails, $phones): void {
-                $query->where('parent_id', $this->parentId);
-
-                if ($emails->isNotEmpty()) {
-                    $query->orWhereIn(DB::raw('LOWER(parent_email)'), $emails->all());
-                }
-
-                if ($phones->isNotEmpty()) {
-                    $query->orWhereIn('parent_phone', $phones->all());
-                }
-            })
+            ->where('parent_id', $this->parentId)
             ->whereNotNull('notes')
             ->orderByDesc('updated_at')
             ->orderByDesc('id')

@@ -133,7 +133,14 @@ class BookingParentEdit extends Component
         }
 
         if ($details !== []) {
-            return [$details, null];
+            $sharedNotes = trim(preg_replace([
+                '/^Country:\s*.+$/mi',
+                '/^Preferred date:\s*.+$/mi',
+                '/^Preferred time:\s*.+$/mi',
+                '/^Main concerns:\s*.+$/mi',
+            ], '', $notes) ?? '');
+
+            return [$details, $sharedNotes !== '' ? $sharedNotes : null];
         }
 
         return [[], $notes];

@@ -255,9 +255,10 @@ class PunishmentAgreementsTabs extends Component
             'status' => (string) $this->editForm['status'],
         ]);
 
-        $newTypeSlug = $this->types[(int) $this->editForm['punishment_type_id']]['slug'] ?? $this->activeType;
+        $typeId = (int) $this->editForm['punishment_type_id'];
+        $newTypeSlug = isset($this->types[$typeId]) ? $this->types[$typeId]['slug'] : $this->activeType;
         $this->activeType = $newTypeSlug;
-        $this->form['punishment_type_id'] = (int) $this->editForm['punishment_type_id'];
+        $this->form['punishment_type_id'] = $typeId;
         $this->editSuccessMessage = 'Consequence agreement has been updated.';
         $this->loadAgreements();
         $this->loadApplyAgreements();

@@ -175,6 +175,7 @@ class ClassController extends Controller
         if (
             Schema::hasTable('main_daily_session_student_assignments')
             && Schema::hasTable('main_daily_session_templates')
+            && Schema::hasTable('main_daily_session_versions')
         ) {
             MainDailySessionStudentAssignment::query()
                 ->with(['template:id,title,subject_id,created_by_user_id,status', 'version:id,display_name'])
@@ -197,6 +198,7 @@ class ClassController extends Controller
         if (
             Schema::hasTable('differentiated_task_student_assignments')
             && Schema::hasTable('differentiated_tasks')
+            && Schema::hasTable('differentiated_task_versions')
         ) {
             DifferentiatedTaskStudentAssignment::query()
                 ->with(['task:id,title,subject_id,created_by_user_id,status', 'version:id,display_name'])
@@ -219,6 +221,7 @@ class ClassController extends Controller
         if (
             Schema::hasTable('series_task_student_assignments')
             && Schema::hasTable('series_tasks')
+            && Schema::hasTable('series_task_versions')
         ) {
             SeriesTaskStudentAssignment::query()
                 ->with(['task:id,title,subject_id,created_by_user_id,status', 'version:id,display_name'])

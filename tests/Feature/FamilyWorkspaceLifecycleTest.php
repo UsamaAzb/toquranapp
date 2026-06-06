@@ -598,6 +598,69 @@ class FamilyWorkspaceLifecycleTest extends TestCase
             ->assertSee('Workspace School');
     }
 
+    public function test_parent_country_uses_parent_id_booking_notes_without_contact_fallback(): void
+    {
+        $this->createBookingTransferLifecycleTables();
+
+        if (! Schema::hasColumn('bookings', 'notes')) {
+            Schema::table('bookings', function ($table): void {
+                $table->text('notes')->nullable();
+            });
+        }
+
+        [$parent] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        $parent->forceFill([
+            'email' => 'shared@example.test',
+            'phone' => '01000000001',
+        ])->save();
+
+        $otherParent = ParentModel::create([
+            'first_name' => 'Other',
+            'last_name' => 'Family',
+            'email' => 'other@example.test',
+            'phone' => '01000000002',
+            'lifecycle_status' => FamilyLifecycleStatus::Active->value,
+        ]);
+
+        Booking::create([
+            'parent_name' => 'Other Family',
+            'parent_email' => 'shared@example.test',
+            'parent_phone' => '01000000001',
+            'child_name' => 'Other Child',
+            'status' => 'confirmed',
+            'parent_id' => $otherParent->id,
+            'notes' => "Country: Canada\nPreferred time: 18:00",
+            'updated_at' => now()->addMinute(),
+        ]);
+
+        Booking::create([
+            'parent_name' => 'Mariam Hany',
+            'parent_email' => 'mariam@example.test',
+            'parent_phone' => '01000000099',
+            'child_name' => 'Youssef Hany',
+            'status' => 'confirmed',
+            'parent_id' => $parent->id,
+            'notes' => "Country: Egypt\nPreferred time: 16:00",
+            'updated_at' => now(),
+        ]);
+
+        $admin = $this->createWorkspaceStaff('admin', [
+            'families.view_workspace',
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(FamilyWorkspace::class, ['parent' => $parent])
+            ->assertSet('parentCountry', 'Egypt');
+
+        DB::table('bookings')
+            ->where('parent_id', $parent->id)
+            ->delete();
+
+        Livewire::test(FamilyWorkspace::class, ['parent' => $parent->fresh()])
+            ->assertSet('parentCountry', null);
+    }
+
     public function test_duplicate_current_class_history_warning_uses_grouped_counts_without_normalizing_rows(): void
     {
         $this->createClassHistoryTables();
