@@ -4,11 +4,16 @@ namespace App\Livewire\Teacher;
 
 use App\Models\LibraryResource;
 use App\Models\LibrarySection;
+use App\Models\GeneralLibraryFolder;
+use App\Models\GeneralLibraryResource;
+use App\Services\Library\GeneralLibraryAccessService;
+use App\Services\Library\GeneralLibraryAttachmentAdapter;
 use App\Services\Library\LegacyLibraryTaskResourceCatalog;
 use App\Services\Library\LibraryResourceAccessService;
 use App\Services\Library\LibraryResourceQuery;
 use App\Services\SeriesLibrarySourceResolver;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -22,6 +27,8 @@ class LibraryPicker extends Component
     public ?int $subjectId = null;
 
     public ?int $currentSectionId = null;
+
+    public ?int $currentGeneralFolderId = null;
 
     public string $search = '';
 
@@ -47,6 +54,7 @@ class LibraryPicker extends Component
 
         $this->subjectId = $subjectId;
         $this->currentSectionId = null;
+        $this->currentGeneralFolderId = null;
         $this->search = '';
         $this->showLegacySources = false;
         $this->legacyCollectionType = null;
@@ -79,6 +87,17 @@ class LibraryPicker extends Component
         $this->legacyCollectionChosen = false;
         $this->legacyVocabularyParentId = null;
         $this->legacyVocabularyCurrentFolder = null;
+    }
+
+    public function enterGeneralFolder(int $folderId): void
+    {
+        $folder = GeneralLibraryFolder::query()->findOrFail($folderId);
+        abort_unless(app(GeneralLibraryAccessService::class)->canUseFolder(Auth::user(), $folder), 404);
+
+        $this->currentSectionId = null;
+        $this->currentGeneralFolderId = (int) $folder->id;
+        $this->search = '';
+        $this->showLegacySources = false;
     }
 
     public function enterLegacySources(): void
@@ -147,6 +166,13 @@ class LibraryPicker extends Component
     public function goToParent(): void
     {
         if ($this->currentSectionId === null) {
+            if ($this->currentGeneralFolderId !== null) {
+                $folder = GeneralLibraryFolder::query()->find($this->currentGeneralFolderId);
+                $this->currentGeneralFolderId = $folder?->parent_id ? (int) $folder->parent_id : null;
+
+                return;
+            }
+
             if ($this->showLegacySources && $this->legacyCollectionChosen) {
                 $this->legacyCollectionChosen = false;
                 $this->legacyCollectionId = null;
@@ -205,6 +231,7 @@ class LibraryPicker extends Component
     public function goToRoot(): void
     {
         $this->currentSectionId = null;
+        $this->currentGeneralFolderId = null;
         $this->search = '';
         $this->showLegacySources = false;
         $this->legacyCollectionType = null;
@@ -235,6 +262,8 @@ class LibraryPicker extends Component
     {
         $sections = collect();
         $resources = collect();
+        $generalFolders = collect();
+        $generalResources = collect();
         $breadcrumbs = [];
         $currentSection = null;
         $legacyResources = [];
@@ -249,10 +278,8 @@ class LibraryPicker extends Component
             $user = Auth::user();
             $legacyCatalog = app(LegacyLibraryTaskResourceCatalog::class);
             $selectedItems = $this->selectedResourceSummaries($legacyCatalog);
-            $legacyFolderAvailable = $user !== null
-                && $legacyCatalog->hasLegacyCollectionsForSubject($user, $this->subjectId);
-            $vocabularyFolderAvailable = $user !== null
-                && $legacyCatalog->hasVocabularyCollectionsForSubject($user, $this->subjectId);
+            $legacyFolderAvailable = false;
+            $vocabularyFolderAvailable = false;
 
             if ($this->showLegacySources) {
                 if ($user !== null && $this->legacyCollectionType === null) {
@@ -305,26 +332,54 @@ class LibraryPicker extends Component
                     ];
                 }
             } else {
-                $sections = $query
-                    ->sections(Auth::user(), $this->subjectId, $this->currentSectionId)
-                    ->get();
-                $resources = filled($this->search)
-                    ? $query
-                        ->resources(Auth::user(), $this->subjectId, null, $this->search)
-                        ->get()
-                    : ($this->currentSectionId === null
-                        ? collect()
-                        : $query
-                            ->resources(Auth::user(), $this->subjectId, $this->currentSectionId)
-                            ->get());
                 $currentSection = $this->currentSectionId ? $this->resolveSection($this->currentSectionId) : null;
-                $breadcrumbs = $this->breadcrumbs($currentSection);
+                if ($currentSection) {
+                    $sections = $query
+                        ->sections(Auth::user(), $this->subjectId, $this->currentSectionId)
+                        ->get();
+                    $resources = $query
+                        ->resources(Auth::user(), $this->subjectId, $this->currentSectionId)
+                        ->get();
+                    $breadcrumbs = $this->breadcrumbs($currentSection);
+                }
+
+                if (
+                    app(GeneralLibraryAccessService::class)->canView($user)
+                    && Schema::hasTable('general_library_folders')
+                    && Schema::hasTable('general_library_resources')
+                ) {
+                    $generalParentId = $this->currentGeneralFolderId;
+                    $generalFolders = GeneralLibraryFolder::query()
+                        ->where(function ($folderQuery) use ($generalParentId): void {
+                            $generalParentId === null
+                                ? $folderQuery->whereNull('parent_id')
+                                : $folderQuery->where('parent_id', $generalParentId);
+                        })
+                        ->active()
+                        ->orderBy('sort_order')
+                        ->orderBy('title')
+                        ->get();
+
+                    $generalResources = GeneralLibraryResource::query()
+                        ->when(filled($this->search), fn ($resourceQuery) => $resourceQuery->where('title', 'like', '%'.$this->search.'%'))
+                        ->where(function ($resourceQuery) use ($generalParentId): void {
+                            $generalParentId === null
+                                ? $resourceQuery->whereNull('general_library_folder_id')
+                                : $resourceQuery->where('general_library_folder_id', $generalParentId);
+                        })
+                        ->active()
+                        ->orderBy('sort_order')
+                        ->orderBy('title')
+                        ->get();
+                }
             }
         }
 
         return view('livewire.teacher.library-picker', [
             'sections' => $sections,
             'resources' => $resources,
+            'generalFolders' => $generalFolders,
+            'generalResources' => $generalResources,
             'breadcrumbs' => $breadcrumbs,
             'currentSection' => $currentSection,
             'selectedCount' => count($this->selectedResourceIds()),
@@ -383,9 +438,15 @@ class LibraryPicker extends Component
 
         $legacyIds = collect($ids)
             ->reject(fn (string $id): bool => ctype_digit($id))
+            ->reject(fn (string $id): bool => app(GeneralLibraryAttachmentAdapter::class)->isGeneralLibrarySelection($id))
             ->values()
             ->all();
-
+        $generalIds = collect($ids)
+            ->filter(fn (string $id): bool => str_starts_with($id, GeneralLibraryAttachmentAdapter::GENERAL_PREFIX))
+            ->map(fn (string $id): int => (int) substr($id, strlen(GeneralLibraryAttachmentAdapter::GENERAL_PREFIX)))
+            ->filter()
+            ->values()
+            ->all();
         $localItems = collect(LibraryResource::query()
             ->with('section:id,title')
             ->whereIn('id', $localIds)
@@ -414,7 +475,21 @@ class LibraryPicker extends Component
                 ],
             ]);
 
-        $items = $localItems->union($legacyItems);
+        $generalItems = Schema::hasTable('general_library_resources')
+            ? GeneralLibraryResource::query()
+            ->whereIn('id', $generalIds)
+            ->active()
+            ->get()
+            ->mapWithKeys(fn (GeneralLibraryResource $resource): array => [
+                GeneralLibraryAttachmentAdapter::GENERAL_PREFIX.$resource->id => [
+                    'id' => GeneralLibraryAttachmentAdapter::GENERAL_PREFIX.$resource->id,
+                    'title' => (string) $resource->title,
+                    'meta' => (string) $resource->resource_type,
+                    'context' => (string) ($resource->folder?->title ?? 'Shared Library'),
+                ],
+            ])
+            : collect();
+        $items = $localItems->union($generalItems)->union($legacyItems);
 
         return collect($ids)
             ->map(fn (string $id): ?array => $items->get($this->selectionKey($id)))

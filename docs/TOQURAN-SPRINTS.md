@@ -117,17 +117,21 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 
 ### TQ6. Library And Quran/Arabic Content Foundation
 
-- Status: `pending`
+- Status: `implementation-review`
 - Depends on: TQ4
-- Goal: Reuse Week14 Library foundation/protected attachments, then define Quran/Arabic content taxonomy and migration path for useful To Quran content tables.
-- Launch cleanup: remove or hide inherited Week14 Language and Literature Library sources/content from launch-facing Library surfaces before deployment. Keep only To Quran-relevant Quran/Arabic/MDJ content or clearly inactive source records.
-- Website action: decide public/content ownership for Quran course/surah content.
+- Goal: Create a To Quran-owned app Library foundation for Quran Memorization and Arabic content. Admins must be able to add/edit Quran Memorization materials such as new surahs, ayah-range/repetition subtitles, and YouTube links.
+- Launch cleanup: no Week14 legacy Library here for launch. Remove or hide inherited Week14 Language and Literature Library sources/content from launch-facing Library surfaces before deployment.
+- Scope decision: shared app Library materials are app-side and general for all subjects; all subject teachers can normally see them. Teachers can create LMS-style folders/resources inside the general Library so all teachers benefit; teachers edit only their own creations, while admins/superadmins can edit all.
+- Website action: no public website Library/video work in TQ6; Quran videos live in the private app.
+- Current artifact: `docs/plans/active/2026-06-06-tq6-library-quran-arabic-content-foundation-plan.md`
+- Local implementation evidence: guarded structure patch created `general_library_folders` and `general_library_resources` for launch-facing shared Library content, with preserved `quran_library_surahs` / `quran_library_videos` left as non-launch technical scaffolding; launch-facing `teacher/library` now uses the To Quran shared Library; admin/superadmin have an admin Library tab at `admin/library`; teachers can create/edit-own shared folders/resources, admin/superadmin can edit all; folder `content_mode` now supports final source-only folders; preserved Quran Repetition videos were imported as `Quran Repetition` > per-surah folders > 106 YouTube sources; Quran repetition YouTube sources snapshot into normal task attachments. On 2026-06-13, malformed embed URLs were repaired, uploaded Library source originals were moved to private `local` storage, assigned uploaded files copy into independent task snapshots, stale structured Quran launch routes were removed, source/folder deletion and duplicate-title safeguards were tightened, owner manual smoke reported Library working, and final focused Library verification passed locally with 61 tests and 242 assertions.
 
 ### TQ7. Automation Tracks For Routines, Differentiated Tasks, And Series Tasks
 
 - Status: `pending`
 - Depends on: TQ4/TQ6
 - Goal: Reuse Week14 Versioned Routines, Differentiated Tasks, and Series Tasks after To Quran terminology and content source decisions.
+- Library note: when TQ7/TQ7.5 attaches Library content outside normal session tasks, reuse the TQ6 Quran/general Library adapter pattern for differentiated/daily-session/series attachment snapshots.
 - Website action: none unless public pages mention automated routine features.
 
 ### TQ7.5. Prebuilt Routine And Series Task Launch Catalog
@@ -144,7 +148,7 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 
 - Status: `postponed`
 - Depends on: post-deployment owner approval
-- Goal: Plan Arabic vocabulary games using Week14 P7 architecture as reference, not first-import English content.
+- Goal: Plan Arabic vocabulary games using Week14 P7 architecture as reference, not first-import English content. TQ6 inspection found current Week14 vocabulary games are Latin/English-specific and not safe for Quranic Uthmani/Othmani symbols without a separate Quranic Arabic spike.
 - Website action: do not promise until scoped.
 
 ### TQ9. Deployment Readiness And Public Website Handoff

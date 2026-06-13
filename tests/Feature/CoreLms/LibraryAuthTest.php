@@ -5,6 +5,8 @@ namespace Tests\Feature\CoreLms;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -24,598 +26,536 @@ class LibraryAuthTest extends TestCase
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        foreach (['admin', 'teacher', 'student', 'parent'] as $role) {
+        foreach (['admin', 'super_admin', 'teacher', 'student', 'parent'] as $role) {
             Role::findOrCreate($role);
         }
     }
 
-    public function test_teacher_can_open_library(): void
+    public function test_teacher_and_admin_can_open_shared_library_without_legacy_cards(): void
     {
         $teacher = $this->userWithRole('teacher');
-        config(['week14.legacy_library_owner_user_ids' => [$teacher->id]]);
+        $admin = $this->userWithRole('admin');
 
         $this->actingAs($teacher)
             ->get(route('teacher.get_library'))
             ->assertOk()
-            ->assertSee('Teaching library')
-            ->assertSee('Add or edit My Library')
-            ->assertSee('Versioned Routines')
-            ->assertSee('href="'.url('tutriols/level-up').'"', false);
-    }
-
-    public function test_admin_can_open_library_without_teacher_only_daily_sessions_link(): void
-    {
-        $admin = $this->userWithRole('admin');
-        config(['week14.legacy_library_owner_user_ids' => [999999]]);
+            ->assertSee('To Quran Library')
+            ->assertSee('Shared Library')
+            ->assertDontSee('href="'.url('tutriols/level-up').'"', false)
+            ->assertDontSee('Vocabulary');
 
         $this->actingAs($admin)
+            ->get(route('admin.library.index'))
+            ->assertOk()
+            ->assertSee('Source')
+            ->assertDontSee('Add Surah')
+            ->assertDontSee('Private legacy Library source')
+            ->assertDontSee('href="'.url('course/radio').'"', false);
+    }
+
+    public function test_teacher_cannot_use_admin_library_tab_route(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+
+        $this->actingAs($teacher)
+            ->get(route('admin.library.index'))
+            ->assertForbidden();
+
+        $this->actingAs($teacher)
             ->get(route('teacher.get_library'))
             ->assertOk()
-            ->assertSee('Teaching library')
-            ->assertDontSee('Versioned Routines')
-            ->assertSee('Private legacy Library source')
-            ->assertDontSee('href="'.url('course/radio').'"', false)
-            ->assertDontSee('href="'.url('course/notice-note').'"', false);
+            ->assertSee('To Quran Library');
     }
 
-    public function test_allowlisted_admin_card_destination_is_reachable_when_card_is_available(): void
+    public function test_non_teacher_library_users_cannot_open_teacher_library(): void
     {
-        $admin = $this->userWithRole('admin');
-        config(['week14.legacy_library_owner_user_ids' => [$admin->id]]);
-
-        $this->actingAs($admin)
-            ->get(route('teacher.get_library'))
-            ->assertOk()
-            ->assertSee('href="'.url('course/radio').'"', false);
-
-        $this->actingAs($admin)
-            ->get('/course/radio')
-            ->assertOk();
-    }
-
-    public function test_student_cannot_open_teacher_library(): void
-    {
-        $student = $this->userWithRole('student');
-
-        $this->actingAs($student)
+        $this->actingAs($this->userWithRole('student'))
             ->get(route('teacher.get_library'))
             ->assertForbidden();
-    }
 
-    public function test_parent_cannot_open_teacher_library(): void
-    {
-        $parent = $this->userWithRole('parent');
-
-        $this->actingAs($parent)
+        $this->actingAs($this->userWithRole('parent'))
             ->get(route('teacher.get_library'))
             ->assertForbidden();
-    }
 
-    public function test_guest_is_redirected_to_login(): void
-    {
+        $this->app['auth']->guard()->logout();
+
         $this->get(route('teacher.get_library'))
             ->assertRedirect(route('login'));
     }
 
-    public function test_teacher_owned_library_folder_and_resources_are_browsable_from_library_cards(): void
+    public function test_teacher_created_folder_is_shared_but_edit_owned_only(): void
     {
-        $teacher = $this->userWithRole('teacher');
-        config(['week14.legacy_library_owner_user_ids' => [999999]]);
+        $owner = $this->userWithRole('teacher');
+        $otherTeacher = $this->userWithRole('teacher');
+        $admin = $this->userWithRole('admin');
 
-        DB::table('subjects')->insert([
-            'id' => 20,
-            'title' => 'Language and Literature',
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-        $sectionId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Library Trial Sources',
-            'created_by_user_id' => $teacher->id,
-        ]);
-        $resourceId = DB::table('library_resources')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'library_section_id' => $sectionId,
-            'resource_type' => 'link',
-            'title' => 'Amazon',
-            'external_url' => 'https://example.com/resource',
-            'created_by_user_id' => $teacher->id,
-        ]);
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.get_library'))
-            ->assertOk()
-            ->assertSee('Library Trial Sources')
-            ->assertSee('href="'.url('teacher/library?folder='.$sectionId).'"', false);
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.get_library', ['folder' => $sectionId]))
-            ->assertOk()
-            ->assertSee('Amazon')
-            ->assertSee('href="'.route('teacher.library.resources.open', [
-                'resource' => $resourceId,
-                'return_to' => url('teacher/library?folder='.$sectionId),
-            ]).'"', false);
-    }
-
-    public function test_teacher_can_create_root_folder_from_library_page_for_owned_subject(): void
-    {
-        $teacher = $this->userWithRole('teacher');
-
-        DB::table('subjects')->insert([
-            'id' => 20,
-            'title' => 'Language and Literature',
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-        DB::table('library_sections')->insert([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Existing Root',
-            'sort_order' => 6,
-            'created_by_user_id' => $teacher->id,
-        ]);
-
-        $this->actingAs($teacher)
-            ->post(route('teacher.library.sections.store'), [
-                'subject_id' => 20,
-                'title' => 'New Root Folder',
-                'description' => 'Root description',
+        $this->actingAs($owner)
+            ->post(route('teacher.general-library.folders.store'), [
+                'title' => 'Tajweed Clips',
+                'description' => 'Short reusable classroom sources',
             ])
             ->assertRedirect();
 
-        $this->assertDatabaseHas('library_sections', [
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'parent_id' => null,
-            'title' => 'New Root Folder',
-            'description' => 'Root description',
-            'sort_order' => 7,
-        ]);
-    }
+        $folderId = (int) DB::table('general_library_folders')->where('title', 'Tajweed Clips')->value('id');
 
-    public function test_teacher_cannot_create_root_folder_for_unowned_subject(): void
-    {
-        $teacher = $this->userWithRole('teacher');
+        $this->actingAs($otherTeacher)
+            ->get(route('teacher.get_library'))
+            ->assertOk()
+            ->assertSee('Tajweed Clips');
 
-        DB::table('subjects')->insert([
-            ['id' => 20, 'title' => 'Language and Literature'],
-            ['id' => 21, 'title' => 'Science'],
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-
-        $this->actingAs($teacher)
-            ->post(route('teacher.library.sections.store'), [
-                'subject_id' => 21,
-                'title' => 'Wrong Subject Folder',
-            ])
+        $this->actingAs($otherTeacher)
+            ->patch(route('teacher.general-library.folders.archive', $folderId))
             ->assertForbidden();
 
-        $this->assertDatabaseMissing('library_sections', [
-            'title' => 'Wrong Subject Folder',
+        $this->actingAs($admin)
+            ->patch(route('teacher.general-library.folders.archive', $folderId))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('general_library_folders', [
+            'id' => $folderId,
+            'status' => 'archived',
         ]);
     }
 
-    public function test_library_folder_page_can_show_restore_and_delete_archived_items(): void
+    public function test_source_folder_blocks_subfolders_and_parent_folder_blocks_sources(): void
     {
         $teacher = $this->userWithRole('teacher');
 
-        DB::table('subjects')->insert([
-            'id' => 20,
-            'title' => 'Language and Literature',
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-        $activeSectionId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Active Folder',
-            'created_by_user_id' => $teacher->id,
-        ]);
-        $archivedSectionId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Archived Root',
-            'status' => 'archived',
-            'created_by_user_id' => $teacher->id,
-            'archived_at' => now(),
-        ]);
-        $archivedResourceId = DB::table('library_resources')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'library_section_id' => $activeSectionId,
-            'resource_type' => 'link',
-            'title' => 'Archived Link',
-            'status' => 'archived',
-            'external_url' => 'https://example.com/archived',
-            'created_by_user_id' => $teacher->id,
-            'archived_at' => now(),
-        ]);
-
         $this->actingAs($teacher)
-            ->get(route('teacher.get_library'))
-            ->assertOk()
-            ->assertSee('Active Folder')
-            ->assertDontSee('Archived Root');
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.get_library', ['show_archived' => 1]))
-            ->assertOk()
-            ->assertSee('Archived Root')
-            ->assertSee('Archived - restore to open')
-            ->assertSee(route('teacher.library.sections.restore', $archivedSectionId), false);
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.get_library', ['folder' => $activeSectionId, 'show_archived' => 1]))
-            ->assertOk()
-            ->assertSee('Archived Link')
-            ->assertSee(route('teacher.library.resources.restore', $archivedResourceId), false)
-            ->assertDontSee('href="'.route('teacher.library.resources.open', [
-                'resource' => $archivedResourceId,
-                'return_to' => url('teacher/library?folder='.$activeSectionId),
-            ]).'"', false);
-
-        $this->actingAs($teacher)
-            ->patch(route('teacher.library.sections.restore', $archivedSectionId))
-            ->assertRedirect();
-        $this->assertDatabaseHas('library_sections', [
-            'id' => $archivedSectionId,
-            'status' => 'active',
-            'archived_at' => null,
-        ]);
-
-        $this->actingAs($teacher)
-            ->delete(route('teacher.library.resources.delete', $archivedResourceId))
-            ->assertRedirect();
-        $this->assertDatabaseMissing('library_resources', ['id' => $archivedResourceId]);
-    }
-
-    public function test_controller_resource_creates_append_in_selected_order(): void
-    {
-        $teacher = $this->userWithRole('teacher');
-
-        DB::table('subjects')->insert([
-            'id' => 20,
-            'title' => 'Language and Literature',
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-        $sectionId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Links',
-            'created_by_user_id' => $teacher->id,
-        ]);
-        DB::table('library_resources')->insert([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'library_section_id' => $sectionId,
-            'resource_type' => 'link',
-            'title' => 'Existing',
-            'external_url' => 'https://example.com/existing',
-            'sort_order' => 12,
-            'created_by_user_id' => $teacher->id,
-        ]);
-
-        $this->actingAs($teacher)
-            ->post(route('teacher.library.resources.store', $sectionId), [
-                'resource_kind' => 'link',
-                'title' => 'Next Link',
-                'external_url' => 'https://example.com/next',
+            ->post(route('teacher.general-library.folders.store'), [
+                'title' => 'Quran Repetition',
             ])
             ->assertRedirect();
 
+        $rootFolderId = (int) DB::table('general_library_folders')->where('title', 'Quran Repetition')->value('id');
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.folders.store'), [
+                'parent_id' => $rootFolderId,
+                'title' => '001. Al-Faatiha',
+                'content_mode' => 'sources_only',
+            ])
+            ->assertRedirect();
+
+        $surahFolderId = (int) DB::table('general_library_folders')->where('title', '001. Al-Faatiha')->value('id');
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.folders.store'), [
+                'parent_id' => $surahFolderId,
+                'title' => 'Nested Folder',
+            ])
+            ->assertSessionHasErrors('library_action');
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.resources.store'), [
+                'folder_id' => $rootFolderId,
+                'resource_kind' => 'youtube',
+                'title' => 'Wrong place',
+                'external_url' => 'https://youtu.be/C7GFY46e__g',
+            ])
+            ->assertSessionHasErrors('library_action');
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.resources.store'), [
+                'folder_id' => $surahFolderId,
+                'resource_kind' => 'youtube',
+                'title' => 'Ayah 1',
+                'external_url' => 'https://youtu.be/C7GFY46e__g',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('general_library_folders', [
+            'id' => $surahFolderId,
+            'content_mode' => 'sources_only',
+        ]);
+    }
+
+    public function test_teacher_can_create_source_and_open_protected_file_preview(): void
+    {
+        Storage::fake('local');
+
+        $teacher = $this->userWithRole('teacher');
+        $folderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Quranic Arabic',
+            'content_mode' => 'sources_only',
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.resources.store'), [
+                'folder_id' => $folderId,
+                'resource_kind' => 'file',
+                'title' => 'Makharij worksheet',
+                'description' => 'Shared PDF practice',
+                'resource_files' => [
+                    UploadedFile::fake()->create('makharij.pdf', 24, 'application/pdf'),
+                ],
+            ])
+            ->assertRedirect();
+
+        $resourceId = (int) DB::table('general_library_resources')->where('title', 'Makharij worksheet')->value('id');
+
+        $this->assertDatabaseHas('general_library_resources', [
+            'id' => $resourceId,
+            'general_library_folder_id' => $folderId,
+            'storage_disk' => 'local',
+        ]);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.general-library.resources.open', $resourceId))
+            ->assertOk()
+            ->assertSee('Makharij worksheet');
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.general-library.resources.file', $resourceId))
+            ->assertOk();
+    }
+
+    public function test_teacher_stages_general_library_files_before_saving_sources(): void
+    {
+        Storage::fake('local');
+
+        $teacher = $this->userWithRole('teacher');
+        $folderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Quranic Arabic',
+            'content_mode' => 'sources_only',
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $mixedUpload = $this->actingAs($teacher)
+            ->postJson(route('teacher.general-library.resources.upload-temp'), [
+                'resource_files' => [
+                    UploadedFile::fake()->create('unsafe.exe', 4, 'application/x-msdownload'),
+                    UploadedFile::fake()->create('makharij.pdf', 24, 'application/pdf'),
+                ],
+            ])
+            ->assertOk()
+            ->assertJsonCount(1, 'blocked')
+            ->assertJsonCount(1, 'files');
+
+        $mixedToken = $mixedUpload->json('files.0.token');
+        $this->assertIsString($mixedToken);
+        $mixedPayload = json_decode(Crypt::decryptString($mixedToken), true, flags: JSON_THROW_ON_ERROR);
+        Storage::disk('local')->assertExists($mixedPayload['path']);
+
+        $this->actingAs($teacher)
+            ->deleteJson(route('teacher.general-library.resources.upload-temp.delete'), [
+                'uploaded_files' => [$mixedToken],
+            ])
+            ->assertOk();
+
+        Storage::disk('local')->assertMissing($mixedPayload['path']);
+
+        $upload = $this->actingAs($teacher)
+            ->postJson(route('teacher.general-library.resources.upload-temp'), [
+                'resource_files' => [
+                    UploadedFile::fake()->create('makharij.pdf', 24, 'application/pdf'),
+                ],
+            ])
+            ->assertOk()
+            ->assertJsonCount(1, 'files')
+            ->json('files.0');
+
+        $this->assertIsString($upload['token']);
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.resources.store'), [
+                'folder_id' => $folderId,
+                'resource_kind' => 'batch',
+                'uploaded_files' => [$upload['token']],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('general_library_resources', [
+            'title' => 'makharij',
+            'resource_type' => 'file',
+            'original_filename' => 'makharij.pdf',
+            'storage_disk' => 'local',
+        ]);
+    }
+
+    public function test_teacher_can_batch_add_general_library_links_and_youtube_sources(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $folderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Quranic Arabic',
+            'content_mode' => 'sources_only',
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.resources.store'), [
+                'folder_id' => $folderId,
+                'resource_kind' => 'batch',
+                'link_titles' => ['Arabic note'],
+                'link_urls' => ['https://example.com/arabic-note'],
+                'youtube_titles' => ['Short recitation'],
+                'youtube_urls' => ['https://youtu.be/C7GFY46e__g'],
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('general_library_resources', [
+            'general_library_folder_id' => $folderId,
+            'title' => 'Arabic note',
+            'resource_type' => 'link',
+            'external_url' => 'https://example.com/arabic-note',
+        ]);
+        $this->assertDatabaseHas('general_library_resources', [
+            'general_library_folder_id' => $folderId,
+            'title' => 'Short recitation',
+            'resource_type' => 'youtube',
+            'external_url' => 'https://youtu.be/C7GFY46e__g',
+        ]);
+    }
+
+    public function test_general_library_source_delete_archives_assigned_source_but_deletes_unused_source(): void
+    {
+        Storage::fake('local');
+        Storage::fake('public');
+        Storage::disk('local')->put('general-library-resources/unused.pdf', 'unused');
+        Storage::disk('local')->put('general-library-resources/used.pdf', 'used');
+
+        $teacher = $this->userWithRole('teacher');
+        $unusedResourceId = DB::table('general_library_resources')->insertGetId([
+            'resource_type' => 'file',
+            'title' => 'Unused File',
+            'storage_disk' => 'local',
+            'file_path' => 'general-library-resources/unused.pdf',
+            'created_by_user_id' => $teacher->id,
+        ]);
+        $usedResourceId = DB::table('general_library_resources')->insertGetId([
+            'resource_type' => 'file',
+            'title' => 'Used File',
+            'storage_disk' => 'local',
+            'file_path' => 'general-library-resources/used.pdf',
+            'created_by_user_id' => $teacher->id,
+        ]);
+        Storage::disk('public')->put('attachments/general-library-resource-'.$usedResourceId.'/snapshot.pdf', 'used snapshot');
+        DB::table('attachment_files')->insert([
+            'title' => 'Used File',
+            'type' => 'file',
+            'path' => 'attachments/general-library-resource-'.$usedResourceId.'/snapshot.pdf',
+        ]);
+
+        $this->actingAs($teacher)
+            ->delete(route('teacher.general-library.resources.delete', $usedResourceId))
+            ->assertRedirect();
+
+        $this->actingAs($teacher)
+            ->delete(route('teacher.general-library.resources.delete', $unusedResourceId))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('general_library_resources', [
+            'id' => $usedResourceId,
+            'status' => 'archived',
+        ]);
+        $this->assertDatabaseMissing('general_library_resources', [
+            'id' => $unusedResourceId,
+        ]);
+        Storage::disk('local')->assertExists('general-library-resources/used.pdf');
+        Storage::disk('local')->assertMissing('general-library-resources/unused.pdf');
+        Storage::disk('public')->assertExists('attachments/general-library-resource-'.$usedResourceId.'/snapshot.pdf');
+    }
+
+    public function test_general_library_folder_delete_removes_empty_folder_but_archives_folder_with_any_history(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $emptyFolderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Empty Teacher Folder',
+            'created_by_user_id' => $teacher->id,
+        ]);
+        $nonEmptyFolderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Teacher Folder With Source',
+            'created_by_user_id' => $teacher->id,
+        ]);
+        DB::table('general_library_resources')->insert([
+            'general_library_folder_id' => $nonEmptyFolderId,
+            'resource_type' => 'link',
+            'title' => 'Kept Source',
+            'external_url' => 'https://example.com/source',
+            'created_by_user_id' => $teacher->id,
+        ]);
+        $archivedHistoryFolderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Teacher Folder With Archived History',
+            'created_by_user_id' => $teacher->id,
+        ]);
+        DB::table('general_library_resources')->insert([
+            'general_library_folder_id' => $archivedHistoryFolderId,
+            'resource_type' => 'link',
+            'title' => 'Archived Source',
+            'external_url' => 'https://example.com/archived-source',
+            'status' => 'archived',
+            'created_by_user_id' => $teacher->id,
+        ]);
+        DB::table('general_library_folders')->insert([
+            'parent_id' => $archivedHistoryFolderId,
+            'title' => 'Archived Child Folder',
+            'status' => 'archived',
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $this->actingAs($teacher)
+            ->delete(route('teacher.general-library.folders.delete', $emptyFolderId))
+            ->assertRedirect();
+
+        $this->actingAs($teacher)
+            ->delete(route('teacher.general-library.folders.delete', $nonEmptyFolderId))
+            ->assertRedirect();
+
+        $this->actingAs($teacher)
+            ->delete(route('teacher.general-library.folders.delete', $archivedHistoryFolderId))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('general_library_folders', [
+            'id' => $emptyFolderId,
+        ]);
+        $this->assertDatabaseHas('general_library_folders', [
+            'id' => $nonEmptyFolderId,
+            'status' => 'archived',
+        ]);
+        $this->assertDatabaseHas('general_library_folders', [
+            'id' => $archivedHistoryFolderId,
+            'status' => 'archived',
+        ]);
+    }
+
+    public function test_general_library_folder_titles_are_unique_inside_same_parent(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.folders.store'), [
+                'title' => 'Teacher Osama',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.folders.store'), [
+                'title' => 'teacher osama',
+            ])
+            ->assertSessionHasErrors('library_action');
+
+        $this->assertSame(1, DB::table('general_library_folders')
+            ->whereRaw('LOWER(title) = ?', ['teacher osama'])
+            ->count());
+    }
+
+    public function test_general_library_folder_edit_rejects_duplicate_sibling_title(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        DB::table('general_library_folders')->insert([
+            'title' => 'Quran Repetition',
+            'created_by_user_id' => $teacher->id,
+        ]);
+        $folderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Quranic Arabic',
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $this->actingAs($teacher)
+            ->patch(route('teacher.general-library.folders.update', $folderId), [
+                'title' => 'quran repetition',
+            ])
+            ->assertSessionHasErrors('library_action');
+
+        $this->assertDatabaseHas('general_library_folders', [
+            'id' => $folderId,
+            'title' => 'Quranic Arabic',
+        ]);
+    }
+
+    public function test_general_library_source_reorder_persists_shared_sequence(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $folderId = DB::table('general_library_folders')->insertGetId([
+            'title' => '001. Al-Faatiha',
+            'content_mode' => 'sources_only',
+            'created_by_user_id' => $teacher->id,
+        ]);
+        $firstId = DB::table('general_library_resources')->insertGetId([
+            'general_library_folder_id' => $folderId,
+            'resource_type' => 'youtube',
+            'title' => 'Ayahs 1-3',
+            'external_url' => 'https://youtu.be/C7GFY46e__g',
+            'sort_order' => 10,
+            'created_by_user_id' => $teacher->id,
+        ]);
+        $secondId = DB::table('general_library_resources')->insertGetId([
+            'general_library_folder_id' => $folderId,
+            'resource_type' => 'youtube',
+            'title' => 'Ayahs 4-6',
+            'external_url' => 'https://youtu.be/C7GFY46e__g',
+            'sort_order' => 20,
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $this->actingAs($teacher)
+            ->patchJson(route('teacher.general-library.items.reorder'), [
+                'folder_id' => $folderId,
+                'items' => [
+                    ['type' => 'resource', 'id' => $secondId],
+                    ['type' => 'resource', 'id' => $firstId],
+                ],
+            ])
+            ->assertOk();
+
         $this->assertSame(
-            ['Existing', 'Next Link'],
-            DB::table('library_resources')
-                ->where('library_section_id', $sectionId)
+            ['Ayahs 4-6', 'Ayahs 1-3'],
+            DB::table('general_library_resources')
+                ->where('general_library_folder_id', $folderId)
                 ->orderBy('sort_order')
-                ->orderBy('id')
                 ->pluck('title')
                 ->all()
         );
-        $this->assertSame(13, (int) DB::table('library_resources')->where('title', 'Next Link')->value('sort_order'));
     }
 
-    public function test_library_root_add_folder_infers_single_teacher_subject(): void
+    public function test_general_library_page_reorder_persists_folder_sequence(): void
     {
         $teacher = $this->userWithRole('teacher');
-
-        DB::table('subjects')->insert([
-            'id' => 20,
-            'title' => 'Language and Literature',
+        $firstId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Quran Repetition',
+            'sort_order' => 10,
+            'created_by_user_id' => $teacher->id,
         ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.get_library'))
-            ->assertOk()
-            ->assertSee('Language and Literature Library')
-            ->assertSee('value="20"', false)
-            ->assertDontSee('Choose subject');
-    }
-
-    public function test_multi_subject_teacher_uses_subject_hub_before_adding_root_folder(): void
-    {
-        $teacher = $this->userWithRole('teacher');
-
-        DB::table('subjects')->insert([
-            ['id' => 20, 'title' => 'Language and Literature'],
-            ['id' => 21, 'title' => 'Mathematics'],
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            [
-                'user_teacher_coteacher_id' => $teacher->id,
-                'subject_id' => 20,
-                'subject_name' => 'Language and Literature',
-                'status' => 'current',
-            ],
-            [
-                'user_teacher_coteacher_id' => $teacher->id,
-                'subject_id' => 21,
-                'subject_name' => 'Mathematics',
-                'status' => 'current',
-            ],
-        ]);
-        DB::table('library_sections')->insert([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Language Folder',
-            'sort_order' => 1,
+        $secondId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Quranic Arabic',
+            'sort_order' => 20,
             'created_by_user_id' => $teacher->id,
         ]);
 
         $this->actingAs($teacher)
-            ->get(route('teacher.get_library'))
-            ->assertOk()
-            ->assertSee('Choose a subject to manage reusable resources')
-            ->assertSee('Language and Literature')
-            ->assertSee('Mathematics')
-            ->assertDontSee('Language Folder')
-            ->assertDontSee('Add Library folder');
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.get_library', ['subject' => 20]))
-            ->assertOk()
-            ->assertSee('Language and Literature Library')
-            ->assertSee('Language Folder')
-            ->assertSee('value="20"', false)
-            ->assertDontSee('Choose subject');
-    }
-
-    public function test_teacher_can_reorder_library_folder_page_items(): void
-    {
-        $teacher = $this->userWithRole('teacher');
-
-        DB::table('subjects')->insert([
-            'id' => 20,
-            'title' => 'Language and Literature',
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-        $parentId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Unit Folder',
-            'sort_order' => 1,
-            'created_by_user_id' => $teacher->id,
-        ]);
-        $childId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'parent_id' => $parentId,
-            'title' => 'Child Folder',
-            'sort_order' => 1,
-            'created_by_user_id' => $teacher->id,
-        ]);
-        $firstResourceId = DB::table('library_resources')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'library_section_id' => $parentId,
-            'resource_type' => 'link',
-            'title' => 'First Link',
-            'external_url' => 'https://example.com/first',
-            'sort_order' => 2,
-            'created_by_user_id' => $teacher->id,
-        ]);
-        $secondResourceId = DB::table('library_resources')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'library_section_id' => $parentId,
-            'resource_type' => 'link',
-            'title' => 'Second Link',
-            'external_url' => 'https://example.com/second',
-            'sort_order' => 3,
-            'created_by_user_id' => $teacher->id,
-        ]);
-
-        $this->actingAs($teacher)
-            ->patchJson(route('teacher.library.reorder'), [
-                'subject_id' => 20,
-                'parent_id' => $parentId,
+            ->patchJson(route('teacher.general-library.items.reorder'), [
+                'folder_id' => null,
                 'items' => [
-                    ['type' => 'resource', 'id' => $secondResourceId],
-                    ['type' => 'section', 'id' => $childId],
-                    ['type' => 'resource', 'id' => $firstResourceId],
+                    ['type' => 'folder', 'id' => $secondId],
+                    ['type' => 'folder', 'id' => $firstId],
                 ],
             ])
-            ->assertOk()
-            ->assertJson(['ok' => true]);
+            ->assertOk();
 
-        $this->assertSame(1, (int) DB::table('library_resources')->where('id', $secondResourceId)->value('sort_order'));
-        $this->assertSame(2, (int) DB::table('library_sections')->where('id', $childId)->value('sort_order'));
-        $this->assertSame(3, (int) DB::table('library_resources')->where('id', $firstResourceId)->value('sort_order'));
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.get_library', ['folder' => $parentId]))
-            ->assertOk()
-            ->assertSeeInOrder(['Second Link', 'Child Folder', 'First Link']);
+        $this->assertSame(
+            ['Quranic Arabic', 'Quran Repetition'],
+            DB::table('general_library_folders')
+                ->whereNull('parent_id')
+                ->orderBy('sort_order')
+                ->pluck('title')
+                ->all()
+        );
     }
 
-    public function test_library_reorder_rejects_cross_folder_resources(): void
+    public function test_structured_quran_management_routes_are_not_launch_facing(): void
     {
-        $teacher = $this->userWithRole('teacher');
+        $superAdmin = $this->userWithRole('super_admin');
 
-        DB::table('subjects')->insert([
-            'id' => 20,
-            'title' => 'Language and Literature',
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-        $firstSectionId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'First Folder',
-            'created_by_user_id' => $teacher->id,
-        ]);
-        $secondSectionId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Second Folder',
-            'created_by_user_id' => $teacher->id,
-        ]);
-        $resourceId = DB::table('library_resources')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'library_section_id' => $secondSectionId,
-            'resource_type' => 'link',
-            'title' => 'Wrong Folder Link',
-            'external_url' => 'https://example.com/wrong',
-            'sort_order' => 7,
-            'created_by_user_id' => $teacher->id,
-        ]);
-
-        $this->actingAs($teacher)
-            ->patchJson(route('teacher.library.reorder'), [
-                'subject_id' => 20,
-                'parent_id' => $firstSectionId,
-                'items' => [
-                    ['type' => 'resource', 'id' => $resourceId],
-                ],
-            ])
-            ->assertStatus(422);
-
-        $this->assertSame(7, (int) DB::table('library_resources')->where('id', $resourceId)->value('sort_order'));
-    }
-
-    public function test_teacher_owned_link_resource_opens_normally(): void
-    {
-        $teacher = $this->userWithRole('teacher');
-
-        DB::table('subjects')->insert([
-            'id' => 20,
-            'title' => 'Language and Literature',
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-        $sectionId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Links',
-            'created_by_user_id' => $teacher->id,
-        ]);
-        $resourceId = DB::table('library_resources')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'library_section_id' => $sectionId,
-            'resource_type' => 'link',
-            'title' => 'Framed Link',
-            'external_url' => 'https://example.com/resource',
-            'created_by_user_id' => $teacher->id,
-        ]);
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.library.resources.open', [
-                'resource' => $resourceId,
-                'return_to' => url('teacher/library?folder='.$sectionId),
-            ]))
-            ->assertRedirect('https://example.com/resource');
-    }
-
-    public function test_teacher_owned_file_resource_opens_in_library_preview_page(): void
-    {
-        Storage::fake('public');
-        Storage::disk('public')->put('library-resources/sample.pdf', 'pdf');
-
-        $teacher = $this->userWithRole('teacher');
-
-        DB::table('subjects')->insert([
-            'id' => 20,
-            'title' => 'Language and Literature',
-        ]);
-        DB::table('teacher_subject_classes')->insert([
-            'user_teacher_coteacher_id' => $teacher->id,
-            'subject_id' => 20,
-            'subject_name' => 'Language and Literature',
-            'status' => 'current',
-        ]);
-        $sectionId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'title' => 'Files',
-            'created_by_user_id' => $teacher->id,
-        ]);
-        $resourceId = DB::table('library_resources')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => 20,
-            'library_section_id' => $sectionId,
-            'resource_type' => 'file',
-            'title' => 'Sample',
-            'storage_disk' => 'public',
-            'file_path' => 'library-resources/sample.pdf',
-            'original_filename' => 'sample.pdf',
-            'mime_type' => 'application/pdf',
-            'created_by_user_id' => $teacher->id,
-        ]);
-
-        $this->actingAs($teacher)
-            ->get(route('teacher.library.resources.open', $resourceId))
+        $this->actingAs($superAdmin)
+            ->get(route('teacher.get_library'))
             ->assertOk()
-            ->assertSee('Library file')
-            ->assertSee('Sample')
-            ->assertSee('Files')
-            ->assertSee('Back to folder')
-            ->assertSee(route('teacher.library.resources.file', $resourceId), false);
+            ->assertSee('To Quran Library')
+            ->assertDontSee('Add Surah');
+
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('teacher.general-library.quran.surahs.store'));
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('teacher.general-library.quran.videos.store'));
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('teacher.general-library.quran.videos.update'));
     }
 
     private function userWithRole(string $role): User
@@ -646,59 +586,41 @@ class LibraryAuthTest extends TestCase
             });
         }
 
-        if (! Schema::hasTable('subjects')) {
-            Schema::create('subjects', function (Blueprint $table): void {
+        if (! Schema::hasTable('general_library_folders')) {
+            Schema::create('general_library_folders', function (Blueprint $table): void {
                 $table->id();
-                $table->string('title')->nullable();
-                $table->timestamps();
-            });
-        }
-
-        if (! Schema::hasTable('teacher_subject_classes')) {
-            Schema::create('teacher_subject_classes', function (Blueprint $table): void {
-                $table->id();
-                $table->unsignedBigInteger('user_teacher_coteacher_id')->nullable();
-                $table->unsignedBigInteger('subject_id')->nullable();
-                $table->string('subject_name')->nullable();
-                $table->string('status')->nullable();
-                $table->timestamps();
-            });
-        }
-
-        if (! Schema::hasTable('library_sections')) {
-            Schema::create('library_sections', function (Blueprint $table): void {
-                $table->id();
-                $table->unsignedBigInteger('owner_user_id');
-                $table->unsignedBigInteger('subject_id');
                 $table->unsignedBigInteger('parent_id')->nullable();
                 $table->string('title');
                 $table->text('description')->nullable();
                 $table->string('status')->default('active');
-                $table->smallInteger('sort_order')->default(0);
+                $table->string('source_label')->nullable();
+                $table->string('content_mode')->default('mixed');
+                $table->unsignedInteger('sort_order')->default(0);
                 $table->unsignedBigInteger('created_by_user_id');
+                $table->unsignedBigInteger('updated_by_user_id')->nullable();
                 $table->timestamp('archived_at')->nullable();
                 $table->timestamps();
             });
         }
 
-        if (! Schema::hasTable('library_resources')) {
-            Schema::create('library_resources', function (Blueprint $table): void {
+        if (! Schema::hasTable('general_library_resources')) {
+            Schema::create('general_library_resources', function (Blueprint $table): void {
                 $table->id();
-                $table->unsignedBigInteger('owner_user_id');
-                $table->unsignedBigInteger('subject_id');
-                $table->unsignedBigInteger('library_section_id');
+                $table->unsignedBigInteger('general_library_folder_id')->nullable();
                 $table->string('resource_type');
                 $table->string('title');
                 $table->text('description')->nullable();
                 $table->string('status')->default('active');
+                $table->string('source_label')->nullable();
                 $table->string('storage_disk')->nullable();
                 $table->string('file_path', 2048)->nullable();
                 $table->string('original_filename')->nullable();
                 $table->string('mime_type')->nullable();
                 $table->unsignedBigInteger('file_size')->nullable();
                 $table->string('external_url', 2048)->nullable();
-                $table->smallInteger('sort_order')->default(0);
+                $table->unsignedInteger('sort_order')->default(0);
                 $table->unsignedBigInteger('created_by_user_id');
+                $table->unsignedBigInteger('updated_by_user_id')->nullable();
                 $table->timestamp('archived_at')->nullable();
                 $table->timestamps();
             });

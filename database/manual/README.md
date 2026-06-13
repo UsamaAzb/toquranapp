@@ -71,6 +71,10 @@ timestamp, and checksum.
   - focused restore backup of MDJ behavior/agreement/history rows before restoring the first Slip and No Way cards as popup category actions
 - `backups/2026-06-06-u504065335_to_quran-before-mdj-good-job-popup-flag-fix.sql`
   - focused restore backup of MDJ behavior template rows before restoring the first Positive card as a popup category action
+- `backups/2026-06-06-231654-u504065335_to_quran-before-tq6-general-library-structure.sql`
+  - focused structure-only backup of the real app DB target before creating the TQ6 general Library and Quran Library tables; no row data, auth/session/contact data, or credentials exported
+- `backups/2026-06-07-121006-u504065335_to_quran-before-tq6-library-folder-quran-import.sql`
+  - focused restore backup of the TQ6 Library tables before adding folder `content_mode` and importing the preserved Quran Repetition YouTube list into general Library folders/resources
 - `patches/2026-05-28-create-toquranapp-local-baseline.sql`
   - guarded structure-only baseline patch used to create `toquranapp_local`
 - `patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql`
@@ -187,6 +191,14 @@ timestamp, and checksum.
   - guarded flag fix that restores `Good Job` as the Positive popup category card instead of an instant point action
 - `patches/2026-06-06-mdj-good-job-popup-flag-fix-execution-note.sql`
   - execution note for the Good Job popup category flag fix, including backup evidence, success counts, and guard-failure evidence
+- `patches/2026-06-06-create-tq6-general-library.sql`
+  - guarded structure patch creating `general_library_folders`, `general_library_resources`, `quran_library_surahs`, and `quran_library_videos` for TQ6 shared app Library content
+- `patches/2026-06-06-create-tq6-general-library-execution-note.sql`
+  - execution note for the TQ6 general Library structure patch, including target verification, backup evidence, first-attempt FK-type correction, successful execution, and row-count verification
+- `patches/2026-06-07-tq6-library-folder-mode-and-quran-repetition-import.sql`
+  - guarded additive patch that adds final-destination `content_mode` to general Library folders and imports the preserved Quran YouTube list as `Quran Repetition` > per-surah source-only folders > YouTube sources
+- `patches/2026-06-07-tq6-library-folder-mode-and-quran-repetition-import-execution-note.sql`
+  - execution note for the local TQ6 Quran Repetition import, including backup evidence, guard success, and verification counts for 20 surah folders and 106 sources
 
 ## Current Local App Target
 
@@ -212,6 +224,7 @@ timestamp, and checksum.
 - MDJ reward queues were preflighted locally on 2026-06-05 by running the launch-default service for every local student after a focused `student_gifts` backup; current-year reward gaps are now zero for manual testing.
 - Booking child service/grade cleanup was run locally on 2026-06-05 after a focused `booking_children` backup; child-prefixed service labels, parent-only consultation service residue, and blank child grades are now cleared for manual testing.
 - Local duplicate Osama intake rows were cleaned on 2026-06-05 after a focused booking-table backup; remaining pending Booking Admin rows are smoke/test rows only.
+- TQ6 Library folder mode and Quran Repetition starter content were added locally on 2026-06-07 after a focused Library-table backup: `general_library_folders.content_mode` now supports `mixed` and `sources_only`; the preserved old Quran YouTube list is imported as `Quran Repetition` with 20 surah folders and 106 YouTube sources.
 - MDJ behavior titles and consequence suggestions were refreshed locally on 2026-06-05 after a focused behavior/agreement backup; the first pass made labels short but was later superseded because the consequence sentences were too robotic for student-visible agreement buttons.
 - MDJ behavior icons were refreshed locally on 2026-06-05 after a focused icon/template/history backup; starter templates and copied student behavior rows now use distinct existing discipline icons instead of the single fallback heart icon.
 - MDJ behavior and consequence defaults were expanded locally on 2026-06-06 after a focused behavior/consequence backup; current starter cards are the broader ChatGPT-reviewed launch set, and consequence suggestions now start from the practical Week14 LMS agreement list before To Quran-specific additions.

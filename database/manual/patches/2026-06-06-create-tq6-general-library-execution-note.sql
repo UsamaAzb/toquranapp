@@ -1,0 +1,49 @@
+-- TQ6 general Library schema execution note
+-- Date: 2026-06-06
+-- Target: u504065335_to_quran
+-- Repo: D:\xampp\htdocs\toquranapp
+-- Branch: codex/tq6-library-quran-arabic-content-foundation
+--
+-- Backup evidence:
+--   database/manual/backups/2026-06-06-231654-u504065335_to_quran-before-tq6-general-library-structure.sql
+--   Type: structure-only schema backup, no table rows/auth/contact payloads
+--   Size: 261429 bytes
+--
+-- Patch executed:
+--   database/manual/patches/2026-06-06-create-tq6-general-library.sql
+--
+-- Command:
+--   Get-Content database\manual\patches\2026-06-06-create-tq6-general-library.sql |
+--     D:\xampp\mysql\bin\mysql.exe --host=127.0.0.1 --port=3306 --user=root u504065335_to_quran
+--
+-- First dry execution note:
+--   The first attempt failed before creating any table because users.id in the
+--   inherited To Quran schema is signed INT, not BIGINT UNSIGNED. The patch was
+--   corrected so created_by_user_id / updated_by_user_id columns match users.id.
+--
+-- Guard result:
+--   TQ6 general Library schema guard passed.
+--
+-- Verification query:
+--   SELECT TABLE_NAME
+--   FROM information_schema.TABLES
+--   WHERE TABLE_SCHEMA = DATABASE()
+--     AND TABLE_NAME IN (
+--       'general_library_folders',
+--       'general_library_resources',
+--       'quran_library_surahs',
+--       'quran_library_videos'
+--     )
+--   ORDER BY TABLE_NAME;
+--
+-- Verification result:
+--   general_library_folders
+--   general_library_resources
+--   quran_library_surahs
+--   quran_library_videos
+--
+-- Initial row counts:
+--   general_library_folders: 0
+--   general_library_resources: 0
+--   quran_library_surahs: 0
+--   quran_library_videos: 0

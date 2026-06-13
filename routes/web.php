@@ -41,7 +41,7 @@ use App\Http\Controllers\Front\Teacher\ConsequenceAgreementController;
 use App\Http\Controllers\Front\Teacher\DailySessionsController;
 use App\Http\Controllers\Front\Teacher\DifferentiatedTasksController;
 use App\Http\Controllers\Front\Teacher\GiveDisciplinePointsController;
-use App\Http\Controllers\Front\Teacher\LibraryController;
+use App\Http\Controllers\Front\Teacher\GeneralLibraryController;
 use App\Http\Controllers\Front\Teacher\SeriesTasksController;
 use App\Http\Controllers\Front\Teacher\TeacherJourneyController;
 // use App\Http\Controllers\Hang_manController;
@@ -56,7 +56,6 @@ use App\Http\Controllers\PwaController;
 use App\Http\Controllers\VocabularyAssignmentController;
 use App\Http\Controllers\VocabularyGameController;
 use App\Livewire\Student\Journey;
-use App\Livewire\Teacher\VocabularyManager;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -389,36 +388,36 @@ Route::middleware(['auth'])->group(function () {
     Route::get('{auth_role}/series-tasks/subjects', [SeriesTasksController::class, 'subjects'])->name('series-tasks.subjects')->middleware(['role:teacher']);
     Route::get('{auth_role}/series-tasks/{subject}/tasks', [SeriesTasksController::class, 'board'])->name('series-tasks.board')->middleware(['role:teacher']);
 
-    Route::get('teacher/library', [LibraryController::class, 'get_library'])->name('teacher.get_library')->middleware(['role:admin|teacher']);
-    Route::get('teacher/library/manage', [LibraryController::class, 'get_library'])->name('teacher.library.manage')->middleware(['role:teacher']);
-    Route::get('teacher/library/vocabulary', VocabularyManager::class)->name('teacher.library.vocabulary')->middleware(['role:admin|super_admin|teacher|owner']);
-    Route::post('teacher/library/sections', [LibraryController::class, 'storeSection'])->name('teacher.library.sections.store')->middleware(['role:teacher']);
-    Route::patch('teacher/library/reorder', [LibraryController::class, 'reorderPageItems'])->name('teacher.library.reorder')->middleware(['role:teacher']);
-    Route::patch('teacher/library/sections/{section}', [LibraryController::class, 'updateSection'])->name('teacher.library.sections.update')->middleware(['role:teacher']);
-    Route::patch('teacher/library/sections/{section}/archive', [LibraryController::class, 'archiveSection'])->name('teacher.library.sections.archive')->middleware(['role:teacher']);
-    Route::patch('teacher/library/sections/{section}/restore', [LibraryController::class, 'restoreSection'])->name('teacher.library.sections.restore')->middleware(['role:teacher']);
-    Route::delete('teacher/library/sections/{section}', [LibraryController::class, 'deleteSection'])->name('teacher.library.sections.delete')->middleware(['role:teacher']);
-    Route::post('teacher/library/sections/{section}/resources', [LibraryController::class, 'storeResource'])->name('teacher.library.resources.store')->middleware(['role:teacher']);
-    Route::patch('teacher/library/resources/{resource}', [LibraryController::class, 'updateResource'])->name('teacher.library.resources.update')->middleware(['role:teacher']);
-    Route::patch('teacher/library/resources/{resource}/archive', [LibraryController::class, 'archiveResource'])->name('teacher.library.resources.archive')->middleware(['role:teacher']);
-    Route::patch('teacher/library/resources/{resource}/restore', [LibraryController::class, 'restoreResource'])->name('teacher.library.resources.restore')->middleware(['role:teacher']);
-    Route::delete('teacher/library/resources/{resource}', [LibraryController::class, 'deleteResource'])->name('teacher.library.resources.delete')->middleware(['role:teacher']);
-    Route::get('teacher/library/resources/{resource}/open', [LibraryController::class, 'openResource'])->name('teacher.library.resources.open')->middleware(['role:teacher']);
-    Route::get('teacher/library/resources/{resource}/file', [LibraryController::class, 'streamResourceFile'])->name('teacher.library.resources.file')->middleware(['role:teacher']);
-    Route::get('course/sat', [SatController::class, 'index'])->name('front.sat.index')->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('course/sat/{slug1}/{slug2}', [SatController::class, 'get_desc'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('course/grammar', [GrammarController::class, 'index'])->name('front.grammar.index')->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    Route::get('admin/library', [GeneralLibraryController::class, 'index'])->name('admin.library.index')->middleware(['role:admin|super_admin']);
+    Route::get('teacher/library', [GeneralLibraryController::class, 'index'])->name('teacher.get_library')->middleware(['role:admin|super_admin|teacher']);
+    Route::get('teacher/library/manage', [GeneralLibraryController::class, 'index'])->name('teacher.library.manage')->middleware(['role:admin|super_admin|teacher']);
+    Route::post('teacher/library/folders', [GeneralLibraryController::class, 'storeFolder'])->name('teacher.general-library.folders.store')->middleware(['role:admin|super_admin|teacher']);
+    Route::patch('teacher/library/reorder', [GeneralLibraryController::class, 'reorderPageItems'])->name('teacher.general-library.items.reorder')->middleware(['role:admin|super_admin|teacher']);
+    Route::patch('teacher/library/folders/{folder}', [GeneralLibraryController::class, 'updateFolder'])->name('teacher.general-library.folders.update')->middleware(['role:admin|super_admin|teacher']);
+    Route::patch('teacher/library/folders/{folder}/archive', [GeneralLibraryController::class, 'archiveFolder'])->name('teacher.general-library.folders.archive')->middleware(['role:admin|super_admin|teacher']);
+    Route::delete('teacher/library/folders/{folder}', [GeneralLibraryController::class, 'deleteFolder'])->name('teacher.general-library.folders.delete')->middleware(['role:admin|super_admin|teacher']);
+    Route::post('teacher/library/resources/upload-temp', [GeneralLibraryController::class, 'uploadTemporaryResources'])->name('teacher.general-library.resources.upload-temp')->middleware(['role:admin|super_admin|teacher']);
+    Route::delete('teacher/library/resources/upload-temp', [GeneralLibraryController::class, 'deleteTemporaryResources'])->name('teacher.general-library.resources.upload-temp.delete')->middleware(['role:admin|super_admin|teacher']);
+    Route::post('teacher/library/resources', [GeneralLibraryController::class, 'storeResource'])->name('teacher.general-library.resources.store')->middleware(['role:admin|super_admin|teacher']);
+    Route::patch('teacher/library/resources/{resource}', [GeneralLibraryController::class, 'updateResource'])->name('teacher.general-library.resources.update')->middleware(['role:admin|super_admin|teacher']);
+    Route::patch('teacher/library/resources/{resource}/archive', [GeneralLibraryController::class, 'archiveResource'])->name('teacher.general-library.resources.archive')->middleware(['role:admin|super_admin|teacher']);
+    Route::delete('teacher/library/resources/{resource}', [GeneralLibraryController::class, 'deleteResource'])->name('teacher.general-library.resources.delete')->middleware(['role:admin|super_admin|teacher']);
+    Route::get('teacher/library/resources/{resource}/open', [GeneralLibraryController::class, 'openResource'])->name('teacher.general-library.resources.open')->middleware(['role:admin|super_admin|teacher']);
+    Route::get('teacher/library/resources/{resource}/file', [GeneralLibraryController::class, 'streamResourceFile'])->name('teacher.general-library.resources.file')->middleware(['role:admin|super_admin|teacher']);
+    Route::get('course/sat', [SatController::class, 'index'])->name('front.sat.index')->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('course/sat/{slug1}/{slug2}', [SatController::class, 'get_desc'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('course/grammar', [GrammarController::class, 'index'])->name('front.grammar.index')->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 
-    Route::get('course/grammar/{slug1}/{slug2}', [GrammarController::class, 'get_desc'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    Route::get('course/grammar/{slug1}/{slug2}', [GrammarController::class, 'get_desc'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 
-    Route::get('course/notice-note', [NoticeController::class, 'index'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('notice-note/{slug}', [NoticeController::class, 'get_desc'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    Route::get('course/notice-note', [NoticeController::class, 'index'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('notice-note/{slug}', [NoticeController::class, 'get_desc'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 
-    Route::get('course/background', [BackgroundController::class, 'index'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('background/{slug}', [BackgroundController::class, 'get_desc'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    Route::get('course/background', [BackgroundController::class, 'index'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('background/{slug}', [BackgroundController::class, 'get_desc'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 
-    Route::get('course/peer-coach', [Peer_coachController::class, 'index'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('peer-coach/{slug1}/{slug2}', [Peer_coachController::class, 'get_desc'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    Route::get('course/peer-coach', [Peer_coachController::class, 'index'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('peer-coach/{slug1}/{slug2}', [Peer_coachController::class, 'get_desc'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 
     Route::get('course/levels', [CourseController::class, 'get_levels'])->name('front.course')->middleware(['auth', 'role:student']);
     Route::get('course/level/{id?}', [CourseController::class, 'get_units'])->name('front.course.level')->middleware(['auth', 'role:student']);
@@ -432,21 +431,21 @@ Route::middleware(['auth'])->group(function () {
         $breadcrumb_links['Radio'] = null;
 
         return view('front.radio', compact('breadcrumb_links'));
-    })->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    })->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 
-    Route::get('videos/ted', [VideoController::class, 'show_ted'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('videos/court', [VideoController::class, 'show_court'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('reading/listen-read', [StoryController::class, 'index'])->name('legacy-library.listen-read.index')->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('reading/listen-read/{slug1}/{slug2}', [StoryController::class, 'get_chapters'])->name('legacy-library.listen-read.chapter')->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    Route::get('videos/ted', [VideoController::class, 'show_ted'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('videos/court', [VideoController::class, 'show_court'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('reading/listen-read', [StoryController::class, 'index'])->name('legacy-library.listen-read.index')->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('reading/listen-read/{slug1}/{slug2}', [StoryController::class, 'get_chapters'])->name('legacy-library.listen-read.chapter')->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 
-    Route::get('tutriols/level-up', [StoryController::class, 'get_tutriols_level'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('tutriols/level-up/{slug}', [StoryController::class, 'get_tutriols_lesson'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    Route::get('tutriols/level-up', [StoryController::class, 'get_tutriols_level'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('tutriols/level-up/{slug}', [StoryController::class, 'get_tutriols_lesson'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 
-    Route::get('tv_series/avatar', [SeriesController::class, 'tv_series_avatar'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('tv_series/avatar/{slug1}/{slug2}', [SeriesController::class, 'get_tv_series_avatar'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    Route::get('tv_series/avatar', [SeriesController::class, 'tv_series_avatar'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('tv_series/avatar/{slug1}/{slug2}', [SeriesController::class, 'get_tv_series_avatar'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 
-    Route::get('tv_series/friends', [SeriesController::class, 'tv_series_friends'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
-    Route::get('tv_series/friends/{slug1}/{slug2}', [SeriesController::class, 'get_tv_series_friends'])->middleware(['auth', 'role:student|teacher|parent|admin', 'legacy_library_access']);
+    Route::get('tv_series/friends', [SeriesController::class, 'tv_series_friends'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
+    Route::get('tv_series/friends/{slug1}/{slug2}', [SeriesController::class, 'get_tv_series_friends'])->middleware(['auth', 'role:teacher|admin|super_admin', 'legacy_library_access']);
 });
 
 Route::middleware([

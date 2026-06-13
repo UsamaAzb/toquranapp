@@ -734,7 +734,7 @@
                   x-on:livewire-upload-progress="progress = $event.detail.progress"
                 >
                   <input id="library-edit-resource-file" type="file" class="form-control" wire:model="editingResourceFile">
-                  <div class="form-text">Leave empty to keep the current file. Maximum file size: 500 MB.</div>
+                  <div class="form-text">Leave empty to keep the current file. Maximum file size: 50 MB.</div>
                   <div class="mt-2" x-show="uploading" x-cloak>
                     <div class="d-flex justify-content-between small text-body-secondary mb-1">
                       <span>Uploading replacement file...</span>

@@ -22,6 +22,15 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 
 ## Decisions
 
+### 2026-06-06 - Quran Library Content Lives In The App
+- Decision: Quran Memorization Library videos and editable Quran/Arabic content live in the private app, not as a public website content system. TQ6 shared app Library materials are general app materials visible to all subject teachers by default, not subject-dedicated Week14-style resources. Teachers can create LMS-style folders/resources inside the general Library so all teachers benefit; teachers edit only their own creations, while admins/superadmins can edit all.
+- Why: The owner needs an app-side Quran Memorization Library where admins/superadmins can add new surahs, ayah-range/repetition subtitles, and YouTube links, while teachers across Quran Memorization, Quranic Arabic, Arabic Language, Sanad, and My Deen Journey can reuse the same shared material pool. Teacher-created folders/resources remain useful as shared teaching sources, not private subject-locked content.
+- App/LMS impact: TQ6 should build new app-level Library tables for general shared folders/resources, then remove launch-facing Week14 legacy Library surfaces. Quran Repetition content should be operationally edited as shared Library folders/sources rather than as a separate launch-facing structured Surah manager. Current Week14 subject-scoped Library tables can inform creation UX and protected uploaded-file delivery, but do not satisfy the global-content contract as-is.
+- Website impact: No public website Library/video implementation is required in TQ6. The public website should not become a separate Quran video content authority.
+- Owner: `toquranapp`
+- Follow-up: Continue TQ6 smoke/content population, then keep Quranic Arabic vocabulary games deferred to a later spike because current Week14 vocabulary code is English/Latin specific.
+- Status: Approved by owner clarification during TQ6 planning; local app Library foundation and guarded DB structure patch implemented on 2026-06-06.
+
 ### 2026-05-27 - App/LMS Schema Ownership
 - Decision: `toquranapp` owns the To Quran LMS schema, app business logic, transfer rules, and shared decision docs. `toquran` consumes those decisions for public content and intake.
 - Why: The private app will carry parent/student/teacher/admin workflows, tasks, rewards, behavior/accountability points, consequence agreements, Library, and My Deen Journey logic. The public website should not become the schema authority by accident.

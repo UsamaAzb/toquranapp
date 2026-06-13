@@ -1,0 +1,80 @@
+-- TQ6 Library folder mode and Quran Repetition import execution note
+-- Date: 2026-06-07
+-- Target: u504065335_to_quran
+-- Repo: D:\xampp\htdocs\toquranapp
+-- Branch: codex/tq6-library-quran-arabic-content-foundation
+--
+-- Backup evidence:
+--   database/manual/backups/2026-06-07-121006-u504065335_to_quran-before-tq6-library-folder-quran-import.sql
+--   Type: focused restore backup of general_library_folders,
+--         general_library_resources, quran_library_surahs, quran_library_videos
+--   Size: 20402 bytes
+--
+-- Patch executed:
+--   database/manual/patches/2026-06-07-tq6-library-folder-mode-and-quran-repetition-import.sql
+--   Size: 87702 bytes
+--
+-- Source preservation artifact:
+--   database/manual/backups/2026-05-28-u504065335_to_quran-quran-video-preservation.sql
+--   The old `surahs` / `surh_videos` schema was not replayed. Its preserved
+--   data was adapted into general_library_folders / general_library_resources.
+--
+-- Command:
+--   Get-Content database\manual\patches\2026-06-07-tq6-library-folder-mode-and-quran-repetition-import.sql |
+--     D:\xampp\mysql\bin\mysql.exe --host=127.0.0.1 --port=3306 --user=root --database=u504065335_to_quran
+--
+-- Guard result:
+--   TQ6 Library Quran import guard passed.
+--
+-- Guard-failure check:
+--   The same patch was piped to mysql with --database=toquranapp_local.
+--   Result:
+--     tq6_library_quran_guard: REFUSING TQ6 Library Quran import: wrong target DB.
+--     ERROR 1644 (45000): REFUSING TQ6 Library Quran import: wrong target DB.
+--   Non-target mutation check:
+--     information_schema content_mode column count on toquranapp_local:
+--       before: 0
+--       after: 0
+--
+-- Verification:
+--   SHOW COLUMNS FROM general_library_folders LIKE 'content_mode';
+--   SELECT title, content_mode, source_label
+--   FROM general_library_folders
+--   WHERE parent_id IS NULL
+--   ORDER BY sort_order, title;
+--   SELECT COUNT(*) AS quran_surah_folders
+--   FROM general_library_folders
+--   WHERE parent_id = (
+--       SELECT id
+--       FROM general_library_folders
+--       WHERE parent_id IS NULL AND title = 'Quran Repetition'
+--       LIMIT 1
+--   );
+--   SELECT COUNT(*) AS quran_sources
+--   FROM general_library_resources
+--   WHERE general_library_folder_id IN (
+--       SELECT id
+--       FROM general_library_folders
+--       WHERE parent_id = (
+--           SELECT id
+--           FROM general_library_folders
+--           WHERE parent_id IS NULL AND title = 'Quran Repetition'
+--           LIMIT 1
+--       )
+--   );
+--
+-- Verification result:
+--   content_mode enum('mixed','sources_only') NOT NULL DEFAULT 'mixed'
+--   Root folders:
+--     Quran Repetition | mixed | Original
+--     Quranic Arabic   | sources_only | NULL
+--   quran_surah_folders: 20
+--   quran_sources: 106
+--
+-- Notes:
+--   - The existing Quranic Arabic folder already had a source, so the patch
+--     correctly marked it as sources_only.
+--   - The patch is idempotent by root title, surah folder title under Quran
+--     Repetition, and YouTube URL within each surah folder.
+--   - No production deployment, smoke cleanup, credential rotation, public
+--     website work, or destructive cleanup was performed.

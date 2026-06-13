@@ -37,7 +37,7 @@ class LibraryCompatibilityTest extends TestCase
         $middleware = $route->gatherMiddleware();
 
         $this->assertContains('auth', $middleware, "Expected [{$uri}] to require auth.");
-        $this->assertContains('role:student|teacher|parent|admin', $middleware, "Expected [{$uri}] to keep the legacy LMS role gate.");
+        $this->assertContains('role:teacher|admin|super_admin', $middleware, "Expected [{$uri}] to keep the To Quran staff-only legacy Library gate.");
         $this->assertContains('legacy_library_access', $middleware, "Expected [{$uri}] to keep legacy Library access middleware.");
     }
 }

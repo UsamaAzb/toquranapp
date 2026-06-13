@@ -356,23 +356,19 @@ class LibraryManagerTest extends TestCase
         $this->assertCount(0, $resources);
     }
 
-    public function test_library_picker_shows_folder_resources_only_after_entering_folder(): void
+    public function test_library_picker_shows_general_folder_resources_only_after_entering_folder(): void
     {
         $teacher = $this->teacherWithSubject();
-        $sectionId = DB::table('library_sections')->insertGetId([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => self::LANGUAGE_SUBJECT_ID,
+        $folderId = DB::table('general_library_folders')->insertGetId([
             'title' => 'Root Folder',
             'created_by_user_id' => $teacher->id,
         ]);
-        DB::table('library_resources')->insert([
-            'owner_user_id' => $teacher->id,
-            'subject_id' => self::LANGUAGE_SUBJECT_ID,
-            'library_section_id' => $sectionId,
+        DB::table('general_library_resources')->insert([
+            'general_library_folder_id' => $folderId,
             'resource_type' => 'file',
             'title' => 'Inside PDF',
             'storage_disk' => 'public',
-            'file_path' => 'library-resources/inside.pdf',
+            'file_path' => 'general-library-resources/inside.pdf',
             'original_filename' => 'inside.pdf',
             'status' => 'active',
             'created_by_user_id' => $teacher->id,
@@ -383,34 +379,23 @@ class LibraryManagerTest extends TestCase
             ->call('openPicker', self::LANGUAGE_SUBJECT_ID, [])
             ->assertSee('Root Folder')
             ->assertDontSee('Inside PDF')
-            ->call('enterSection', $sectionId)
+            ->call('enterGeneralFolder', $folderId)
             ->assertSee('Inside PDF');
     }
 
-    public function test_library_picker_exposes_legacy_library_sources_for_language_literature(): void
+    public function test_library_picker_hides_legacy_library_sources_for_launch(): void
     {
         $teacher = $this->teacherWithSubject();
 
         Livewire::actingAs($teacher)
             ->test(LibraryPicker::class)
             ->call('openPicker', self::LANGUAGE_SUBJECT_ID, [])
-            ->assertSee('Legacy Library Sources')
-            ->call('enterLegacySources')
-            ->assertSee('Level Up')
-            ->assertSee('Peer Coach')
-            ->call('enterLegacyCollectionType', 'peer_coach')
-            ->assertSee('Discussion Pack')
-            ->call('enterLegacyCollection', 'peer_coach:11')
-            ->assertSee('Partner Prompt')
-            ->call('goToRoot')
-            ->call('enterLegacySources')
-            ->call('enterLegacyCollectionType', 'level_up')
-            ->assertSee('Level up Tutorials')
-            ->call('enterLegacyCollection', 'level_up:root')
-            ->assertSee('Level 1');
+            ->assertDontSee('Legacy Library Sources')
+            ->assertDontSee('Level Up')
+            ->assertDontSee('Peer Coach');
     }
 
-    public function test_library_picker_shows_vocabulary_as_first_class_folder_with_teacher_copies(): void
+    public function test_library_picker_hides_week14_vocabulary_by_default_even_with_sets(): void
     {
         $this->createVocabularyTables();
 
@@ -468,18 +453,11 @@ class LibraryManagerTest extends TestCase
         Livewire::actingAs($teacher)
             ->test(LibraryPicker::class)
             ->call('openPicker', self::LANGUAGE_SUBJECT_ID, [])
-            ->assertSee('Vocabulary')
-            ->assertSee('Legacy Library Sources')
-            ->call('enterLegacySources')
-            ->assertSee('Level Up')
             ->assertDontSee('Vocabulary')
-            ->call('goToRoot')
-            ->call('enterVocabularySources')
-            ->assertSee('Cambridge')
-            ->assertSee('Cambridge copy')
+            ->assertDontSee('Cambridge')
+            ->assertDontSee('Cambridge copy')
             ->assertDontSee('Other Teacher Copy')
-            ->call('enterLegacyCollection', 'vocabulary:'.$teacherRootId)
-            ->assertSee('Edited Lesson');
+            ->assertDontSee('Edited Lesson');
     }
 
     public function test_library_picker_does_not_sync_vocabulary_proxies_while_rendering(): void
@@ -715,7 +693,7 @@ class LibraryManagerTest extends TestCase
         $teacher = User::factory()->create();
         $teacher->assignRole('teacher');
 
-        config(['week14.legacy_library_owner_user_ids' => [$teacher->id]]);
+        config(['toquran.legacy_library_owner_user_ids' => [$teacher->id]]);
 
         DB::table('subjects')->insert([
             'id' => self::LANGUAGE_SUBJECT_ID,
@@ -838,6 +816,46 @@ class LibraryManagerTest extends TestCase
                 $table->string('external_url', 2048)->nullable();
                 $table->smallInteger('sort_order')->default(0);
                 $table->unsignedBigInteger('created_by_user_id');
+                $table->timestamp('archived_at')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        if (! Schema::hasTable('general_library_folders')) {
+            Schema::create('general_library_folders', function (Blueprint $table): void {
+                $table->id();
+                $table->unsignedBigInteger('parent_id')->nullable();
+                $table->string('title');
+                $table->text('description')->nullable();
+                $table->string('status')->default('active');
+                $table->string('source_label')->nullable();
+                $table->string('content_mode')->default('mixed');
+                $table->unsignedInteger('sort_order')->default(0);
+                $table->unsignedBigInteger('created_by_user_id');
+                $table->unsignedBigInteger('updated_by_user_id')->nullable();
+                $table->timestamp('archived_at')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        if (! Schema::hasTable('general_library_resources')) {
+            Schema::create('general_library_resources', function (Blueprint $table): void {
+                $table->id();
+                $table->unsignedBigInteger('general_library_folder_id')->nullable();
+                $table->string('resource_type');
+                $table->string('title');
+                $table->text('description')->nullable();
+                $table->string('status')->default('active');
+                $table->string('source_label')->nullable();
+                $table->string('storage_disk')->nullable();
+                $table->string('file_path', 2048)->nullable();
+                $table->string('original_filename')->nullable();
+                $table->string('mime_type')->nullable();
+                $table->unsignedBigInteger('file_size')->nullable();
+                $table->string('external_url', 2048)->nullable();
+                $table->unsignedInteger('sort_order')->default(0);
+                $table->unsignedBigInteger('created_by_user_id');
+                $table->unsignedBigInteger('updated_by_user_id')->nullable();
                 $table->timestamp('archived_at')->nullable();
                 $table->timestamps();
             });

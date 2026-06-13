@@ -51,7 +51,14 @@
       "name": "Library",
       "icon": "menu-icon icon-base ti tabler-files",
       "slug": "teacher-library",
-      "roles": ["teacher", "admin"]
+      "roles": ["teacher"]
+    },
+    {
+      "url": "/admin/library",
+      "name": "Library",
+      "icon": "menu-icon icon-base ti tabler-library",
+      "slug": "admin-library",
+      "roles": ["admin", "super_admin"]
     },
     {
       "url": "/teacher/vocabulary/games/launch",

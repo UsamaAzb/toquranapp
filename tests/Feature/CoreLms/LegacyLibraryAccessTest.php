@@ -25,7 +25,7 @@ class LegacyLibraryAccessTest extends TestCase
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        foreach (['admin', 'teacher', 'parent', 'student'] as $role) {
+        foreach (['admin', 'super_admin', 'teacher', 'parent', 'student'] as $role) {
             Role::findOrCreate($role);
         }
     }
@@ -35,7 +35,7 @@ class LegacyLibraryAccessTest extends TestCase
         $owner = User::factory()->create();
         $owner->assignRole('teacher');
 
-        config(['week14.legacy_library_owner_user_ids' => [$owner->id]]);
+        config(['toquran.legacy_library_owner_user_ids' => [$owner->id]]);
 
         $this->assertTrue(app(LegacyLibraryAccessService::class)->canAccessLegacyLibrary($owner));
     }
@@ -45,7 +45,7 @@ class LegacyLibraryAccessTest extends TestCase
         $teacher = User::factory()->create();
         $teacher->assignRole('teacher');
 
-        config(['week14.legacy_library_owner_user_ids' => []]);
+        config(['toquran.legacy_library_owner_user_ids' => []]);
 
         $this->assertFalse(app(LegacyLibraryAccessService::class)->canAccessLegacyLibrary($teacher));
 
@@ -62,7 +62,7 @@ class LegacyLibraryAccessTest extends TestCase
         $unrelatedTeacher = User::factory()->create();
         $unrelatedTeacher->assignRole('teacher');
 
-        config(['week14.legacy_library_owner_user_ids' => [$owner->id]]);
+        config(['toquran.legacy_library_owner_user_ids' => [$owner->id]]);
 
         $this->assertFalse(app(LegacyLibraryAccessService::class)->canAccessLegacyLibrary($unrelatedTeacher));
     }
@@ -75,7 +75,7 @@ class LegacyLibraryAccessTest extends TestCase
         $unrelatedTeacher = User::factory()->create();
         $unrelatedTeacher->assignRole('teacher');
 
-        config(['week14.legacy_library_owner_user_ids' => [$owner->id]]);
+        config(['toquran.legacy_library_owner_user_ids' => [$owner->id]]);
 
         $this->actingAs($unrelatedTeacher)
             ->get('/course/sat')
@@ -87,7 +87,7 @@ class LegacyLibraryAccessTest extends TestCase
         $admin = User::factory()->create(['name' => 'Support Admin']);
         $admin->assignRole('admin');
 
-        config(['week14.legacy_library_owner_user_ids' => [999999]]);
+        config(['toquran.legacy_library_owner_user_ids' => [999999]]);
 
         $this->assertFalse(app(LegacyLibraryAccessService::class)->canAccessLegacyLibrary($admin));
 
@@ -101,7 +101,7 @@ class LegacyLibraryAccessTest extends TestCase
         $admin = User::factory()->create(['name' => 'Configured Admin Owner']);
         $admin->assignRole('admin');
 
-        config(['week14.legacy_library_owner_user_ids' => [$admin->id]]);
+        config(['toquran.legacy_library_owner_user_ids' => [$admin->id]]);
 
         $this->assertTrue(app(LegacyLibraryAccessService::class)->canAccessLegacyLibrary($admin));
 
@@ -110,7 +110,7 @@ class LegacyLibraryAccessTest extends TestCase
             ->assertOk();
     }
 
-    public function test_parent_teacher_multi_role_is_not_blocked_from_learner_legacy_routes_by_teacher_role(): void
+    public function test_parent_teacher_multi_role_is_blocked_from_legacy_library_routes_when_not_configured_owner(): void
     {
         $owner = User::factory()->create();
         $owner->assignRole('teacher');
@@ -118,17 +118,17 @@ class LegacyLibraryAccessTest extends TestCase
         $parentTeacher = User::factory()->create();
         $parentTeacher->assignRole(['parent', 'teacher']);
 
-        config(['week14.legacy_library_owner_user_ids' => [$owner->id]]);
+        config(['toquran.legacy_library_owner_user_ids' => [$owner->id]]);
 
         $request = Request::create('/course/sat');
         $request->setUserResolver(fn (): User => $parentTeacher);
 
-        $response = app(EnsureLegacyLibraryAccess::class)->handle(
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        app(EnsureLegacyLibraryAccess::class)->handle(
             $request,
             fn () => response('ok')
         );
-
-        $this->assertSame('ok', $response->getContent());
     }
 
     public function test_authenticated_user_without_lms_role_is_denied_legacy_library_route_directly(): void

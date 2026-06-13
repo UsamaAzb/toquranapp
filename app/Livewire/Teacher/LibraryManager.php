@@ -35,8 +35,8 @@ class LibraryManager extends Component
     ];
 
     protected array $messages = [
-        'resourceFiles.*.max' => 'Each Library file must be 500 MB or smaller.',
-        'editingResourceFile.max' => 'Library files must be 500 MB or smaller.',
+        'resourceFiles.*.max' => 'Each Library file must be 50 MB or smaller.',
+        'editingResourceFile.max' => 'Library files must be 50 MB or smaller.',
         'resourceFiles.*.uploaded' => 'The selected files did not finish uploading, so none were kept. Select them again and try once more.',
         'editingResourceFile.uploaded' => 'The replacement file did not finish uploading. Select it again and try once more.',
     ];

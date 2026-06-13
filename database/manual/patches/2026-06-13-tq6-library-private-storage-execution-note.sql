@@ -1,0 +1,30 @@
+-- TQ6 Library private-storage execution note
+-- Date: 2026-06-13
+-- Repo: D:\xampp\htdocs\toquranapp
+-- Target DB confirmed by Laravel bootstrap: u504065335_to_quran
+-- Backup evidence:
+--   database/manual/backups/2026-06-13-155055-u504065335_to_quran-before-tq6-library-hardening.sql
+--
+-- Purpose:
+--   Move current local general Library file-source originals from the public disk
+--   to Laravel's local/private disk. Assigned task snapshots remain separate
+--   public attachment_files copies.
+--
+-- Execution:
+--   A guarded Laravel bootstrap script refused any database other than
+--   u504065335_to_quran, copied each file resource from
+--   storage/app/public/general-library-resources/* to
+--   storage/app/private/general-library-resources/*, updated
+--   general_library_resources.storage_disk from public to local, and deleted the
+--   old public original when no attachment_files row still referenced the
+--   original source path.
+--
+-- Result:
+--   Moved originals to local disk: 8
+--   Public originals kept for existing direct snapshots: 0
+--
+-- Verification query:
+--   SELECT COUNT(*) AS public_general_library_file_rows
+--   FROM general_library_resources
+--   WHERE resource_type = 'file'
+--     AND storage_disk = 'public';

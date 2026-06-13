@@ -6,6 +6,7 @@ use App\Helpers\Helpers;
 use App\Http\Controllers\VocabularyAssignmentController;
 use App\Models\AttachmentFile;
 use App\Models\ClassSession;
+use App\Models\GeneralLibraryResource;
 use App\Models\LibraryResource;
 use App\Models\SessionMaterial;
 use App\Models\SessionTask;
@@ -13,6 +14,7 @@ use App\Models\TaskType;
 use App\Models\VocabularyGameAssignment;
 use App\Models\VocabularySet;
 use App\Services\Library\LegacyLibraryTaskResourceCatalog;
+use App\Services\Library\GeneralLibraryAttachmentAdapter;
 use App\Services\Library\LibraryFileRetentionService;
 use App\Services\Library\LibraryResourceAttachmentWriter;
 use App\Services\Library\LibraryResourceQuery;
@@ -1745,9 +1747,16 @@ class ShowSessionTask extends Component
             ->unique()
             ->values()
             ->all();
+        $generalResourceIds = collect($requestedIds)
+            ->filter(fn ($id): bool => is_string($id) && str_starts_with($id, GeneralLibraryAttachmentAdapter::GENERAL_PREFIX))
+            ->map(fn (string $id): int => (int) substr($id, strlen(GeneralLibraryAttachmentAdapter::GENERAL_PREFIX)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
         $activeSectionIds = app(LibraryResourceQuery::class)->activeSectionIdsForOwner((int) Auth::id(), $subjectId);
 
-        if ($activeSectionIds === [] && $legacyResourceIds === []) {
+        if ($activeSectionIds === [] && $legacyResourceIds === [] && $generalResourceIds === []) {
             $this->selectedLibraryResourceIds = [];
             $this->selectedLibraryResources = [];
             $this->syncAttachmentDraftOrder();
@@ -1775,6 +1784,24 @@ class ShowSessionTask extends Component
                     : (string) parse_url((string) $resource->external_url, PHP_URL_HOST),
             ])
             ->all();
+
+        $generalResources = Schema::hasTable('general_library_resources')
+            ? GeneralLibraryResource::query()
+            ->whereIn('id', $generalResourceIds)
+            ->where('status', GeneralLibraryResource::STATUS_ACTIVE)
+            ->get()
+            ->map(fn (GeneralLibraryResource $resource): array => [
+                'id' => GeneralLibraryAttachmentAdapter::GENERAL_PREFIX.$resource->id,
+                'title' => (string) $resource->title,
+                'type' => (string) $resource->resource_type,
+                'detail' => (string) ($resource->folder?->title ?? 'Shared Library'),
+            ])
+            ->all()
+            : [];
+
+        foreach ($generalResources as $resource) {
+            $selectedResources[] = $resource;
+        }
 
         $legacyResources = app(LegacyLibraryTaskResourceCatalog::class)
             ->findManyForSubject(Auth::user(), $subjectId, $legacyResourceIds);

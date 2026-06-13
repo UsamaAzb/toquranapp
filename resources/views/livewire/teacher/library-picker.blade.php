@@ -171,7 +171,7 @@
                 @endif
               </div>
 
-              @if((blank($search) && ($sections->isNotEmpty() || (($legacyFolderAvailable || $vocabularyFolderAvailable) && ! $showLegacySources && $currentSection === null))) || $legacyTypes || $legacyCollections)
+              @if((blank($search) && ($sections->isNotEmpty() || $generalFolders->isNotEmpty() || (($legacyFolderAvailable || $vocabularyFolderAvailable) && ! $showLegacySources && $currentSection === null))) || $legacyTypes || $legacyCollections)
                 <div class="mb-4">
                   <div class="small fw-semibold text-body-secondary mb-2">Folders</div>
                   <div class="library-picker-grid">
@@ -214,6 +214,22 @@
                         </div>
                         <div class="library-picker-actions">
                           <button type="button" class="btn btn-sm btn-outline-primary" wire:click="enterSection({{ $section->id }})">
+                            Open
+                          </button>
+                        </div>
+                      </div>
+                    @endforeach
+                    @foreach($generalFolders as $folder)
+                      <div class="library-picker-row" wire:key="picker-general-folder-{{ $folder->id }}">
+                        <span class="badge bg-label-primary">Folder</span>
+                        <div class="library-picker-title">
+                          <div class="fw-semibold text-truncate">{{ $folder->title }}</div>
+                          @if($folder->description)
+                            <div class="small text-body-secondary text-truncate">{{ $folder->description }}</div>
+                          @endif
+                        </div>
+                        <div class="library-picker-actions">
+                          <button type="button" class="btn btn-sm btn-outline-primary" wire:click="enterGeneralFolder({{ $folder->id }})">
                             Open
                           </button>
                         </div>
@@ -268,7 +284,7 @@
                 </div>
               @endif
 
-              @if($resources->isNotEmpty() || ! empty($legacyResources) || $currentSection || $legacyCollectionChosen || filled($search))
+              @if($resources->isNotEmpty() || $generalResources->isNotEmpty() || ! empty($legacyResources) || $currentSection || $legacyCollectionChosen || filled($search))
               <div>
                 <div class="small fw-semibold text-body-secondary mb-2">Resources</div>
                 <div class="library-picker-grid">
@@ -282,6 +298,22 @@
                         </div>
                         <div class="small text-body-secondary text-truncate">
                           {{ $resource->section?->title ?? 'Library' }}
+                        </div>
+                      </span>
+                    </label>
+                  @endforeach
+
+                  @foreach($generalResources as $resource)
+                    @php($generalSelectionId = 'general__'.$resource->id)
+                    <label class="library-picker-row" wire:key="picker-general-resource-{{ $resource->id }}" for="library-picker-general-resource-{{ $resource->id }}">
+                      <input id="library-picker-general-resource-{{ $resource->id }}" class="form-check-input" type="checkbox" wire:model="selected.{{ $generalSelectionId }}" aria-label="Select {{ $resource->title }}">
+                      <span class="library-picker-title">
+                        <div class="d-flex align-items-center gap-2">
+                          <span class="fw-semibold text-truncate">{{ $resource->title }}</span>
+                          <span class="badge bg-label-primary">{{ $resource->resource_type }}</span>
+                        </div>
+                        <div class="small text-body-secondary text-truncate">
+                          {{ $resource->folder?->title ?? 'Shared Library' }}
                         </div>
                       </span>
                     </label>
@@ -304,7 +336,7 @@
                     </label>
                   @endforeach
 
-                  @if($resources->isEmpty() && empty($legacyResources))
+                  @if($resources->isEmpty() && $generalResources->isEmpty() && empty($legacyResources))
                     <div class="text-body-secondary small border rounded p-3 bg-body">No active resources found here.</div>
                   @endif
                 </div>

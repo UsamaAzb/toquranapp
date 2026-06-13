@@ -5,12 +5,15 @@ namespace Tests\Unit;
 use App\Models\ClassSession;
 use App\Models\SessionTask;
 use App\Models\User;
+use App\Services\Library\GeneralLibraryAttachmentAdapter;
 use App\Services\Library\LibraryResourceAttachmentWriter;
 use App\Support\BookingSubjectProvisioning;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class LibraryResourceAttachmentWriterTest extends TestCase
@@ -28,6 +31,9 @@ class LibraryResourceAttachmentWriterTest extends TestCase
 
     public function test_it_snapshots_active_library_resources_into_attachment_files(): void
     {
+        Storage::fake('public');
+        Storage::disk('public')->put('library-resources/source.pdf', 'legacy pdf');
+
         $this->seedFixture();
 
         $task = SessionTask::query()->findOrFail(51);
@@ -82,9 +88,95 @@ class LibraryResourceAttachmentWriterTest extends TestCase
         ]);
     }
 
+    public function test_it_snapshots_general_library_resources_into_attachment_files(): void
+    {
+        $this->seedFixture();
+        $teacher = User::factory()->create(['id' => 10]);
+        Role::findOrCreate('teacher', 'web');
+        $teacher->assignRole('teacher');
+
+        DB::table('general_library_resources')->insert([
+            'id' => 910,
+            'general_library_folder_id' => null,
+            'resource_type' => 'youtube',
+            'title' => 'Shared Quran Repetition',
+            'description' => 'Shared by the general Library',
+            'status' => 'active',
+            'external_url' => 'https://youtu.be/C7GFY46e__g',
+            'sort_order' => 10,
+            'created_by_user_id' => 10,
+            'updated_by_user_id' => 10,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $created = app(LibraryResourceAttachmentWriter::class)->writeForTask(
+            SessionTask::query()->findOrFail(51),
+            ClassSession::query()->findOrFail(21),
+            [GeneralLibraryAttachmentAdapter::GENERAL_PREFIX.'910'],
+            10
+        );
+
+        $this->assertSame(1, $created);
+        $this->assertDatabaseHas('attachment_files', [
+            'session_task_id' => 51,
+            'title' => 'Shared Quran Repetition',
+            'type' => 'youtube',
+            'path' => 'https://www.youtube.com/embed/C7GFY46e__g',
+        ]);
+    }
+
+    public function test_it_copies_general_library_files_into_task_attachment_snapshots(): void
+    {
+        Storage::fake('local');
+        Storage::fake('public');
+        Storage::disk('local')->put('general-library-resources/makharij.pdf', 'private source pdf');
+
+        $this->seedFixture();
+        $teacher = User::factory()->create(['id' => 10]);
+        Role::findOrCreate('teacher', 'web');
+        $teacher->assignRole('teacher');
+
+        DB::table('general_library_resources')->insert([
+            'id' => 911,
+            'general_library_folder_id' => null,
+            'resource_type' => 'file',
+            'title' => 'Makharij PDF',
+            'description' => 'Private Library source',
+            'status' => 'active',
+            'storage_disk' => 'local',
+            'file_path' => 'general-library-resources/makharij.pdf',
+            'original_filename' => 'makharij.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size' => 18,
+            'sort_order' => 10,
+            'created_by_user_id' => 10,
+            'updated_by_user_id' => 10,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $created = app(LibraryResourceAttachmentWriter::class)->writeForTask(
+            SessionTask::query()->findOrFail(51),
+            ClassSession::query()->findOrFail(21),
+            [GeneralLibraryAttachmentAdapter::GENERAL_PREFIX.'911'],
+            10
+        );
+
+        $this->assertSame(1, $created);
+        $snapshotPath = (string) DB::table('attachment_files')
+            ->where('session_task_id', 51)
+            ->where('title', 'Makharij PDF')
+            ->value('path');
+
+        $this->assertStringStartsWith('attachments/general-library-resource-911/', $snapshotPath);
+        Storage::disk('public')->assertExists($snapshotPath);
+        Storage::disk('local')->assertExists('general-library-resources/makharij.pdf');
+    }
+
     public function test_it_snapshots_legacy_library_sources_as_link_attachments(): void
     {
-        config(['week14.legacy_library_owner_user_ids' => [10]]);
+        config(['toquran.legacy_library_owner_user_ids' => [10]]);
         User::factory()->create(['id' => 10]);
         $this->seedFixture();
 
@@ -110,7 +202,7 @@ class LibraryResourceAttachmentWriterTest extends TestCase
 
     public function test_it_materializes_vocabulary_games_from_library_picker_selection(): void
     {
-        config(['week14.legacy_library_owner_user_ids' => [10]]);
+        config(['toquran.legacy_library_owner_user_ids' => [10]]);
         User::factory()->create(['id' => 10]);
         $this->seedFixture();
 
@@ -178,7 +270,7 @@ class LibraryResourceAttachmentWriterTest extends TestCase
 
     public function test_it_preserves_mixed_new_and_legacy_selection_order(): void
     {
-        config(['week14.legacy_library_owner_user_ids' => [10]]);
+        config(['toquran.legacy_library_owner_user_ids' => [10]]);
         User::factory()->create(['id' => 10]);
         $this->seedFixture();
 
@@ -574,6 +666,41 @@ class LibraryResourceAttachmentWriterTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::create('general_library_folders', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->string('status')->default('active');
+            $table->string('source_label')->nullable();
+            $table->string('content_mode')->default('mixed');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->unsignedBigInteger('created_by_user_id');
+            $table->unsignedBigInteger('updated_by_user_id')->nullable();
+            $table->timestamp('archived_at')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('general_library_resources', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('general_library_folder_id')->nullable();
+            $table->string('resource_type');
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->string('status')->default('active');
+            $table->string('source_label')->nullable();
+            $table->string('storage_disk')->nullable();
+            $table->string('file_path', 2048)->nullable();
+            $table->string('original_filename')->nullable();
+            $table->string('mime_type')->nullable();
+            $table->unsignedBigInteger('file_size')->nullable();
+            $table->string('external_url', 2048)->nullable();
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->unsignedBigInteger('created_by_user_id');
+            $table->unsignedBigInteger('updated_by_user_id')->nullable();
+            $table->timestamp('archived_at')->nullable();
+            $table->timestamps();
+        });
         Schema::create('vocabulary_sets', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('parent_id')->nullable();

@@ -87,6 +87,14 @@ $canAccessTransferredFamilies = auth()->check() && $user?->hasAnyRole(['admin', 
               <div>Teacher Assignments</div>
             </a>
           </li>
+          <li class="menu-item {{ $currentRouteName === 'admin.library.index' || str_starts_with($currentPath, 'admin/library') ? 'active' : '' }}">
+            <a href="{{ route('admin.library.index') }}"
+               class="menu-link"
+            >
+              <i class="menu-icon icon-base ti tabler-library"></i>
+              <div>Library</div>
+            </a>
+          </li>
            <li class="menu-item {{ str_starts_with($currentPath, 'admin/calendar') ? 'active' : '' }}">
             <a href="{{url('admin/calendar')}}"
                class="menu-link"

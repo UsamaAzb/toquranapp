@@ -15,11 +15,7 @@ class EnsureLegacyLibraryAccess
 
         abort_unless($user, 403);
 
-        if ($user->hasAnyRole(['student', 'parent'])) {
-            return $next($request);
-        }
-
-        if ($user->hasAnyRole(['teacher', 'admin'])) {
+        if ($user->hasAnyRole(['teacher', 'admin', 'super_admin'])) {
             abort_unless(app(LegacyLibraryAccessService::class)->canAccessLegacyLibrary($user), 403);
 
             return $next($request);

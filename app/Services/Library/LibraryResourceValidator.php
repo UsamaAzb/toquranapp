@@ -9,28 +9,20 @@ use Illuminate\Validation\ValidationException;
 
 class LibraryResourceValidator
 {
-    public const MAX_UPLOAD_KB = 512000;
+    public const MAX_UPLOAD_KB = 51200;
 
     public const ALLOWED_EXTENSIONS = [
         'pdf',
-        'doc',
-        'docx',
-        'ppt',
-        'pptx',
-        'xls',
-        'xlsx',
         'jpg',
         'jpeg',
         'png',
         'webp',
         'gif',
         'mp4',
-        'mov',
-        'm4v',
-        'webm',
-        'ogg',
         'mp3',
+        'm4a',
         'wav',
+        'webm',
     ];
 
     public static function allowedExtensions(): array
@@ -88,6 +80,12 @@ class LibraryResourceValidator
 
     public function validateFileUpload(UploadedFile $file): void
     {
+        if (! $file->isValid()) {
+            throw ValidationException::withMessages([
+                'file' => 'The Library file could not be uploaded. Please choose it again.',
+            ]);
+        }
+
         $extension = strtolower((string) $file->getClientOriginalExtension());
 
         if (! in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
@@ -98,7 +96,7 @@ class LibraryResourceValidator
 
         if ($file->getSize() > self::MAX_UPLOAD_KB * 1024) {
             throw ValidationException::withMessages([
-                'file' => 'Library files must be 500 MB or smaller.',
+                'file' => 'Library files must be 50 MB or smaller.',
             ]);
         }
     }
