@@ -58,6 +58,11 @@ class GeneralLibraryFolder extends Model
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by_user_id');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE);

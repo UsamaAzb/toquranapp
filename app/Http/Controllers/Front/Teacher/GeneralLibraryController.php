@@ -605,7 +605,6 @@ class GeneralLibraryController extends Controller
 
     private function storeBatchResources(Request $request, array $payload, ?int $folderId): RedirectResponse
     {
-        $validator = app(LibraryResourceValidator::class);
         $created = 0;
         $nextSortOrder = $this->nextResourceSortOrder($folderId);
         $description = $this->cleanNullableText($payload['description'] ?? null);

@@ -10,6 +10,10 @@ class GeneralLibraryAttachmentAdapter
 {
     public const GENERAL_PREFIX = 'general__';
 
+    public function __construct(
+        private readonly GeneralLibraryAccessService $accessService
+    ) {}
+
     public function attachmentAttributesFor(string $resourceId, int $ownerUserId): ?array
     {
         if (str_starts_with($resourceId, self::GENERAL_PREFIX)) {
@@ -32,7 +36,7 @@ class GeneralLibraryAttachmentAdapter
             ->where('status', GeneralLibraryResource::STATUS_ACTIVE)
             ->first();
 
-        if (! $user || ! $resource || ! app(GeneralLibraryAccessService::class)->canUseResource($user, $resource)) {
+        if (! $user || ! $resource || ! $this->accessService->canUseResource($user, $resource)) {
             return null;
         }
 

@@ -25,6 +25,8 @@ class CleanupGeneralLibraryTempUploads extends Command
 
             if ($disk->delete($path)) {
                 $deleted++;
+            } else {
+                $this->warn("Failed to delete: {$path}");
             }
         }
 
