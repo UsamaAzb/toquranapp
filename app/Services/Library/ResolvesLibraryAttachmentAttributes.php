@@ -3,15 +3,19 @@
 namespace App\Services\Library;
 
 use App\Models\LibraryResource;
-use App\Models\User;
-use App\Services\SeriesLibrarySourceResolver;
-use App\Services\Vocabulary\VocabularyGameAttachmentBuilder;
 use Illuminate\Support\Collection;
 
 trait ResolvesLibraryAttachmentAttributes
 {
     protected function attachmentAttributesForResourceId(string $resourceId, int $ownerUserId, int $subjectId): ?array
     {
+        $generalAttributes = app(GeneralLibraryAttachmentSnapshotter::class)
+            ->snapshotAttributesForSelection($resourceId, $ownerUserId);
+
+        if ($generalAttributes !== null) {
+            return $generalAttributes;
+        }
+
         if (is_numeric($resourceId)) {
             $resource = $this->eligibleResources([(int) $resourceId], $ownerUserId, $subjectId)->first();
 
@@ -20,44 +24,7 @@ trait ResolvesLibraryAttachmentAttributes
                 : null;
         }
 
-        if (! str_starts_with($resourceId, 'series__')) {
-            return null;
-        }
-
-        $owner = User::query()->find($ownerUserId);
-        if ($owner === null) {
-            return null;
-        }
-
-        $resource = collect(app(LegacyLibraryTaskResourceCatalog::class)->findManyForSubject(
-            $owner,
-            $subjectId,
-            [$resourceId]
-        ))->first();
-
-        if (! is_array($resource)) {
-            return null;
-        }
-
-        if (($resource['source_type'] ?? '') === SeriesLibrarySourceResolver::SOURCE_VOCABULARY_LIST) {
-            return [
-                'type' => 'link',
-                'title' => 'Vocab Game: '.(string) $resource['title'],
-                'description' => $resource['description'] ?: null,
-                'path' => VocabularyGameAttachmentBuilder::sourcePath((int) $resource['source_id']),
-                'url' => null,
-                'file_size' => null,
-            ];
-        }
-
-        return [
-            'type' => 'link',
-            'title' => (string) $resource['title'],
-            'description' => $resource['description'] ?: null,
-            'path' => null,
-            'url' => (string) $resource['url'],
-            'file_size' => null,
-        ];
+        return null;
     }
 
     /**

@@ -3,8 +3,8 @@
 namespace App\Livewire\Teacher;
 
 use App\Models\ClassSession;
-use App\Models\LibraryResource;
-use App\Models\LibrarySection;
+use App\Models\GeneralLibraryFolder;
+use App\Models\GeneralLibraryResource;
 use App\Models\SeriesTask;
 use App\Models\SeriesTaskVersion;
 use App\Models\SeriesTaskVersionItem;
@@ -12,6 +12,7 @@ use App\Models\Subject;
 use App\Models\TaskType;
 use App\Models\TeacherSubjectClass;
 use App\Models\VocabularyGameAssignment;
+use App\Services\Library\GeneralLibraryAccessService;
 use App\Services\SeriesLibrarySourceResolver;
 use App\Services\SeriesTaskPublishValidator;
 use Illuminate\Support\Facades\Auth;
@@ -179,7 +180,7 @@ class SeriesTasksBoard extends Component
 
     public function enterCollectionType(string $type): void
     {
-        if ($type === SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION) {
+        if ($type === SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER) {
             return;
         }
 
@@ -208,16 +209,17 @@ class SeriesTasksBoard extends Component
 
     public function enterLibrarySection(int $sectionId): void
     {
-        $section = $this->ownedLibrarySectionQuery()
-            ->whereKey($sectionId)
-            ->first();
+        $section = collect($this->collections)->firstWhere(
+            'key',
+            $this->collectionKey(SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER, $sectionId)
+        );
 
-        if (! $section instanceof LibrarySection) {
+        if (! is_array($section)) {
             return;
         }
 
-        $this->collectionPickerType = SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION;
-        $this->libraryPickerSectionId = (int) $section->id;
+        $this->collectionPickerType = SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER;
+        $this->libraryPickerSectionId = $sectionId;
         $this->collectionSearch = '';
         $this->refreshCollectionOptions();
     }
@@ -241,12 +243,12 @@ class SeriesTasksBoard extends Component
 
     public function goToCollectionTypes(): void
     {
-        if ($this->collectionPickerType === SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION) {
+        if ($this->collectionPickerType === SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER) {
             $parentId = $this->libraryPickerCurrentSection['parent_id'] ?? null;
             $this->libraryPickerSectionId = $parentId === null ? null : (int) $parentId;
             $this->collectionPickerType = $this->libraryPickerSectionId === null
                 ? null
-                : SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION;
+                : SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER;
             $this->collectionSearch = '';
             $this->refreshCollectionOptions();
 
@@ -314,7 +316,7 @@ class SeriesTasksBoard extends Component
     {
         [$collectionType, $collectionId] = $this->parseCollectionKey($collectionKey);
 
-        if (! app(SeriesLibrarySourceResolver::class)->sourceIsSelectable(
+        if (! app(SeriesLibrarySourceResolver::class)->sourceIsSelectableForSeriesLaunch(
             $collectionType,
             $collectionId,
             (int) Auth::id(),
@@ -610,7 +612,9 @@ class SeriesTasksBoard extends Component
 
         $availableItems = collect($sourceResolver->orderedItems(
             (string) $task->library_collection_type,
-            $task->library_collection_id === null ? null : (int) $task->library_collection_id
+            $task->library_collection_id === null ? null : (int) $task->library_collection_id,
+            (int) Auth::id(),
+            $this->subjectId
         ))->keyBy(fn ($item): string => $this->itemKey($item->sourceType, $item->sourceId));
 
         $selectedItemKeys = collect($selectedItemKeys)
@@ -685,7 +689,9 @@ class SeriesTasksBoard extends Component
 
         $this->itemSelections[$versionId] = collect(app(SeriesLibrarySourceResolver::class)->orderedItems(
             (string) $task->library_collection_type,
-            $task->library_collection_id === null ? null : (int) $task->library_collection_id
+            $task->library_collection_id === null ? null : (int) $task->library_collection_id,
+            (int) Auth::id(),
+            $this->subjectId
         ))
             ->mapWithKeys(fn ($item): array => [$this->itemKey($item->sourceType, $item->sourceId) => true])
             ->all();
@@ -701,7 +707,9 @@ class SeriesTasksBoard extends Component
 
         $this->itemSelections[$versionId] = collect(app(SeriesLibrarySourceResolver::class)->orderedItems(
             (string) $task->library_collection_type,
-            $task->library_collection_id === null ? null : (int) $task->library_collection_id
+            $task->library_collection_id === null ? null : (int) $task->library_collection_id,
+            (int) Auth::id(),
+            $this->subjectId
         ))
             ->mapWithKeys(fn ($item): array => [$this->itemKey($item->sourceType, $item->sourceId) => false])
             ->all();
@@ -717,7 +725,7 @@ class SeriesTasksBoard extends Component
         $this->expandedVersions[$versionId] = true;
 
         [$sourceType, $sourceId] = $this->parseItemKey($itemKey);
-        $item = $sourceId ? $sourceResolver->resolveItem($sourceType, $sourceId) : null;
+        $item = $sourceId ? $sourceResolver->resolveItem($sourceType, $sourceId, (int) Auth::id()) : null;
 
         if (! $item || ! $this->seriesItemHasSafeDeliveryTarget($item)) {
             Validator::make([], [])->after(function ($validator): void {
@@ -878,6 +886,7 @@ class SeriesTasksBoard extends Component
             'tasks' => $tasks,
             'libraryItemsByTask' => $this->libraryItemsByTask($tasks, $sourceResolver),
             'sourceLabelsByTask' => $this->sourceLabelsByTask($tasks),
+            'legacySourceWarningsByTask' => $this->legacySourceWarningsByTask($tasks),
             'collectionPickerState' => $this->collectionPickerState(),
         ]);
     }
@@ -899,7 +908,7 @@ class SeriesTasksBoard extends Component
             ->values();
 
         $localSourceCollections = $filteredSources
-            ->filter(fn (array $collection): bool => $collection['type'] === SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION)
+            ->filter(fn (array $collection): bool => $collection['type'] === SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER)
             ->values();
 
         $vocabularySourceGroup = $filteredSources
@@ -908,7 +917,7 @@ class SeriesTasksBoard extends Component
 
         $legacySourceGroups = $filteredSources
             ->filter(fn (array $collection): bool => ! in_array($collection['type'], [
-                SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION,
+                SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER,
                 SeriesLibrarySourceResolver::TYPE_VOCABULARY,
             ], true))
             ->groupBy('type');
@@ -981,7 +990,9 @@ class SeriesTasksBoard extends Component
 
         $availableItems = collect(app(SeriesLibrarySourceResolver::class)->orderedItems(
             (string) $task->library_collection_type,
-            $task->library_collection_id === null ? null : (int) $task->library_collection_id
+            $task->library_collection_id === null ? null : (int) $task->library_collection_id,
+            (int) Auth::id(),
+            $this->subjectId
         ));
         $selectedKeys = $version->items
             ->map(fn (SeriesTaskVersionItem $item): string => $this->itemKey(
@@ -1072,7 +1083,7 @@ class SeriesTasksBoard extends Component
             })->validate();
         }
 
-        if (! app(SeriesLibrarySourceResolver::class)->sourceIsSelectable(
+        if (! app(SeriesLibrarySourceResolver::class)->sourceIsSelectableForSeriesLaunch(
             $collectionType,
             $collectionId,
             (int) Auth::id(),
@@ -1216,7 +1227,9 @@ class SeriesTasksBoard extends Component
         foreach ($tasks as $task) {
             $items[$task->id] = collect($sourceResolver->orderedItems(
                 (string) $task->library_collection_type,
-                $task->library_collection_id === null ? null : (int) $task->library_collection_id
+                $task->library_collection_id === null ? null : (int) $task->library_collection_id,
+                (int) Auth::id(),
+                $this->subjectId
             ))
                 ->map(fn ($item): array => [
                     'key' => $this->itemKey($item->sourceType, $item->sourceId),
@@ -1233,7 +1246,7 @@ class SeriesTasksBoard extends Component
     private function sourceLabelsByTask($tasks): array
     {
         $librarySectionIds = $tasks
-            ->filter(fn (SeriesTask $task): bool => (string) $task->library_collection_type === SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION)
+            ->filter(fn (SeriesTask $task): bool => (string) $task->library_collection_type === SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER)
             ->pluck('library_collection_id')
             ->filter()
             ->map(fn ($id): int => (int) $id)
@@ -1241,22 +1254,55 @@ class SeriesTasksBoard extends Component
             ->values();
         $librarySectionTitles = $librarySectionIds->isEmpty()
             ? collect()
-            : LibrarySection::query()
+            : GeneralLibraryFolder::query()
                 ->whereIn('id', $librarySectionIds->all())
-                ->where('owner_user_id', Auth::id())
-                ->where('subject_id', $this->subjectId)
+                ->where('status', GeneralLibraryFolder::STATUS_ACTIVE)
                 ->pluck('title', 'id');
         $labels = [];
 
         foreach ($tasks as $task) {
             $type = (string) $task->library_collection_type;
 
-            $labels[(int) $task->id] = $type === SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION
-                ? (string) ($librarySectionTitles[(int) $task->library_collection_id] ?? 'Library folder')
+            $labels[(int) $task->id] = $type === SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER
+                ? (string) ($librarySectionTitles[(int) $task->library_collection_id] ?? 'Shared Library folder')
                 : $this->collectionTypeLabel($type);
         }
 
         return $labels;
+    }
+
+    private function legacySourceWarningsByTask($tasks): array
+    {
+        $warnings = [];
+
+        foreach ($tasks as $task) {
+            if ((string) $task->library_collection_type !== SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER) {
+                $warnings[(int) $task->id] = $this->legacySourceWarningText($this->collectionTypeLabel((string) $task->library_collection_type));
+
+                continue;
+            }
+
+            $legacyItemTypes = $task->versions
+                ->flatMap(fn (SeriesTaskVersion $version) => $version->items)
+                ->filter(fn (SeriesTaskVersionItem $item): bool => (string) $item->library_source_type !== SeriesLibrarySourceResolver::SOURCE_GENERAL_LIBRARY_RESOURCE)
+                ->map(fn (SeriesTaskVersionItem $item): string => $this->collectionTypeLabel((string) $item->library_source_type))
+                ->unique()
+                ->values();
+
+            if ($legacyItemTypes->isNotEmpty()) {
+                $warnings[(int) $task->id] = $this->legacySourceWarningText($legacyItemTypes->implode(', '));
+            }
+        }
+
+        return $warnings;
+    }
+
+    private function legacySourceWarningText(string $legacySourceLabel): string
+    {
+        return sprintf(
+            '%s is an old Week14 source. New student work will stay paused until this Series Task is recreated with Shared Library sources.',
+            $legacySourceLabel
+        );
     }
 
     private function collectionOptions(SeriesLibrarySourceResolver $sourceResolver): array
@@ -1291,40 +1337,43 @@ class SeriesTasksBoard extends Component
 
     private function librarySectionSummary(int $sectionId): ?array
     {
-        $section = $this->ownedLibrarySectionQuery()
+        $section = $this->usableGeneralLibraryFolderQuery()
             ->whereKey($sectionId)
             ->first(['id', 'parent_id', 'title']);
 
-        if (! $section instanceof LibrarySection) {
+        if (! $section instanceof GeneralLibraryFolder) {
             return null;
         }
 
-        $directResourceCount = LibraryResource::query()
-            ->where('library_section_id', $section->id)
-            ->where('status', LibraryResource::STATUS_ACTIVE)
+        if (! app(GeneralLibraryAccessService::class)->canUseFolder(Auth::user(), $section)) {
+            return null;
+        }
+
+        $directResourceCount = GeneralLibraryResource::query()
+            ->where('general_library_folder_id', $section->id)
+            ->where('status', GeneralLibraryResource::STATUS_ACTIVE)
             ->count();
 
         return [
             'id' => (int) $section->id,
             'parent_id' => $section->parent_id === null ? null : (int) $section->parent_id,
             'title' => (string) $section->title,
-            'key' => $this->collectionKey(SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION, (int) $section->id),
+            'key' => $this->collectionKey(SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER, (int) $section->id),
             'selectable' => $directResourceCount > 0,
             'direct_resource_count' => $directResourceCount,
         ];
     }
 
-    private function ownedLibrarySectionQuery()
+    private function usableGeneralLibraryFolderQuery()
     {
-        return LibrarySection::query()
-            ->where('owner_user_id', Auth::id())
-            ->where('subject_id', $this->subjectId)
-            ->where('status', LibrarySection::STATUS_ACTIVE);
+        return GeneralLibraryFolder::query()
+            ->where('status', GeneralLibraryFolder::STATUS_ACTIVE);
     }
 
     private function collectionTypeLabel(string $type): string
     {
         return match ($type) {
+            SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER => 'Shared Library',
             SeriesLibrarySourceResolver::TYPE_LIBRARY_SECTION => 'My Library folders',
             SeriesLibrarySourceResolver::TYPE_VOCABULARY => 'Vocabulary',
             SeriesLibrarySourceResolver::TYPE_SAT => 'SAT',

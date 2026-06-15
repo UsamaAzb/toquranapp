@@ -161,9 +161,22 @@ class SeriesTaskPublisher
                         return;
                     }
 
+                    if (! $this->seriesSourceIsLaunchAllowed($task, $versionItem)) {
+                        Log::warning('Series Task generation blocked by legacy Library source.', [
+                            'series_task_id' => $task->id,
+                            'version_item_id' => $versionItem->id,
+                            'student_id' => $studentId,
+                            'generated_for_date' => $candidateDate->toDateString(),
+                        ]);
+                        $this->pauseThroughDate($lockedState->id, $candidateDate);
+
+                        return;
+                    }
+
                     $resolved = $this->sourceResolver->resolveItem(
                         (string) $versionItem->library_source_type,
-                        (int) $versionItem->library_source_id
+                        (int) $versionItem->library_source_id,
+                        (int) $task->created_by_user_id
                     );
 
                     if (
@@ -260,6 +273,29 @@ class SeriesTaskPublisher
         }
 
         return null;
+    }
+
+    private function seriesSourceIsLaunchAllowed(SeriesTask $task, SeriesTaskVersionItem $versionItem): bool
+    {
+        $collectionType = (string) $task->library_collection_type;
+        $collectionId = $task->library_collection_id === null ? null : (int) $task->library_collection_id;
+        $sourceType = (string) $versionItem->library_source_type;
+        $sourceId = (int) $versionItem->library_source_id;
+
+        return $collectionType === SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER
+            && $sourceType === SeriesLibrarySourceResolver::SOURCE_GENERAL_LIBRARY_RESOURCE
+            && $this->sourceResolver->sourceIsSelectableForSeriesLaunch(
+                $collectionType,
+                $collectionId,
+                (int) $task->created_by_user_id,
+                (int) $task->subject_id
+            )
+            && $this->sourceResolver->itemBelongsToCollection(
+                $collectionType,
+                $collectionId,
+                $sourceType,
+                $sourceId
+            );
     }
 
     private function advanceSequence(

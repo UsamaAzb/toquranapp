@@ -18,6 +18,8 @@ use App\Models\Unit;
 use App\Models\User;
 use App\Models\VocabularyGameAssignment;
 use App\Models\VocabularySet;
+use App\Services\Library\GeneralLibraryAttachmentAdapter;
+use App\Services\Library\GeneralLibraryAttachmentSnapshotter;
 use App\Support\SeriesTasks\SeriesLibraryItem;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +32,7 @@ class SeriesTaskSnapshotWriter
     public function __construct(
         private readonly TeacherStudentSubjectVisibilityService $studentVisibility,
         private readonly SeriesLibrarySourceResolver $sourceResolver,
+        private readonly GeneralLibraryAttachmentSnapshotter $generalLibrarySnapshotter,
     ) {}
 
     public function generateForStudent(
@@ -58,7 +61,8 @@ class SeriesTaskSnapshotWriter
             ->firstOrFail();
         $libraryItem = $this->sourceResolver->resolveItem(
             (string) $versionItem->library_source_type,
-            (int) $versionItem->library_source_id
+            (int) $versionItem->library_source_id,
+            (int) $task->created_by_user_id
         );
 
         if (! $libraryItem || (! $this->isVocabularyLibraryItem($libraryItem) && ! $libraryItem->hasSafeDeliveryTarget())) {
@@ -220,6 +224,10 @@ class SeriesTaskSnapshotWriter
             return $this->writeVocabularyGameAttachment($libraryItem, $sessionTaskId, $teacherSubjectClass, $classId, $task, $studentId);
         }
 
+        if ($libraryItem->sourceType === SeriesLibrarySourceResolver::SOURCE_GENERAL_LIBRARY_RESOURCE) {
+            return $this->writeGeneralLibraryAttachment($libraryItem, $sessionTaskId, $teacherSubjectClass, $classId, $task);
+        }
+
         $path = $libraryItem->mediaPath ?: $libraryItem->url;
 
         if (! $path) {
@@ -232,6 +240,37 @@ class SeriesTaskSnapshotWriter
             'type' => $libraryItem->mediaType ?: 'link',
             'path' => $path,
             'file_size' => $libraryItem->fileSize,
+            'subject_id' => $teacherSubjectClass->subject_id,
+            'class_id' => $classId,
+            'teacher_subject_class_id' => $teacherSubjectClass->id,
+            'session_task_id' => $sessionTaskId,
+        ]);
+
+        return true;
+    }
+
+    private function writeGeneralLibraryAttachment(
+        SeriesLibraryItem $libraryItem,
+        int $sessionTaskId,
+        TeacherSubjectClass $teacherSubjectClass,
+        int $classId,
+        SeriesTask $task
+    ): bool {
+        $attributes = $this->generalLibrarySnapshotter->attachmentFileAttributesForSelection(
+            GeneralLibraryAttachmentAdapter::GENERAL_PREFIX.(int) $libraryItem->sourceId,
+            (int) $task->created_by_user_id
+        );
+
+        if ($attributes === null) {
+            return false;
+        }
+
+        AttachmentFile::create([
+            'title' => $attributes['title'],
+            'description' => $attributes['description'] ?: $libraryItem->summary,
+            'type' => $attributes['type'],
+            'path' => $attributes['path'],
+            'file_size' => $attributes['file_size'],
             'subject_id' => $teacherSubjectClass->subject_id,
             'class_id' => $classId,
             'teacher_subject_class_id' => $teacherSubjectClass->id,

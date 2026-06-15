@@ -9,6 +9,8 @@ use App\Models\AttachmentFile;
 use App\Models\ClassModel;
 use App\Models\ClassSession;
 use App\Models\ParentModel;
+use App\Models\SessionTask;
+use App\Models\SessionTaskStudent;
 use App\Models\Student;
 use App\Models\StudentGift;
 use App\Models\StudentsSubject;
@@ -18,6 +20,7 @@ use App\Services\Library\LibraryResourceAccessService;
 use App\Services\SeriesTaskPublisher;
 use App\Support\BookingSubjectProvisioning;
 use App\Support\LifecycleGate;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +49,7 @@ class StudentsSubjectController extends Controller
             }
 
             $this->generateDueAutomationForStudent((int) $student_id);
+            $this->ensureVisibleTaskPivots((int) $student_id);
 
             if (! $isParentContext) {
                 $breadcrumb_links = [
@@ -70,6 +74,47 @@ class StudentsSubjectController extends Controller
                         BookingSubjectProvisioning::displayPayloadForStudentSubject($studentSubject)
                     );
                 });
+
+            $classSubjectIds = $student_subjects
+                ->pluck('class_subject_id')
+                ->map(fn ($id): int => (int) $id)
+                ->filter()
+                ->unique()
+                ->values();
+
+            $taskCountsByClassSubject = $classSubjectIds->isEmpty()
+                ? collect()
+                : SessionTask::query()
+                    ->select('class_sessions.class_subject_id')
+                    ->selectRaw(
+                        "COUNT(DISTINCT CASE WHEN (session_task_student.status IS NULL OR session_task_student.status = '' OR session_task_student.status = ?) THEN session_tasks.id END) as actionable_task_count",
+                        [SessionTaskStudent::STATUS_ASSIGNED]
+                    )
+                    ->selectRaw(
+                        'COUNT(DISTINCT CASE WHEN session_task_student.status IN (?, ?) THEN session_tasks.id END) as in_review_task_count',
+                        [SessionTaskStudent::STATUS_IN_REVIEW, SessionTaskStudent::STATUS_LEGACY_PENDING]
+                    )
+                    ->join('class_sessions', 'class_sessions.id', '=', 'session_tasks.class_session_id')
+                    ->join('session_task_student', 'session_task_student.session_task_id', '=', 'session_tasks.id')
+                    ->whereIn('session_tasks.class_session_id', $this->visibleStudentSessionQuery((int) $student_id)->select('id'))
+                    ->whereIn('class_sessions.class_subject_id', $classSubjectIds->all())
+                    ->where('session_task_student.student_id', $student_id)
+                    ->groupBy('class_sessions.class_subject_id')
+                    ->get()
+                    ->keyBy(fn ($row): int => (int) $row->class_subject_id);
+
+            $student_subjects->each(function (StudentsSubject $studentSubject) use ($taskCountsByClassSubject): void {
+                $counts = $taskCountsByClassSubject->get((int) $studentSubject->class_subject_id);
+
+                $studentSubject->setAttribute(
+                    'open_task_count',
+                    (int) ($counts->actionable_task_count ?? 0)
+                );
+                $studentSubject->setAttribute(
+                    'in_review_task_count',
+                    (int) ($counts->in_review_task_count ?? 0)
+                );
+            });
             $show_bar = 'true';
 
             $page = 'subject';
@@ -78,6 +123,67 @@ class StudentsSubjectController extends Controller
         }
 
         abort(403);
+    }
+
+    private function visibleStudentSessionQuery(int $studentId): Builder
+    {
+        return ClassSession::query()
+            ->where(fn (Builder $query) => $this->visibleStudentSessionConstraints($query, $studentId));
+    }
+
+    private function ensureVisibleTaskPivots(int $studentId): void
+    {
+        $taskIds = SessionTask::query()
+            ->whereHas('classSession', fn (Builder $query) => $this->visibleStudentSessionConstraints($query, $studentId))
+            ->pluck('id')
+            ->map(fn (mixed $taskId): int => (int) $taskId)
+            ->values();
+
+        if ($taskIds->isEmpty()) {
+            return;
+        }
+
+        $existingTaskIds = SessionTaskStudent::query()
+            ->where('student_id', $studentId)
+            ->whereIn('session_task_id', $taskIds->all())
+            ->pluck('session_task_id')
+            ->map(fn (mixed $taskId): int => (int) $taskId)
+            ->all();
+
+        $missingTaskIds = $taskIds->diff($existingTaskIds)->values();
+
+        if ($missingTaskIds->isNotEmpty()) {
+            $rows = $missingTaskIds->map(fn (int $taskId): array => [
+                'session_task_id' => $taskId,
+                'student_id' => $studentId,
+                'student_points' => null,
+                'submitted_at' => null,
+                'assign_to_all' => 'custom',
+                'status' => SessionTaskStudent::STATUS_ASSIGNED,
+                'flag' => null,
+            ])->all();
+
+            SessionTaskStudent::query()->insertOrIgnore($rows);
+        }
+
+        SessionTaskStudent::query()
+            ->where('student_id', $studentId)
+            ->whereIn('session_task_id', $taskIds->all())
+            ->where(fn (Builder $query) => $query
+                ->whereNull('status')
+                ->orWhere('status', ''))
+            ->update(['status' => SessionTaskStudent::STATUS_ASSIGNED]);
+    }
+
+    private function visibleStudentSessionConstraints(Builder $query, int $studentId): void
+    {
+        $query->visibleToLearner($studentId)
+            ->whereIn('class_subject_id', StudentsSubject::query()
+                ->select('class_subject_id')
+                ->where('student_id', $studentId)
+                ->where('status', 'active'))
+            ->whereHas('sessionMaterials', fn (Builder $materialsQuery) => $materialsQuery
+                ->where('status', 'published'));
     }
 
     public function get_sessions(Request $request)

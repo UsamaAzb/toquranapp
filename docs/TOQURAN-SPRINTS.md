@@ -128,17 +128,21 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 
 ### TQ7. Automation Tracks For Routines, Differentiated Tasks, And Series Tasks
 
-- Status: `pending`
+- Status: `active`
 - Depends on: TQ4/TQ6
 - Goal: Reuse Week14 Versioned Routines, Differentiated Tasks, and Series Tasks after To Quran terminology and content source decisions.
+- Current artifact: `docs/plans/active/2026-06-14-tq7-automation-routines-differentiated-series-plan.md`
+- Current status note: TQ7 code implementation is review-ready; no DB execution was performed. TQ7.5 starter catalog work remains separate.
 - Library note: when TQ7/TQ7.5 attaches Library content outside normal session tasks, reuse the TQ6 Quran/general Library adapter pattern for differentiated/daily-session/series attachment snapshots.
 - Website action: none unless public pages mention automated routine features.
 
 ### TQ7.5. Prebuilt Routine And Series Task Launch Catalog
 
-- Status: `pending`
+- Status: `active`
 - Depends on: TQ4/TQ7 planning
 - Goal: Before launch, create code-defined starter Versioned Routines and Series Tasks so teachers have ready-to-assign Quran/Arabic/MDJ launch material instead of an empty automation catalog.
+- Current artifact: `docs/plans/active/2026-06-14-tq7-automation-routines-differentiated-series-plan.md`
+- Current status note: TQ7.5 implementation and any starter-data execution still require an explicit request plus DB backup/target/manual-artifact checks.
 - Launch scope: this is required before treating deployment as ready. Use code or guarded manual data artifacts so the catalog is reproducible; do not rely on one-off admin UI setup.
 - App action: inspect Week14 Versioned Routines and Series Tasks structures, define To Quran starter routines/series, add safe creation/update code, and verify teachers can assign them.
 - Website action: public website should not promise specific automated routine content until this catalog exists and is smoke-tested.
@@ -149,6 +153,8 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Status: `postponed`
 - Depends on: post-deployment owner approval
 - Goal: Plan Arabic vocabulary games using Week14 P7 architecture as reference, not first-import English content. TQ6 inspection found current Week14 vocabulary games are Latin/English-specific and not safe for Quranic Uthmani/Othmani symbols without a separate Quranic Arabic spike.
+- Current spike brief: `quranic_arabic_game_codex_brief.md`
+- Reuse note: preserve Week14 vocabulary game code/design patterns where safe for future Arabic adaptation, including game state, scoring, audio UI, option buttons, feedback animations, levels/categories, and attempt saving; do not expose English vocabulary content as launch material.
 - Website action: do not promise until scoped.
 
 ### TQ9. Deployment Readiness And Public Website Handoff

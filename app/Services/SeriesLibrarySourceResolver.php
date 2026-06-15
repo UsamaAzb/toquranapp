@@ -2,9 +2,14 @@
 
 namespace App\Services;
 
+use App\Helpers\Helpers;
+use App\Models\GeneralLibraryFolder;
+use App\Models\GeneralLibraryResource;
 use App\Models\LibraryResource;
 use App\Models\LibrarySection;
+use App\Models\User;
 use App\Models\VocabularySet;
+use App\Services\Library\GeneralLibraryAccessService;
 use App\Services\Library\LibraryResourcePayload;
 use App\Support\SeriesTasks\SeriesLibraryCollection;
 use App\Support\SeriesTasks\SeriesLibraryItem;
@@ -34,7 +39,11 @@ class SeriesLibrarySourceResolver
 
     public const TYPE_LIBRARY_SECTION = 'library_section';
 
+    public const TYPE_GENERAL_LIBRARY_FOLDER = 'general_library_folder';
+
     public const TYPE_VOCABULARY = 'vocabulary';
+
+    public const SOURCE_GENERAL_LIBRARY_RESOURCE = 'general_library_resource';
 
     public const SOURCE_VOCABULARY_LIST = 'vocabulary_list';
 
@@ -50,6 +59,7 @@ class SeriesLibrarySourceResolver
         ?int $parentId = null
     ): array {
         return match ($type) {
+            self::TYPE_GENERAL_LIBRARY_FOLDER => $this->generalLibraryFolderCollections($ownerUserId, $topLevelOnly, $parentId),
             self::TYPE_LIBRARY_SECTION => $this->librarySectionCollections($ownerUserId, $subjectId, $topLevelOnly, $parentId),
             self::TYPE_VOCABULARY => $this->vocabularyCollections($ownerUserId, $parentId),
             self::TYPE_SAT => $this->satCollections(),
@@ -68,24 +78,12 @@ class SeriesLibrarySourceResolver
     /** @return array<int, SeriesLibraryCollection> */
     public function allCollections(?int $ownerUserId = null, ?int $subjectId = null, ?int $libraryParentId = null): array
     {
-        return array_merge(
-            $this->collectionsForType(
-                self::TYPE_LIBRARY_SECTION,
-                $ownerUserId,
-                $subjectId,
-                topLevelOnly: $libraryParentId === null,
-                parentId: $libraryParentId
-            ),
-            $this->collectionsForType(self::TYPE_VOCABULARY, $ownerUserId, $subjectId),
-            $this->collectionsForType(self::TYPE_SAT),
-            $this->collectionsForType(self::TYPE_STORY),
-            $this->collectionsForType(self::TYPE_LEVEL_UP),
-            $this->collectionsForType(self::TYPE_TV_SERIES),
-            $this->collectionsForType(self::TYPE_AUDIO_LEVEL),
-            $this->collectionsForType(self::TYPE_PEER_COACH),
-            $this->collectionsForType(self::TYPE_GRAMMAR),
-            $this->collectionsForType(self::TYPE_NOTICE_NOTE),
-            $this->collectionsForType(self::TYPE_BACKGROUND),
+        return $this->collectionsForType(
+            self::TYPE_GENERAL_LIBRARY_FOLDER,
+            $ownerUserId,
+            $subjectId,
+            topLevelOnly: $libraryParentId === null,
+            parentId: $libraryParentId
         );
     }
 
@@ -98,6 +96,7 @@ class SeriesLibrarySourceResolver
     ): array
     {
         return match ($collectionType) {
+            self::TYPE_GENERAL_LIBRARY_FOLDER => $collectionId ? $this->generalLibraryResourceItems($collectionId, $ownerUserId) : [],
             self::TYPE_LIBRARY_SECTION => $collectionId ? $this->libraryResourceItems($collectionId) : [],
             self::TYPE_VOCABULARY => $collectionId ? $this->vocabularyItems($collectionId, $ownerUserId) : [],
             self::TYPE_SAT => $collectionId ? $this->satItems($collectionId) : [],
@@ -116,6 +115,7 @@ class SeriesLibrarySourceResolver
     public function resolveItem(string $sourceType, int $sourceId, ?int $ownerUserId = null): ?SeriesLibraryItem
     {
         return match ($sourceType) {
+            self::SOURCE_GENERAL_LIBRARY_RESOURCE => $this->resolveGeneralLibraryResourceItem($sourceId, $ownerUserId),
             'library_resource' => $this->resolveLibraryResourceItem($sourceId),
             self::SOURCE_VOCABULARY_LIST => $this->resolveVocabularyItem($sourceId, $ownerUserId),
             'sat' => $this->resolveSatItem($sourceId),
@@ -142,6 +142,16 @@ class SeriesLibrarySourceResolver
             ->contains(fn (SeriesLibraryCollection $collection): bool => $collection->id === $id && $collection->selectable);
     }
 
+    public function sourceIsSelectableForSeriesLaunch(
+        string $type,
+        ?int $id,
+        ?int $actorUserId = null,
+        ?int $subjectId = null
+    ): bool {
+        return $type === self::TYPE_GENERAL_LIBRARY_FOLDER
+            && $this->sourceIsSelectable($type, $id, $actorUserId, $subjectId);
+    }
+
     public function itemBelongsToCollection(
         string $collectionType,
         ?int $collectionId,
@@ -149,6 +159,9 @@ class SeriesLibrarySourceResolver
         int $sourceId
     ): bool {
         return match ($collectionType) {
+            self::TYPE_GENERAL_LIBRARY_FOLDER => $sourceType === self::SOURCE_GENERAL_LIBRARY_RESOURCE
+                && $collectionId !== null
+                && $this->generalLibraryResourceBelongsToFolder($sourceId, $collectionId),
             self::TYPE_LIBRARY_SECTION => $sourceType === 'library_resource'
                 && $collectionId !== null
                 && $this->libraryResourceBelongsToSection($sourceId, $collectionId),
@@ -184,6 +197,153 @@ class SeriesLibrarySourceResolver
                 && $this->hierarchicalItemBelongsToParent('background', $sourceId, $collectionId),
             default => false,
         };
+    }
+
+    /** @return array<int, SeriesLibraryCollection> */
+    private function generalLibraryFolderCollections(
+        ?int $ownerUserId,
+        bool $topLevelOnly = false,
+        ?int $parentId = null
+    ): array {
+        if (
+            $ownerUserId === null
+            || ! Schema::hasTable('general_library_folders')
+            || ! Schema::hasTable('general_library_resources')
+        ) {
+            return [];
+        }
+
+        $user = User::query()->find($ownerUserId);
+
+        if (! app(GeneralLibraryAccessService::class)->canView($user)) {
+            return [];
+        }
+
+        $folders = GeneralLibraryFolder::query()
+            ->active()
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->orderBy('id')
+            ->get();
+
+        $activeResourceCounts = GeneralLibraryResource::query()
+            ->active()
+            ->whereIn('general_library_folder_id', $folders->pluck('id')->all())
+            ->selectRaw('general_library_folder_id, count(*) as aggregate')
+            ->groupBy('general_library_folder_id')
+            ->pluck('aggregate', 'general_library_folder_id');
+        $childrenByParent = $folders->groupBy(fn (GeneralLibraryFolder $folder): int => (int) ($folder->parent_id ?? 0));
+
+        return $folders
+            ->when($topLevelOnly, fn ($collection) => $collection->filter(
+                fn (GeneralLibraryFolder $folder): bool => $folder->parent_id === null
+            ))
+            ->when($parentId !== null, fn ($collection) => $collection->filter(
+                fn (GeneralLibraryFolder $folder): bool => (int) $folder->parent_id === (int) $parentId
+            ))
+            ->map(function (GeneralLibraryFolder $folder) use ($activeResourceCounts, $childrenByParent): SeriesLibraryCollection {
+                $folderTreeIds = $this->collectGeneralFolderTreeIds((int) $folder->id, $childrenByParent);
+                $directResourcesCount = (int) ($activeResourceCounts[(int) $folder->id] ?? 0);
+                $treeResourcesCount = collect($folderTreeIds)
+                    ->sum(fn (int $folderId): int => (int) ($activeResourceCounts[$folderId] ?? 0));
+                $childFolderCount = $childrenByParent->get((int) $folder->id, collect())->count();
+                $selectable = $folder->isSourcesOnly() && $directResourcesCount > 0;
+
+                return new SeriesLibraryCollection(
+                    self::TYPE_GENERAL_LIBRARY_FOLDER,
+                    (int) $folder->id,
+                    (string) $folder->title,
+                    $folder->description ?: $this->generalLibraryFolderDescription($directResourcesCount, $treeResourcesCount, $childFolderCount),
+                    $selectable,
+                    $selectable
+                        ? null
+                        : ($childFolderCount > 0
+                            ? 'Open this folder and choose a child folder that contains sources directly.'
+                            : 'Add active sources to this folder before using it for Series Tasks.'),
+                    $folder->parent_id === null ? null : (int) $folder->parent_id,
+                    $directResourcesCount,
+                    $treeResourcesCount,
+                    $childFolderCount
+                );
+            })
+            ->all();
+    }
+
+    /** @return array<int, SeriesLibraryItem> */
+    private function generalLibraryResourceItems(int $folderId, ?int $ownerUserId): array
+    {
+        if (! Schema::hasTable('general_library_folders') || ! Schema::hasTable('general_library_resources')) {
+            return [];
+        }
+
+        $user = $ownerUserId === null ? null : User::query()->find($ownerUserId);
+        $folder = GeneralLibraryFolder::query()
+            ->active()
+            ->whereKey($folderId)
+            ->first();
+
+        if (! $folder instanceof GeneralLibraryFolder
+            || ! app(GeneralLibraryAccessService::class)->canUseFolder($user, $folder)) {
+            return [];
+        }
+
+        return GeneralLibraryResource::query()
+            ->active()
+            ->where('general_library_folder_id', $folderId)
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->orderBy('id')
+            ->get()
+            ->filter(fn (GeneralLibraryResource $resource): bool => app(GeneralLibraryAccessService::class)->canUseResource($user, $resource))
+            ->map(fn (GeneralLibraryResource $resource): SeriesLibraryItem => $this->generalLibraryResourceToItem($resource))
+            ->values()
+            ->all();
+    }
+
+    private function resolveGeneralLibraryResourceItem(int $id, ?int $ownerUserId): ?SeriesLibraryItem
+    {
+        if (! Schema::hasTable('general_library_resources')) {
+            return null;
+        }
+
+        $user = $ownerUserId === null ? null : User::query()->find($ownerUserId);
+        $resource = GeneralLibraryResource::query()
+            ->active()
+            ->whereKey($id)
+            ->first();
+
+        return $resource instanceof GeneralLibraryResource
+            && app(GeneralLibraryAccessService::class)->canUseResource($user, $resource)
+            ? $this->generalLibraryResourceToItem($resource)
+            : null;
+    }
+
+    private function generalLibraryResourceToItem(GeneralLibraryResource $resource): SeriesLibraryItem
+    {
+        $url = null;
+        $mediaPath = null;
+        $mediaType = $resource->resource_type;
+
+        if ($resource->isFile()) {
+            $mediaPath = $resource->file_path;
+        } elseif ($resource->isYoutube()) {
+            $url = Helpers::trustedVideoEmbedUrl((string) $resource->external_url);
+            $mediaType = 'youtube';
+        } else {
+            $url = $resource->external_url;
+            $mediaType = 'link';
+        }
+
+        return new SeriesLibraryItem(
+            self::SOURCE_GENERAL_LIBRARY_RESOURCE,
+            (int) $resource->id,
+            (string) $resource->title,
+            $resource->description ?: null,
+            $url,
+            $mediaPath,
+            $mediaType,
+            $resource->file_size
+        );
     }
 
     /** @return array<int, SeriesLibraryCollection> */
@@ -978,6 +1138,37 @@ class SeriesLibrarySourceResolver
                 ->exists();
     }
 
+    private function generalLibraryResourceBelongsToFolder(int $sourceId, int $folderId): bool
+    {
+        if (! Schema::hasTable('general_library_folders') || ! Schema::hasTable('general_library_resources')) {
+            return false;
+        }
+
+        return GeneralLibraryFolder::query()
+            ->active()
+            ->whereKey($folderId)
+            ->where('content_mode', GeneralLibraryFolder::CONTENT_MODE_SOURCES_ONLY)
+            ->exists()
+            && GeneralLibraryResource::query()
+                ->active()
+                ->whereKey($sourceId)
+                ->where('general_library_folder_id', $folderId)
+                ->exists();
+    }
+
+    private function generalLibraryFolderDescription(int $directResourcesCount, int $treeResourcesCount, int $childFolderCount): string
+    {
+        if ($childFolderCount > 0 && $directResourcesCount > 0) {
+            return $directResourcesCount.' sources here, '.$childFolderCount.' folders';
+        }
+
+        if ($childFolderCount > 0) {
+            return $childFolderCount.' folders, '.$treeResourcesCount.' sources inside';
+        }
+
+        return $directResourcesCount.' sources';
+    }
+
     private function librarySectionDescription(int $directResourcesCount, int $treeResourcesCount, int $childFolderCount): string
     {
         if ($childFolderCount > 0 && $directResourcesCount > 0) {
@@ -1007,6 +1198,18 @@ class SeriesLibrarySourceResolver
 
         foreach ($childrenByParent->get($sectionId, collect()) as $childSection) {
             $ids = array_merge($ids, $this->collectSectionTreeIds((int) $childSection->id, $childrenByParent));
+        }
+
+        return $ids;
+    }
+
+    /** @return array<int, int> */
+    private function collectGeneralFolderTreeIds(int $folderId, $childrenByParent): array
+    {
+        $ids = [$folderId];
+
+        foreach ($childrenByParent->get($folderId, collect()) as $childFolder) {
+            $ids = array_merge($ids, $this->collectGeneralFolderTreeIds((int) $childFolder->id, $childrenByParent));
         }
 
         return $ids;

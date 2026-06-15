@@ -29,7 +29,7 @@ class SeriesTaskPublishValidator
             $errors[] = 'Choose a valid release policy.';
         }
 
-        if (! $this->sourceResolver->sourceIsSelectable(
+        if (! $this->sourceResolver->sourceIsSelectableForSeriesLaunch(
             (string) $task->library_collection_type,
             $task->library_collection_id === null ? null : (int) $task->library_collection_id,
             (int) $task->created_by_user_id,
@@ -73,7 +73,8 @@ class SeriesTaskPublishValidator
 
                 $resolved = $this->sourceResolver->resolveItem(
                     (string) $item->library_source_type,
-                    (int) $item->library_source_id
+                    (int) $item->library_source_id,
+                    (int) $task->created_by_user_id
                 );
 
                 if (

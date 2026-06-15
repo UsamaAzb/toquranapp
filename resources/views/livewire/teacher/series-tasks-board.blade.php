@@ -498,6 +498,16 @@
             <div class="alert alert-warning mt-3 mb-0"><ul class="mb-0 ps-3">@foreach($publishErrors[$task->id] as $error)<li>{{ $error }}</li>@endforeach</ul></div>
           @endif
 
+          @if(! empty($legacySourceWarningsByTask[$task->id]))
+            <div class="alert alert-warning mt-3 mb-0 d-flex gap-2 align-items-start">
+              <i class="ti tabler-alert-triangle mt-1"></i>
+              <div>
+                <div class="fw-semibold">Shared Library migration needed</div>
+                <div class="small">{{ $legacySourceWarningsByTask[$task->id] }} Create a new Series Task from Shared Library sources, then assign students to the new task when ready.</div>
+              </div>
+            </div>
+          @endif
+
           @if(! empty($settingsOpen[$task->id]))
             <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true">
               <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
@@ -692,19 +702,19 @@
           <div class="modal-header">
             <div class="min-w-0">
               <h5 class="modal-title">Choose Library source</h5>
-              <div class="text-body-secondary small">Search folders, then select the course or list folder for this Series.</div>
+              <div class="text-body-secondary small">Search Shared Library folders, then select the source folder for this Series Task.</div>
             </div>
             <button type="button" class="btn-close" wire:click="closeCollectionPicker" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <input type="search" class="form-control mb-3" placeholder="Search Library folders" wire:model.live.debounce.250ms="collectionSearch">
-            @if($collectionPickerType === 'library_section')
+            @if($collectionPickerType === 'general_library_folder')
               <div class="d-flex align-items-center gap-2 mb-3">
                 <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="goToCollectionTypes">
                   <i class="ti tabler-arrow-left"></i>
                   <span>Back</span>
                 </button>
-                <h6 class="mb-0">{{ $libraryPickerCurrentSection['title'] ?? 'My Library folders' }}</h6>
+                <h6 class="mb-0">{{ $libraryPickerCurrentSection['title'] ?? 'Shared Library' }}</h6>
               </div>
               <div class="series-source-grid">
                 @if(($libraryPickerCurrentSection['selectable'] ?? false) && ! filled($sourceSearch))
@@ -714,7 +724,7 @@
                     </span>
                     <span class="min-w-0">
                       <span class="d-block fw-medium series-source-title">Use this folder</span>
-                      <small class="text-body-secondary series-source-description">{{ $libraryPickerCurrentSection['direct_resource_count'] }} resources in this folder</small>
+                      <small class="text-body-secondary series-source-description">{{ $libraryPickerCurrentSection['direct_resource_count'] }} sources in this folder</small>
                     </span>
                   </button>
                 @endif
@@ -727,7 +737,7 @@
                     type="button"
                     class="series-source-card"
                     @if($opensSubfolder)
-                      wire:click="enterLibrarySection({{ (int) str_replace('library_section:', '', $collection['key']) }})"
+                      wire:click="enterLibrarySection({{ (int) str_replace('general_library_folder:', '', $collection['key']) }})"
                     @elseif($canUseFolder)
                       wire:click="chooseCollection('{{ $collection['key'] }}')"
                     @endif
@@ -742,7 +752,7 @@
                   </button>
                 @endforeach
                 @if($localSourceCollections->isEmpty() && ! ($libraryPickerCurrentSection['selectable'] ?? false))
-                  <div class="bg-lighter rounded p-3 text-body-secondary">No folders or ready resources here.</div>
+                  <div class="bg-lighter rounded p-3 text-body-secondary">No folders or ready sources here.</div>
                 @endif
               </div>
             @elseif($collectionPickerType === $legacyPickerType)
@@ -751,7 +761,7 @@
                   <i class="ti tabler-arrow-left"></i>
                   <span>Back</span>
                 </button>
-                <h6 class="mb-0">Library tools and system sources</h6>
+                <h6 class="mb-0">Additional source groups</h6>
               </div>
               <div class="series-source-grid">
                 @forelse($legacySourceGroups as $type => $group)
@@ -819,7 +829,7 @@
                     type="button"
                     class="series-source-card"
                     @if($opensSubfolder)
-                      wire:click="enterLibrarySection({{ (int) str_replace('library_section:', '', $collection['key']) }})"
+                      wire:click="enterLibrarySection({{ (int) str_replace('general_library_folder:', '', $collection['key']) }})"
                     @elseif($canUseFolder)
                       wire:click="chooseCollection('{{ $collection['key'] }}')"
                     @endif
@@ -850,7 +860,7 @@
                       <i class="bx bx-collection"></i>
                     </span>
                     <span class="min-w-0">
-                      <span class="d-block fw-medium series-source-title">Library tools and system sources</span>
+                      <span class="d-block fw-medium series-source-title">Additional source groups</span>
                       <small class="text-body-secondary series-source-description">{{ $legacySourceGroups->flatten(1)->count() }} sources</small>
                     </span>
                   </button>

@@ -14,12 +14,14 @@ use App\Models\VocabularySet;
 use App\Services\SeriesLibrarySourceResolver;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class LibraryResourceAttachmentWriter
 {
     private ?bool $hasSortOrderColumn = null;
+
+    public function __construct(
+        private readonly GeneralLibraryAttachmentSnapshotter $generalLibrarySnapshotter
+    ) {}
 
     public function writeForTask(SessionTask $task, ClassSession $session, array $resourceIds, int $ownerUserId): int
     {
@@ -66,22 +68,13 @@ class LibraryResourceAttachmentWriter
         string $resourceId,
         int $ownerUserId
     ): ?array {
-        $generalAttributes = app(GeneralLibraryAttachmentAdapter::class)->attachmentAttributesFor($resourceId, $ownerUserId);
+        $generalAttributes = $this->generalLibrarySnapshotter->attachmentFileAttributesForSelection($resourceId, $ownerUserId);
         if ($generalAttributes !== null) {
-            $path = $generalAttributes['path'];
-            if (($generalAttributes['type'] ?? '') === 'file') {
-                $path = $this->copyGeneralLibraryFileToTaskAttachment($generalAttributes);
-
-                if ($path === null) {
-                    return null;
-                }
-            }
-
             return [
                 'title' => $generalAttributes['title'],
                 'description' => $generalAttributes['description'] ?: $task->description,
                 'type' => $generalAttributes['type'],
-                'path' => $path,
+                'path' => $generalAttributes['path'],
                 'file_size' => $generalAttributes['file_size'],
             ];
         }
@@ -266,38 +259,6 @@ class LibraryResourceAttachmentWriter
         }
 
         return $resource->external_url;
-    }
-
-    private function copyGeneralLibraryFileToTaskAttachment(array $attributes): ?string
-    {
-        $sourceDisk = (string) ($attributes['source_disk'] ?? 'local');
-        $sourcePath = ltrim((string) ($attributes['path'] ?? ''), '/');
-
-        if (! in_array($sourceDisk, ['local', 'public'], true)
-            || $sourcePath === ''
-            || ! Storage::disk($sourceDisk)->exists($sourcePath)) {
-            return null;
-        }
-
-        $extension = strtolower(pathinfo($sourcePath, PATHINFO_EXTENSION));
-        $sourceResourceId = (int) ($attributes['source_resource_id'] ?? 0);
-        $targetPath = 'attachments/general-library-resource-'.$sourceResourceId.'/'.Str::uuid()
-            .($extension !== '' ? '.'.$extension : '');
-
-        $source = Storage::disk($sourceDisk)->readStream($sourcePath);
-        if ($source === false) {
-            return null;
-        }
-
-        try {
-            Storage::disk('public')->put($targetPath, $source);
-        } finally {
-            if (is_resource($source)) {
-                fclose($source);
-            }
-        }
-
-        return Storage::disk('public')->exists($targetPath) ? $targetPath : null;
     }
 
     private function youtubeEmbedUrl(LibraryResource $resource): ?string

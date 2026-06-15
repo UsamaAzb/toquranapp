@@ -225,6 +225,46 @@ trait CreatesAutomatedTaskTestingSchema
             });
         }
 
+        if (! Schema::hasTable('general_library_folders')) {
+            Schema::create('general_library_folders', function (Blueprint $table): void {
+                $table->id();
+                $table->unsignedBigInteger('parent_id')->nullable();
+                $table->string('title');
+                $table->text('description')->nullable();
+                $table->string('status')->default('active');
+                $table->string('source_label')->nullable();
+                $table->string('content_mode')->default('mixed');
+                $table->unsignedSmallInteger('sort_order')->default(0);
+                $table->unsignedBigInteger('created_by_user_id')->nullable();
+                $table->unsignedBigInteger('updated_by_user_id')->nullable();
+                $table->timestamp('archived_at')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        if (! Schema::hasTable('general_library_resources')) {
+            Schema::create('general_library_resources', function (Blueprint $table): void {
+                $table->id();
+                $table->unsignedBigInteger('general_library_folder_id')->nullable();
+                $table->string('resource_type');
+                $table->string('title');
+                $table->text('description')->nullable();
+                $table->string('status')->default('active');
+                $table->string('source_label')->nullable();
+                $table->string('storage_disk')->nullable();
+                $table->string('file_path', 2048)->nullable();
+                $table->string('original_filename')->nullable();
+                $table->string('mime_type')->nullable();
+                $table->unsignedBigInteger('file_size')->nullable();
+                $table->string('external_url', 2048)->nullable();
+                $table->unsignedSmallInteger('sort_order')->default(0);
+                $table->unsignedBigInteger('created_by_user_id')->nullable();
+                $table->unsignedBigInteger('updated_by_user_id')->nullable();
+                $table->timestamp('archived_at')->nullable();
+                $table->timestamps();
+            });
+        }
+
         if (! Schema::hasTable('main_daily_session_version_tasks')) {
             Schema::create('main_daily_session_version_tasks', function (Blueprint $table): void {
                 $table->id();

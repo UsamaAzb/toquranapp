@@ -264,6 +264,37 @@ class AutomatedTaskVisibilityTest extends TestCase
             ->assertDontSee('Lina Automated Task');
     }
 
+    public function test_student_subject_cards_show_open_task_counts(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-04-29 10:00:00'));
+
+        try {
+            $fixture = $this->createGeneratedSnapshotFixture();
+            $studentUser = User::factory()->create();
+            $studentUser->assignRole('student');
+            Student::whereKey($fixture['student_id'])->update(['user_id' => $studentUser->id]);
+
+            $generatedTask = $this->generatedTaskFor($fixture['student_id'], $fixture['template_id'], '2026-04-29');
+            $this->assertDatabaseHas('session_task_student', [
+                'session_task_id' => $generatedTask->id,
+                'student_id' => $fixture['student_id'],
+                'status' => 'assigned',
+            ]);
+
+            $this->actingAs($studentUser)
+                ->get(route('student.classes'))
+                ->assertOk()
+                ->assertSeeInOrder([
+                    'class="w14-subject-task-badge"',
+                    'aria-label="1 task to do"',
+                    '>1</span>',
+                ], false)
+                ->assertDontSeeText('tasks to do');
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_parent_sessions_board_shows_selected_child_shared_and_own_automated_rows_only(): void
     {
         $fixture = $this->createLearnerVisibilityFixture();

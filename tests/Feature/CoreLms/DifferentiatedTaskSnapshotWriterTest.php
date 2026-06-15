@@ -10,6 +10,8 @@ use App\Models\DifferentiatedTaskVersion;
 use App\Models\DifferentiatedTaskVersionAttachment;
 use App\Models\User;
 use App\Models\VocabularyGameAssignment;
+use App\Services\Library\GeneralLibraryAttachmentAdapter;
+use App\Services\Library\LibraryToDifferentiatedAttachmentWriter;
 use App\Services\DifferentiatedTaskPublisher;
 use App\Services\DifferentiatedTaskSnapshotWriter;
 use App\Services\Vocabulary\VocabularyGameAttachmentBuilder;
@@ -19,6 +21,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Models\Role;
 use Tests\Support\CreatesAutomatedTaskTestingSchema;
 use Tests\TestCase;
 
@@ -154,6 +157,115 @@ class DifferentiatedTaskSnapshotWriterTest extends TestCase
 
         $this->assertTrue($classSessionDuplicateBlocked);
         $this->assertTrue($sessionTaskDuplicateBlocked);
+    }
+
+    public function test_general_library_attachment_must_be_selected_on_differentiated_version_before_delivery(): void
+    {
+        Storage::fake('local');
+        Storage::fake('public');
+        Storage::disk('local')->put('general-library/fatiha.pdf', 'pdf content');
+
+        $teacher = User::factory()->create();
+        Role::findOrCreate('teacher', 'web');
+        $teacher->assignRole('teacher');
+        $context = $this->createTeacherSubjectContext($teacher);
+        $student = $this->enrollStudent($context, 'Ava', 'Stone', 'Mona');
+
+        $task = DifferentiatedTask::create([
+            'title' => 'Recitation support',
+            'description' => 'Practice assigned recitation.',
+            'subject_id' => $context['subject_id'],
+            'created_by_user_id' => $teacher->id,
+            'task_type_id' => 1,
+            'recurrence_kind' => 'daily',
+            'recurrence_interval' => 1,
+            'default_points' => 5,
+            'max_points' => 10,
+            'status' => 'active',
+            'published_at' => Carbon::parse('2026-04-30 09:00:00'),
+        ]);
+        $version = DifferentiatedTaskVersion::create([
+            'differentiated_task_id' => $task->id,
+            'display_name' => 'Support',
+            'description' => 'Support version',
+            'sort_order' => 1,
+        ]);
+        $resourceId = DB::table('general_library_resources')->insertGetId([
+            'general_library_folder_id' => null,
+            'resource_type' => 'file',
+            'title' => 'Al-Fatiha tracing sheet',
+            'description' => 'Read and trace.',
+            'status' => 'active',
+            'storage_disk' => 'local',
+            'file_path' => 'general-library/fatiha.pdf',
+            'file_size' => 11,
+            'sort_order' => 1,
+            'created_by_user_id' => $teacher->id,
+            'updated_by_user_id' => $teacher->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->assertTrue(app(LibraryToDifferentiatedAttachmentWriter::class)->writeOneForTaskAtSortOrder(
+            $task,
+            GeneralLibraryAttachmentAdapter::GENERAL_PREFIX.$resourceId,
+            (int) $teacher->id,
+            (int) $context['subject_id'],
+            1
+        ));
+        $this->assertFalse(app(LibraryToDifferentiatedAttachmentWriter::class)->writeOneForTaskAtSortOrder(
+            $task,
+            'series__story__999',
+            (int) $teacher->id,
+            (int) $context['subject_id'],
+            2
+        ));
+
+        $pooledAttachment = DifferentiatedTaskAttachment::query()
+            ->where('differentiated_task_id', $task->id)
+            ->firstOrFail();
+
+        Storage::disk('public')->assertExists($pooledAttachment->path);
+        $this->assertSame(1, DifferentiatedTaskAttachment::query()
+            ->where('differentiated_task_id', $task->id)
+            ->count());
+
+        $assignment = DifferentiatedTaskStudentAssignment::create([
+            'student_id' => $student['student_id'],
+            'differentiated_task_id' => $task->id,
+            'version_id' => $version->id,
+            'effective_from_date' => '2026-04-30',
+            'effective_to_date' => null,
+            'assigned_by_user_id' => $teacher->id,
+        ]);
+
+        $this->assertTrue(app(DifferentiatedTaskSnapshotWriter::class)->generateForStudent(
+            $student['student_id'],
+            $task->id,
+            $version->id,
+            $assignment->id,
+            Carbon::parse('2026-04-30')
+        ));
+        $this->assertDatabaseCount('attachment_files', 0);
+
+        DifferentiatedTaskVersionAttachment::create([
+            'version_id' => $version->id,
+            'attachment_id' => $pooledAttachment->id,
+            'sort_order' => 1,
+        ]);
+
+        $this->assertTrue(app(DifferentiatedTaskSnapshotWriter::class)->generateForStudent(
+            $student['student_id'],
+            $task->id,
+            $version->id,
+            $assignment->id,
+            Carbon::parse('2026-05-01')
+        ));
+
+        $generatedPath = DB::table('attachment_files')->value('path');
+
+        $this->assertStringStartsWith('automated-tasks/differentiated/', $generatedPath);
+        Storage::disk('public')->assertExists($generatedPath);
     }
 
     public function test_snapshot_writer_preserves_differentiated_version_attachment_order(): void

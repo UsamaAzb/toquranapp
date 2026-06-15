@@ -15,6 +15,8 @@ use App\Models\MainDailySessionTemplate;
 use App\Models\MainDailySessionVersion;
 use App\Models\User;
 use App\Models\VocabularyGameAssignment;
+use App\Services\Library\GeneralLibraryAttachmentAdapter;
+use App\Services\Library\LibraryToVersionedRoutineAttachmentWriter;
 use App\Services\AutomatedTaskSnapshotWriter;
 use App\Services\Vocabulary\VocabularyGameAttachmentBuilder;
 use App\Support\BookingSubjectProvisioning;
@@ -23,6 +25,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
 use Tests\Support\CreatesAutomatedTaskTestingSchema;
 use Tests\TestCase;
 
@@ -121,6 +124,69 @@ class AutomatedTaskAuthoringTest extends TestCase
             'url' => 'https://example.com/passage',
             'description' => null,
         ]);
+    }
+
+    public function test_versioned_routine_writer_accepts_general_library_resources_and_rejects_legacy_series_ids(): void
+    {
+        $teacher = User::factory()->create();
+        Role::findOrCreate('teacher', 'web');
+        $teacher->assignRole('teacher');
+        $context = $this->createTeacherSubjectContext($teacher);
+
+        $template = MainDailySessionTemplate::create([
+            'title' => 'Quran routine',
+            'subject_id' => $context['subject_id'],
+            'created_by_user_id' => $teacher->id,
+            'status' => 'draft',
+        ]);
+        $task = MainDailySessionMainTask::create([
+            'main_daily_session_template_id' => $template->id,
+            'title' => 'Listen and repeat',
+            'description' => 'Practice today recitation.',
+            'task_type_id' => 1,
+            'sort_order' => 1,
+        ]);
+        $resourceId = DB::table('general_library_resources')->insertGetId([
+            'general_library_folder_id' => null,
+            'resource_type' => 'youtube',
+            'title' => 'Al-Fatiha repetition',
+            'description' => 'Repeat after the teacher.',
+            'status' => 'active',
+            'external_url' => 'https://youtu.be/C7GFY46e__g',
+            'sort_order' => 1,
+            'created_by_user_id' => $teacher->id,
+            'updated_by_user_id' => $teacher->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $writer = app(LibraryToVersionedRoutineAttachmentWriter::class);
+
+        $this->assertTrue($writer->writeOneForMainTaskAtSortOrder(
+            $task,
+            GeneralLibraryAttachmentAdapter::GENERAL_PREFIX.$resourceId,
+            (int) $teacher->id,
+            (int) $context['subject_id'],
+            1
+        ));
+        $this->assertFalse($writer->writeOneForMainTaskAtSortOrder(
+            $task,
+            'series__sat__999',
+            (int) $teacher->id,
+            (int) $context['subject_id'],
+            2
+        ));
+
+        $this->assertDatabaseHas('main_daily_session_main_task_attachments', [
+            'main_task_id' => $task->id,
+            'title' => 'Al-Fatiha repetition',
+            'type' => 'youtube',
+            'url' => 'https://www.youtube.com/embed/C7GFY46e__g',
+            'sort_order' => 1,
+        ]);
+        $this->assertSame(1, MainDailySessionMainTaskAttachment::query()
+            ->where('main_task_id', $task->id)
+            ->count());
     }
 
     public function test_publish_validation_blocks_invalid_participating_versions_until_meaningful_content_is_added(): void
