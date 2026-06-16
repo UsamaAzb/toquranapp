@@ -1,0 +1,50 @@
+-- TQ7.5 automation starter catalog install execution note template
+-- Status: template only; no execution recorded yet.
+--
+-- Fill this file or copy it to a dated execution note before any real install.
+--
+-- Backup/export evidence before execution:
+--   - TODO: database/manual/backups/YYYY-MM-DD-HHMMSS-u504065335_to_quran-before-tq7-5-automation-catalog.sql
+--
+-- Target DB:
+--   - Expected: u504065335_to_quran
+--   - Verified by: SELECT DATABASE();
+--
+-- Required schema artifact:
+--   - database/manual/patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql
+--
+-- Dry-run command:
+--   D:\php\php-8.4\php.exe artisan toquran:install-automation-catalog --teacher-email=TEACHER@example.com --dry-run
+--
+-- Write command, only after backup and target verification:
+--   D:\php\php-8.4\php.exe artisan toquran:install-automation-catalog --teacher-email=TEACHER@example.com --confirm-db=u504065335_to_quran
+--
+-- All-teacher write command, only after explicit owner approval:
+--   D:\php\php-8.4\php.exe artisan toquran:install-automation-catalog --all-active-teachers --confirm-all-active-teachers --confirm-db=u504065335_to_quran
+--
+-- Expected affected tables:
+--   - toquran_automation_catalog_entries
+--   - main_daily_session_templates
+--   - main_daily_session_versions
+--   - main_daily_session_main_tasks
+--   - main_daily_session_version_tasks
+--   - series_tasks, only when reviewed Shared Library source folders exist
+--   - series_task_versions, only when reviewed Shared Library source folders exist
+--   - series_task_version_items, only when reviewed Shared Library source folders exist
+--
+-- Expected non-affected tables:
+--   - No student assignment tables should be written by the catalog installer.
+--   - No generated class_sessions/session_tasks/attachment_files rows should be written by the catalog installer.
+--   - No users, students, parents, or booking rows should be created.
+--
+-- Dry-run result:
+--   - TODO: created/update/skipped counts and skip reasons.
+--
+-- Write result:
+--   - TODO: created/update/skipped counts and skip reasons.
+--
+-- Idempotency verification:
+--   - TODO: rerun dry-run or write command and record that root/version/task/item rows do not duplicate.
+--
+-- Guard-failure verification:
+--   - TODO: run write command without --confirm-db and record refusal.

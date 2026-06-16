@@ -1,6 +1,6 @@
 # TQ7/TQ7.5 Automation Tracks And Starter Catalog Plan
 
-Status: TQ7 implemented and review-ready; TQ7.5 pending; no DB execution performed
+Status: TQ7 implemented and merged; TQ7.5 code implementation in progress; no DB execution performed
 Date: 2026-06-14
 Branch: `codex/tq7-automation-tracks-routines-series`
 Sprint: TQ7 Automation Tracks For Routines, Differentiated Tasks, And Series Tasks; TQ7.5 Prebuilt Routine And Series Task Launch Catalog
@@ -60,7 +60,37 @@ Verification:
 - `D:\php\php-8.4\php.exe artisan test tests\Feature\CoreLms tests\Unit\LibraryResourceAttachmentWriterTest.php`
 - Result: 283 passed, 1482 assertions.
 
-TQ7.5 remains separate and pending. Do not start catalog registry SQL, installer commands, or starter data execution until backup/export evidence, target confirmation, and guarded manual notes are prepared.
+TQ7.5 remains separate from the merged TQ7 implementation. Do not execute the catalog registry SQL or starter-data installer command until backup/export evidence, target confirmation, and guarded manual notes are prepared.
+
+## TQ7.5 Implementation Checkpoint
+
+Date: 2026-06-15
+
+Owner scope clarification after TQ7:
+
+- Launch starter catalog should focus on `Well Being` and `My Deen Journey`.
+- Starter catalog rows should primarily be Versioned Routines / Versioned Tasks.
+- Salah should not be one combined target task. The `Salah` starter uses separate main tasks for `Fajr`, `Dhuhr`, `Asr`, `Maghrib`, and `Isha`, with version text changing the practice target.
+- Learner-facing task titles should remain simple. Stage/readiness wording belongs in the version label and task description, not in the task title.
+- Morning and Evening Adhkar should be Versioned Routines: each version adds to the assigned adhkar set through the task description.
+- Dua Bank should be both Versioned Routine content and Series Task content eventually. In this implementation, versioned dua practice is launch-ready as editable text prompts; the Series Task is source-gated behind a reviewed Shared Library folder so the installer skips cleanly until reviewed dua resources exist.
+- Do not implement a new `paths` schema from `docs/product/to_quran_wellbeing_deen_paths.md`; treat that file as product/source material and map it into existing automation tables.
+
+Implemented so far:
+
+- Code-defined starter catalog manifest in `app/Support/ToQuranAutomationCatalog/StarterAutomationCatalog.php`.
+- Guarded installer service in `app/Support/ToQuranAutomationCatalog/AutomationCatalogInstaller.php`.
+- Artisan command `toquran:install-automation-catalog` with dry-run, single-teacher install, all-active-teacher install guard, DB confirmation guard, and no automatic student assignment.
+- Guarded manual registry SQL artifact `database/manual/patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql`.
+- Execution-note template `database/manual/patches/2026-06-15-tq7-5-automation-catalog-install-execution-note-template.sql`.
+- Series catalog installs reuse the same `sourceIsSelectableForSeriesLaunch()` gate as Series authoring/publishing, so mixed Shared Library folders are skipped even if they contain resources.
+- Focused tests for idempotent install, teacher-edit preservation, ineligible-teacher skips, command write guards, missing-library skip behavior, mixed-folder skip behavior, and source-backed Dua Bank Series Task creation.
+
+Still not executed:
+
+- No registry SQL was run.
+- No catalog installer command was run against any persistent DB.
+- No starter rows were written outside the isolated test database.
 
 ## Roadmap Relationship
 

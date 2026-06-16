@@ -142,7 +142,7 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Depends on: TQ4/TQ7 planning
 - Goal: Before launch, create code-defined starter Versioned Routines and Series Tasks so teachers have ready-to-assign Quran/Arabic/MDJ launch material instead of an empty automation catalog.
 - Current artifact: `docs/plans/active/2026-06-14-tq7-automation-routines-differentiated-series-plan.md`
-- Current status note: TQ7.5 implementation and any starter-data execution still require an explicit request plus DB backup/target/manual-artifact checks.
+- Current status note: TQ7.5 code-defined Well Being and My Deen Journey starter catalog implementation is in progress on `codex/tq7-5-starter-automation-catalog`; no registry SQL or starter-data installer command has been executed. Any starter-data execution still requires DB backup/target/manual-artifact checks.
 - Launch scope: this is required before treating deployment as ready. Use code or guarded manual data artifacts so the catalog is reproducible; do not rely on one-off admin UI setup.
 - App action: inspect Week14 Versioned Routines and Series Tasks structures, define To Quran starter routines/series, add safe creation/update code, and verify teachers can assign them.
 - Website action: public website should not promise specific automated routine content until this catalog exists and is smoke-tested.

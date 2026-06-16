@@ -199,6 +199,10 @@ timestamp, and checksum.
   - guarded additive patch that adds final-destination `content_mode` to general Library folders and imports the preserved Quran YouTube list as `Quran Repetition` > per-surah source-only folders > YouTube sources
 - `patches/2026-06-07-tq6-library-folder-mode-and-quran-repetition-import-execution-note.sql`
   - execution note for the local TQ6 Quran Repetition import, including backup evidence, guard success, and verification counts for 20 surah folders and 106 sources
+- `patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql`
+  - guarded create-only manual SQL artifact for the TQ7.5 starter automation catalog identity registry; not executed during code implementation
+- `patches/2026-06-15-tq7-5-automation-catalog-install-execution-note-template.sql`
+  - execution-note template for a future guarded TQ7.5 catalog install command run; not an execution record
 
 ## Current Local App Target
 
