@@ -38,6 +38,17 @@ class GeneralLibraryAttachmentSnapshotter
             ];
         }
 
+        if ($type === 'text') {
+            return [
+                'type' => 'text',
+                'title' => (string) $attributes['title'],
+                'description' => $attributes['description'] ?? null,
+                'path' => null,
+                'url' => null,
+                'file_size' => null,
+            ];
+        }
+
         if (! in_array($type, ['link', 'youtube'], true)) {
             return null;
         }

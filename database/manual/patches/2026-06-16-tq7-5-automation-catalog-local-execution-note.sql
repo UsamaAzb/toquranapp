@@ -1,0 +1,80 @@
+-- TQ7.5 automation starter catalog local execution note
+-- Date: 2026-06-16
+-- Environment: local To Quran app repo and local MySQL via 127.0.0.1:3306
+-- Target DB: u504065335_to_quran
+--
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-16-221421-u504065335_to_quran-before-tq7-5-automation-catalog.evidence.sql
+--   size: 610,340 bytes
+--   Raw restore dump is local/offline only and intentionally not committed.
+--
+-- Target verification:
+--   Laravel connection database: u504065335_to_quran
+--   MySQL selected database: u504065335_to_quran
+--   Users before install: 26
+--   Tables before registry patch: 356
+--
+-- Registry SQL artifact:
+--   database/manual/patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql
+--
+-- First registry attempt:
+--   Failed with MySQL errno 150 because this imported schema uses signed INT(10)
+--   primary keys for users.id and subjects.id, while the first registry artifact
+--   used BIGINT UNSIGNED foreign-key columns.
+--
+-- Correction:
+--   Updated teacher_user_id and subject_id in the registry artifact to INT(10).
+--   Updated the feature-test registry helper to match the real schema.
+--
+-- Successful registry execution:
+--   The guarded registry SQL was rerun with:
+--     SET @toquran_confirm_real_db_target := 'u504065335_to_quran';
+--   Result:
+--     toquran_automation_catalog_entries created successfully.
+--     teacher_user_id INT(10) NOT NULL
+--     subject_id INT(10) NOT NULL
+--     registry row count before installer run: 0
+--
+-- Active teacher targets observed before install:
+--   id 36: drosamaqandil@gmail.com
+--   id 2: mondysamir@gmail.com
+--   id 22: teacher.smoke@toquran-smoke.test
+--
+-- Selected teacher target:
+--   id 36: drosamaqandil@gmail.com
+--
+-- Dry-run command:
+--   D:\php\php-8.4\php.exe artisan toquran:install-automation-catalog --teacher-email=drosamaqandil@gmail.com --dry-run
+--
+-- Dry-run result:
+--   Catalog dry-run complete: 13 created, 0 updated, 1 skipped.
+--   Skipped:
+--     mdj-dua-bank-series: Shared Library folder path was not found: My Deen Journey / Dua Bank
+--
+-- Write command:
+--   D:\php\php-8.4\php.exe artisan toquran:install-automation-catalog --teacher-email=drosamaqandil@gmail.com --confirm-db=u504065335_to_quran
+--
+-- Write result:
+--   Catalog install complete: 162 created, 59 updated, 1 skipped.
+--   Skipped:
+--     mdj-dua-bank-series: Shared Library folder path was not found: My Deen Journey / Dua Bank
+--
+-- Verification after write:
+--   Well Being templates for teacher 36: 6
+--   My Deen Journey starter draft templates for teacher 36: 7
+--   My Deen Journey total templates for teacher 36: 8, including one
+--   pre-existing active routine: Salah Pro
+--   Registry rows for teacher 36: 162
+--   Salah versions: 5
+--   Salah main tasks: 5
+--   Salah version_task_links: 25
+--
+-- Post-install dry-run:
+--   Catalog dry-run complete: 0 created, 13 updated, 1 skipped.
+--
+-- Boundaries:
+--   No all-teacher install was run.
+--   No production deployment was run.
+--   No student assignment rows were intentionally created by the catalog installer.
+--   No generated class_sessions, session_tasks, or attachment_files rows were
+--   intentionally created by the catalog installer.

@@ -399,6 +399,7 @@ class GeneralLibraryController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:500'],
             'external_url' => ['nullable', 'string', 'max:2048'],
+            'text_content' => ['nullable', 'string'],
         ]);
 
         $updates = [
@@ -407,7 +408,9 @@ class GeneralLibraryController extends Controller
             'updated_by_user_id' => (int) $user->id,
         ];
 
-        if (! $resource->isFile()) {
+        if ($resource->isText()) {
+            $updates['text_content'] = $this->cleanNullableText($payload['text_content'] ?? null);
+        } elseif (! $resource->isFile()) {
             $url = trim((string) ($payload['external_url'] ?? ''));
             app(LibraryResourceValidator::class)->validateLinkUrl($url);
             if ($resource->isYoutube() && ! Helpers::isYoutubeUrl($url)) {
@@ -553,6 +556,19 @@ class GeneralLibraryController extends Controller
     {
         $user = Auth::user();
         abort_unless(app(GeneralLibraryAccessService::class)->canUseResource($user, $resource), 403);
+
+        if ($resource->isText()) {
+            return view('teacher.general-library.text-show', [
+                'resource' => $resource,
+                'breadcrumb_links' => [
+                    'Library' => route('teacher.get_library'),
+                    $resource->folder?->title ?? 'Sources' => $resource->folder
+                        ? route('teacher.get_library', ['folder' => (int) $resource->folder->id])
+                        : route('teacher.get_library'),
+                    $resource->title => null,
+                ],
+            ]);
+        }
 
         if (! $resource->isFile()) {
             $url = $resource->isYoutube()

@@ -3,6 +3,7 @@
 namespace App\Support\ToQuranAutomationCatalog;
 
 use App\Models\GeneralLibraryFolder;
+use App\Models\GeneralLibraryResource;
 use App\Models\MainDailySessionMainTask;
 use App\Models\MainDailySessionTemplate;
 use App\Models\MainDailySessionVersion;
@@ -123,8 +124,8 @@ class AutomationCatalogInstaller
             foreach (array_values($entry['versions'] ?? []) as $index => $versionSpec) {
                 $version = $this->upsertVersionedRoutineVersion($root, $teacher, $subject, $catalogKey, $versionSpec, $index + 1, $hash, $result);
 
-                foreach (array_values($entry['tasks'] ?? []) as $taskIndex => $taskSpec) {
-                    $task = $this->upsertVersionedRoutineTask($root, $teacher, $subject, $taskTypeId, $catalogKey, $taskSpec, $taskIndex + 1, $hash, $result);
+                foreach ($this->includedVersionedRoutineTasks($entry, $versionSpec) as $taskIndex => $taskSpec) {
+                    $task = $this->upsertVersionedRoutineTask($root, $teacher, $subject, $taskTypeId, $catalogKey, $taskSpec, ((int) ($taskSpec['sort_order'] ?? $taskIndex + 1)), $hash, $result);
                     $this->upsertVersionedRoutineTaskLink($version, $task, $teacher, $subject, $catalogKey, $versionSpec, $taskSpec, $taskIndex + 1, $hash, $result);
                 }
             }
@@ -139,7 +140,29 @@ class AutomationCatalogInstaller
     {
         $result = $this->emptyResult($dryRun);
         $catalogKey = (string) $entry['catalog_key'];
+
+        if (isset($entry['general_library_seed']) && is_array($entry['general_library_seed'])) {
+            $seedResult = $this->ensureGeneralLibrarySeed($teacher, $entry['general_library_seed'], $dryRun);
+            $result['created'] += $seedResult['created'];
+            $result['updated'] += $seedResult['updated'];
+            $result['skipped'] += $seedResult['skipped'];
+            array_push($result['messages'], ...$seedResult['messages']);
+
+            if ($seedResult['skipped'] > 0) {
+                return $result;
+            }
+        }
+
         $folder = $this->resolveGeneralLibraryFolderPath($entry['library_folder_path'] ?? []);
+
+        if ($dryRun && ! $folder instanceof GeneralLibraryFolder && isset($entry['general_library_seed'])) {
+            $itemCount = count($entry['general_library_seed']['resources'] ?? []);
+            $exists = $this->registryTargetExists('series_task', $catalogKey, 'root', 'root', (int) $teacher->id, (int) $subject->id);
+            $result[$exists ? 'updated' : 'created']++;
+            $result['messages'][] = ($exists ? 'Would verify/update' : 'Would create').' series task '.$catalogKey.' with '.$itemCount.' source items after creating the Shared Library seed folder.';
+
+            return $result;
+        }
 
         if (! $folder instanceof GeneralLibraryFolder) {
             return $this->skip($result, $catalogKey, 'Shared Library folder path was not found: '.implode(' / ', $entry['library_folder_path'] ?? []));
@@ -365,6 +388,38 @@ class AutomationCatalogInstaller
         return $version;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function includedVersionedRoutineTasks(array $entry, array $versionSpec): array
+    {
+        $tasks = array_values($entry['tasks'] ?? []);
+        $taskKeys = collect($tasks)
+            ->mapWithKeys(fn (array $task): array => [(string) $task['key'] => true]);
+
+        $includedKeys = $versionSpec['task_keys'] ?? $taskKeys->keys()->all();
+
+        if (array_key_exists('task_keys', $versionSpec) && $includedKeys === []) {
+            throw new RuntimeException("Catalog entry {$entry['catalog_key']} version {$versionSpec['key']} requires at least one task key.");
+        }
+
+        $includedKeySet = collect($includedKeys)
+            ->mapWithKeys(fn ($key): array => [(string) $key => true]);
+
+        $missingKeys = $includedKeySet->keys()
+            ->reject(fn (string $key): bool => $taskKeys->has($key))
+            ->values();
+
+        if ($missingKeys->isNotEmpty()) {
+            throw new RuntimeException("Catalog entry {$entry['catalog_key']} version {$versionSpec['key']} references unknown task keys: ".$missingKeys->implode(', '));
+        }
+
+        return collect($tasks)
+            ->filter(fn (array $task): bool => $includedKeySet->has((string) $task['key']))
+            ->values()
+            ->all();
+    }
+
     private function upsertSeriesItem(
         SeriesTaskVersion $version,
         User $teacher,
@@ -515,6 +570,229 @@ class AutomationCatalogInstaller
             ->where('subject_id', $subjectId)
             ->availableForTeacher()
             ->exists();
+    }
+
+    private function ensureGeneralLibrarySeed(User $teacher, array $seed, bool $dryRun): array
+    {
+        $result = $this->emptyResult($dryRun);
+        $path = array_values(array_filter($seed['folder_path'] ?? [], fn ($part): bool => filled($part)));
+        $resources = array_values($seed['resources'] ?? []);
+
+        if ($path === [] || $resources === []) {
+            return $this->skip($result, 'general-library-seed', 'General Library seed is missing a folder path or resources.');
+        }
+
+        $folder = $this->resolveGeneralLibraryFolderPath($path);
+        $this->assertGeneralLibraryTextSourceSchema();
+
+        if ($dryRun) {
+            if ($folder instanceof GeneralLibraryFolder) {
+                if (! $folder->isSourcesOnly()) {
+                    return $this->skip($result, 'general-library-seed', 'Shared Library folder already exists but is not sources-only: '.implode(' / ', $path));
+                }
+
+                $duplicateSourceLabels = $this->duplicateSeedSourceLabels($folder, $resources);
+                if ($duplicateSourceLabels !== []) {
+                    return $this->skip($result, 'general-library-seed', 'Shared Library source '.$duplicateSourceLabels[0].' has duplicate active rows.');
+                }
+
+                $invalidSourceLabels = $this->unusableSeedSourceLabels($folder, $resources);
+                if ($invalidSourceLabels !== []) {
+                    return $this->skip($result, 'general-library-seed', 'Shared Library source '.$invalidSourceLabels[0].' already exists but is not a usable text source.');
+                }
+
+                $existingResourceCount = $this->usableSeedResourceCount($folder, $resources);
+                $missingResourceCount = max(0, count($resources) - $existingResourceCount);
+                $result[$missingResourceCount > 0 ? 'created' : 'updated'] += $missingResourceCount > 0 ? $missingResourceCount : 1;
+                $result['messages'][] = 'Would verify Shared Library seed '.implode(' / ', $path).' with '.count($resources).' text sources.';
+
+                return $result;
+            }
+
+            $result['created'] += count($path) + count($resources);
+            $result['messages'][] = 'Would create Shared Library seed '.implode(' / ', $path).' with '.count($resources).' text sources.';
+
+            return $result;
+        }
+
+        return DB::transaction(function () use ($teacher, $path, $resources): array {
+            $result = $this->emptyResult(false);
+            $parentId = null;
+            $folder = null;
+
+            foreach ($path as $index => $title) {
+                $isLeaf = $index === array_key_last($path);
+                $matches = GeneralLibraryFolder::query()
+                    ->when(
+                        $parentId === null,
+                        fn ($query) => $query->whereNull('parent_id'),
+                        fn ($query) => $query->where('parent_id', $parentId)
+                    )
+                    ->where('title', $title)
+                    ->where('status', GeneralLibraryFolder::STATUS_ACTIVE)
+                    ->get();
+
+                if ($matches->count() > 1) {
+                    return $this->skip($result, 'general-library-seed', 'Shared Library folder path is ambiguous: '.implode(' / ', $path));
+                }
+
+                $folder = $matches->first();
+
+                if (! $folder instanceof GeneralLibraryFolder) {
+                    $folder = GeneralLibraryFolder::create([
+                        'parent_id' => $parentId,
+                        'title' => $title,
+                        'description' => $isLeaf ? 'Text sources for the Dua Bank Series Task.' : null,
+                        'status' => GeneralLibraryFolder::STATUS_ACTIVE,
+                        'content_mode' => $isLeaf ? GeneralLibraryFolder::CONTENT_MODE_SOURCES_ONLY : GeneralLibraryFolder::CONTENT_MODE_MIXED,
+                        'sort_order' => $index + 1,
+                        'created_by_user_id' => $teacher->id,
+                        'updated_by_user_id' => $teacher->id,
+                    ]);
+                    $result['created']++;
+                } elseif (! $isLeaf && $folder->isSourcesOnly()) {
+                    return $this->skip($result, 'general-library-seed', 'Parent Shared Library folder cannot contain child folders: '.implode(' / ', array_slice($path, 0, $index + 1)));
+                }
+
+                $parentId = (int) $folder->id;
+            }
+
+            if (! $folder instanceof GeneralLibraryFolder || ! $folder->isSourcesOnly()) {
+                return $this->skip($result, 'general-library-seed', 'Shared Library folder already exists but is not sources-only: '.implode(' / ', $path));
+            }
+
+            $duplicateSourceLabels = $this->duplicateSeedSourceLabels($folder, $resources);
+            if ($duplicateSourceLabels !== []) {
+                return $this->skip($result, 'general-library-seed', 'Shared Library source '.$duplicateSourceLabels[0].' has duplicate active rows.');
+            }
+
+            $invalidSourceLabels = $this->unusableSeedSourceLabels($folder, $resources);
+            if ($invalidSourceLabels !== []) {
+                return $this->skip($result, 'general-library-seed', 'Shared Library source '.$invalidSourceLabels[0].' already exists but is not a usable text source.');
+            }
+
+            foreach ($resources as $resource) {
+                $existing = GeneralLibraryResource::query()
+                    ->where('general_library_folder_id', $folder->id)
+                    ->where('source_label', $resource['code'])
+                    ->where('status', GeneralLibraryResource::STATUS_ACTIVE)
+                    ->first();
+
+                if ($existing instanceof GeneralLibraryResource) {
+                    $existing->update([
+                        'sort_order' => (int) ($resource['sort_order'] ?? 0),
+                        'updated_by_user_id' => $teacher->id,
+                    ]);
+                    $result['updated']++;
+
+                    continue;
+                }
+
+                GeneralLibraryResource::create([
+                    'general_library_folder_id' => $folder->id,
+                    'resource_type' => GeneralLibraryResource::TYPE_TEXT,
+                    'title' => $resource['title'],
+                    'description' => $resource['description'] ?? null,
+                    'text_content' => $resource['text_content'] ?? null,
+                    'status' => GeneralLibraryResource::STATUS_ACTIVE,
+                    'source_label' => $resource['code'],
+                    'sort_order' => (int) ($resource['sort_order'] ?? 0),
+                    'created_by_user_id' => $teacher->id,
+                    'updated_by_user_id' => $teacher->id,
+                ]);
+                $result['created']++;
+            }
+
+            $result['messages'][] = 'Verified Shared Library seed '.implode(' / ', $path).' with '.count($resources).' text sources.';
+
+            return $result;
+        });
+    }
+
+    private function duplicateSeedSourceLabels(GeneralLibraryFolder $folder, array $resources): array
+    {
+        return GeneralLibraryResource::query()
+            ->active()
+            ->where('general_library_folder_id', $folder->id)
+            ->whereIn('source_label', $this->seedResourceCodes($resources))
+            ->selectRaw('source_label, count(*) as aggregate')
+            ->groupBy('source_label')
+            ->havingRaw('count(*) > 1')
+            ->pluck('source_label')
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function usableSeedResourceCount(GeneralLibraryFolder $folder, array $resources): int
+    {
+        return GeneralLibraryResource::query()
+            ->active()
+            ->where('general_library_folder_id', $folder->id)
+            ->whereIn('source_label', $this->seedResourceCodes($resources))
+            ->get(['source_label', 'resource_type', 'text_content'])
+            ->filter(fn (GeneralLibraryResource $resource): bool => $this->seedResourceIsUsableText($resource))
+            ->pluck('source_label')
+            ->unique()
+            ->count();
+    }
+
+    private function unusableSeedSourceLabels(GeneralLibraryFolder $folder, array $resources): array
+    {
+        return GeneralLibraryResource::query()
+            ->active()
+            ->where('general_library_folder_id', $folder->id)
+            ->whereIn('source_label', $this->seedResourceCodes($resources))
+            ->get(['source_label', 'resource_type', 'text_content'])
+            ->reject(fn (GeneralLibraryResource $resource): bool => $this->seedResourceIsUsableText($resource))
+            ->pluck('source_label')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function seedResourceIsUsableText(GeneralLibraryResource $resource): bool
+    {
+        return $resource->resource_type === GeneralLibraryResource::TYPE_TEXT
+            && filled($resource->text_content);
+    }
+
+    private function seedResourceCodes(array $resources): array
+    {
+        return collect($resources)
+            ->pluck('code')
+            ->filter()
+            ->map(fn ($code): string => (string) $code)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function assertGeneralLibraryTextSourceSchema(): void
+    {
+        if (! Schema::hasTable('general_library_folders')
+            || ! Schema::hasTable('general_library_resources')
+            || ! Schema::hasColumn('general_library_resources', 'text_content')) {
+            throw new RuntimeException('General Library text sources are not installed. Run the reviewed TQ7.5 manual SQL before installing the Dua Bank catalog.');
+        }
+
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
+        $column = DB::selectOne("
+            SELECT COLUMN_TYPE
+            FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'general_library_resources'
+              AND COLUMN_NAME = 'resource_type'
+        ");
+        $columnType = (string) (($column?->COLUMN_TYPE ?? null) ?: ($column?->column_type ?? ''));
+
+        if (! str_contains($columnType, "'text'")) {
+            throw new RuntimeException('General Library text source type is not installed. Run the reviewed TQ7.5 manual SQL before installing the Dua Bank catalog.');
+        }
     }
 
     private function resolveGeneralLibraryFolderPath(array $path): ?GeneralLibraryFolder

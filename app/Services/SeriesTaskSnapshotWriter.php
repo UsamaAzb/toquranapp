@@ -265,6 +265,10 @@ class SeriesTaskSnapshotWriter
             return false;
         }
 
+        if ($attributes['type'] === 'text') {
+            return true;
+        }
+
         AttachmentFile::create([
             'title' => $attributes['title'],
             'description' => $attributes['description'] ?: $libraryItem->summary,

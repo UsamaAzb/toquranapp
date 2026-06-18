@@ -126,6 +126,51 @@ class LibraryResourceAttachmentWriterTest extends TestCase
         ]);
     }
 
+    public function test_it_snapshots_general_library_text_resources_into_attachment_files(): void
+    {
+        $this->seedFixture();
+        $teacher = User::factory()->create(['id' => 10]);
+        Role::findOrCreate('teacher', 'web');
+        $teacher->assignRole('teacher');
+
+        DB::table('general_library_resources')->insert([
+            'id' => 912,
+            'general_library_folder_id' => null,
+            'resource_type' => 'text',
+            'title' => 'Before Sleeping Dua',
+            'description' => 'Daily dua source.',
+            'text_content' => "Arabic:\nبِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا\n\nMeaning: In Your name, O Allah, I sleep and wake.",
+            'status' => 'active',
+            'sort_order' => 10,
+            'created_by_user_id' => 10,
+            'updated_by_user_id' => 10,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $created = app(LibraryResourceAttachmentWriter::class)->writeForTask(
+            SessionTask::query()->findOrFail(51),
+            ClassSession::query()->findOrFail(21),
+            [GeneralLibraryAttachmentAdapter::GENERAL_PREFIX.'912'],
+            10
+        );
+
+        $this->assertSame(1, $created);
+        $this->assertDatabaseHas('attachment_files', [
+            'session_task_id' => 51,
+            'title' => 'Before Sleeping Dua',
+            'type' => 'text',
+            'path' => null,
+        ]);
+        $this->assertStringContainsString(
+            'بِاسْمِكَ اللَّهُمَّ',
+            (string) DB::table('attachment_files')
+                ->where('session_task_id', 51)
+                ->where('title', 'Before Sleeping Dua')
+                ->value('description')
+        );
+    }
+
     public function test_it_copies_general_library_files_into_task_attachment_snapshots(): void
     {
         Storage::fake('local');
@@ -695,6 +740,7 @@ class LibraryResourceAttachmentWriterTest extends TestCase
             $table->string('mime_type')->nullable();
             $table->unsignedBigInteger('file_size')->nullable();
             $table->string('external_url', 2048)->nullable();
+            $table->text('text_content')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
             $table->unsignedBigInteger('created_by_user_id');
             $table->unsignedBigInteger('updated_by_user_id')->nullable();

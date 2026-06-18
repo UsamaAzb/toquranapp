@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 class InstallToQuranAutomationCatalog extends Command
 {
@@ -66,7 +67,14 @@ class InstallToQuranAutomationCatalog extends Command
 
         foreach ($teachers as $teacher) {
             $this->line(($dryRun ? '[dry-run] ' : '').'Installing catalog for '.$teacher->email);
-            $result = $installer->installForTeacher($teacher, $dryRun, $only === [] ? null : $only);
+
+            try {
+                $result = $installer->installForTeacher($teacher, $dryRun, $only === [] ? null : $only);
+            } catch (RuntimeException $exception) {
+                $this->error($exception->getMessage());
+
+                return self::FAILURE;
+            }
 
             foreach ($result['messages'] as $message) {
                 $this->line('  - '.$message);

@@ -7,12 +7,14 @@ use App\Models\GeneralLibraryResource;
 use App\Models\MainDailySessionTemplate;
 use App\Models\SeriesTask;
 use App\Models\User;
+use App\Support\ToQuranAutomationCatalog\AdhkarDuaBankCatalog;
 use App\Support\ToQuranAutomationCatalog\AutomationCatalogInstaller;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 use Spatie\Permission\Models\Role;
 use Tests\Support\CreatesAutomatedTaskTestingSchema;
 use Tests\TestCase;
@@ -63,7 +65,7 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
 
         $result = app(AutomationCatalogInstaller::class)->installForTeacher($teacher, dryRun: false);
 
-        $this->assertSame(1, $result['skipped']);
+        $this->assertSame(0, $result['skipped']);
         $this->assertDatabaseHas('main_daily_session_templates', [
             'title' => 'Salah',
             'subject_id' => $mdj,
@@ -82,11 +84,45 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
             ->with(['versions', 'mainTasks'])
             ->firstOrFail();
 
-        $this->assertCount(5, $salah->versions);
-        $this->assertCount(5, $salah->mainTasks);
-        $this->assertSame(25, DB::table('main_daily_session_version_tasks')
+        $this->assertCount(10, $salah->versions);
+        $this->assertCount(11, $salah->mainTasks);
+        $this->assertSame(34, DB::table('main_daily_session_version_tasks')
             ->whereIn('version_id', $salah->versions->pluck('id'))
             ->count());
+        $this->assertVersionTaskTitles($salah, 'Prayer Readiness', ['Prayer Readiness']);
+        $this->assertVersionTaskTitles($salah, 'Maghrib And Isha Target', ['Maghrib', 'Isha']);
+        $this->assertVersionTaskTitles($salah, 'Add Asr', ['Maghrib', 'Isha', 'Asr']);
+        $this->assertVersionTaskTitles($salah, 'Add Dhuhr', ['Maghrib', 'Isha', 'Asr', 'Dhuhr']);
+        $this->assertVersionTaskTitles($salah, 'Fajr Readiness', ['Maghrib', 'Isha', 'Asr', 'Dhuhr', 'Fajr Readiness']);
+        $this->assertVersionTaskTitles($salah, 'Five Salah Consistency', ['Maghrib', 'Isha', 'Asr', 'Dhuhr', 'Fajr']);
+        $this->assertDatabaseHas('main_daily_session_version_tasks', [
+            'description_override' => 'Pray Fajr today. Mark done when you finish.',
+        ]);
+        $this->assertDatabaseMissing('main_daily_session_version_tasks', [
+            'version_id' => $salah->versions->firstWhere('display_name', 'Maghrib And Isha Target')?->id,
+            'main_task_id' => $salah->mainTasks->firstWhere('title', 'Fajr')?->id,
+        ]);
+        $this->assertDatabaseHas('main_daily_session_templates', [
+            'title' => 'Masjid / Prayer Adab',
+            'subject_id' => $mdj,
+            'created_by_user_id' => $teacher->id,
+            'status' => 'draft',
+        ]);
+        $this->assertDatabaseHas('main_daily_session_main_tasks', [
+            'title' => 'Dua: Before Eating',
+        ]);
+        $this->assertDatabaseHas('main_daily_session_main_tasks', [
+            'title' => 'Morning Dhikr: Ayat al-Kursi',
+        ]);
+        $this->assertDatabaseHas('main_daily_session_main_tasks', [
+            'title' => 'Evening Dhikr: Ayat al-Kursi',
+        ]);
+        $this->assertDatabaseMissing('main_daily_session_main_tasks', [
+            'title' => 'Reviewed Dua Placeholder',
+        ]);
+        $this->assertRoutineTaskCount($teacher->id, $mdj, 'Dua Practice', 52);
+        $this->assertRoutineTaskCount($teacher->id, $mdj, 'Morning Adhkar', 24);
+        $this->assertRoutineTaskCount($teacher->id, $mdj, 'Evening Adhkar', 23);
         $this->assertDatabaseHas('toquran_automation_catalog_entries', [
             'automation_type' => 'versioned_routine',
             'catalog_key' => 'mdj-salah',
@@ -94,6 +130,24 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
             'entry_key' => 'root',
             'target_table' => 'main_daily_session_templates',
             'target_id' => $salah->id,
+        ]);
+        $this->assertSame(52, GeneralLibraryResource::query()
+            ->where('resource_type', GeneralLibraryResource::TYPE_TEXT)
+            ->where('source_label', 'like', 'DUA-%')
+            ->count());
+        $this->assertDatabaseHas('general_library_folders', [
+            'title' => 'Dua Bank',
+            'content_mode' => GeneralLibraryFolder::CONTENT_MODE_SOURCES_ONLY,
+        ]);
+        $this->assertDatabaseHas('general_library_resources', [
+            'resource_type' => GeneralLibraryResource::TYPE_TEXT,
+            'source_label' => 'DUA-001',
+            'title' => 'DUA-001 - Before Sleeping',
+        ]);
+        $this->assertDatabaseHas('series_tasks', [
+            'title' => 'Dua Bank',
+            'subject_id' => $mdj,
+            'created_by_user_id' => $teacher->id,
         ]);
         $rootRegistryBeforeRerun = DB::table('toquran_automation_catalog_entries')
             ->where('automation_type', 'versioned_routine')
@@ -153,7 +207,7 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
         $this->assertSame((string) $rootRegistryBeforeRerun->created_at, (string) $rootRegistryAfterRerun->created_at);
     }
 
-    public function test_dua_series_task_is_skipped_until_reviewed_shared_library_folder_exists(): void
+    public function test_dua_series_task_creates_reviewed_text_shared_library_sources_when_folder_is_missing(): void
     {
         $teacher = User::factory()->create(['status' => 'active']);
         $teacher->assignRole('teacher');
@@ -166,10 +220,25 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
             onlyKeys: ['mdj-dua-bank-series']
         );
 
-        $this->assertSame(1, $result['skipped']);
-        $this->assertDatabaseMissing('series_tasks', [
+        $this->assertSame(0, $result['skipped']);
+        $this->assertDatabaseHas('series_tasks', [
             'title' => 'Dua Bank',
             'subject_id' => $mdj,
+        ]);
+        $this->assertSame(52, GeneralLibraryResource::query()
+            ->where('resource_type', GeneralLibraryResource::TYPE_TEXT)
+            ->where('source_label', 'like', 'DUA-%')
+            ->count());
+        $series = SeriesTask::query()
+            ->where('title', 'Dua Bank')
+            ->where('subject_id', $mdj)
+            ->with('versions.items')
+            ->firstOrFail();
+        $this->assertCount(52, $series->versions->first()->items);
+        $this->assertDatabaseHas('series_task_version_items', [
+            'library_source_type' => 'general_library_resource',
+            'library_title_snapshot' => 'DUA-001 - Before Sleeping',
+            'sequence_position' => 1,
         ]);
     }
 
@@ -211,7 +280,184 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
         );
 
         $this->assertSame(1, $result['skipped']);
-        $this->assertStringContainsString('not selectable for Series launch', implode("\n", $result['messages']));
+        $this->assertStringContainsString('not sources-only', implode("\n", $result['messages']));
+        $this->assertDatabaseMissing('series_tasks', [
+            'title' => 'Dua Bank',
+            'subject_id' => $mdj,
+        ]);
+    }
+
+    public function test_dua_series_task_skips_existing_non_text_dua_bank_seed_rows(): void
+    {
+        $teacher = User::factory()->create(['status' => 'active']);
+        $teacher->assignRole('teacher');
+        $mdj = $this->createSubject('My Deen Journey');
+        $this->createTeacherSubjectContext($teacher, $mdj);
+        $root = GeneralLibraryFolder::create([
+            'title' => 'My Deen Journey',
+            'status' => GeneralLibraryFolder::STATUS_ACTIVE,
+            'content_mode' => GeneralLibraryFolder::CONTENT_MODE_MIXED,
+            'sort_order' => 1,
+            'created_by_user_id' => $teacher->id,
+        ]);
+        $duaBank = GeneralLibraryFolder::create([
+            'parent_id' => $root->id,
+            'title' => 'Dua Bank',
+            'status' => GeneralLibraryFolder::STATUS_ACTIVE,
+            'content_mode' => GeneralLibraryFolder::CONTENT_MODE_SOURCES_ONLY,
+            'sort_order' => 1,
+            'created_by_user_id' => $teacher->id,
+        ]);
+        GeneralLibraryResource::create([
+            'general_library_folder_id' => $duaBank->id,
+            'resource_type' => GeneralLibraryResource::TYPE_LINK,
+            'title' => 'DUA-001 - Old Link',
+            'description' => 'Wrong stale row shape.',
+            'status' => GeneralLibraryResource::STATUS_ACTIVE,
+            'source_label' => 'DUA-001',
+            'external_url' => 'https://example.test/old-dua',
+            'sort_order' => 1,
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $dryRunResult = app(AutomationCatalogInstaller::class)->installForTeacher(
+            $teacher,
+            dryRun: true,
+            onlyKeys: ['mdj-dua-bank-series']
+        );
+
+        $this->assertSame(1, $dryRunResult['skipped']);
+        $this->assertStringContainsString('not a usable text source', implode("\n", $dryRunResult['messages']));
+
+        $result = app(AutomationCatalogInstaller::class)->installForTeacher(
+            $teacher,
+            dryRun: false,
+            onlyKeys: ['mdj-dua-bank-series']
+        );
+
+        $this->assertSame(1, $result['skipped']);
+        $this->assertStringContainsString('not a usable text source', implode("\n", $result['messages']));
+        $this->assertDatabaseMissing('series_tasks', [
+            'title' => 'Dua Bank',
+            'subject_id' => $mdj,
+        ]);
+    }
+
+    public function test_dua_series_task_seed_skip_does_not_partially_update_existing_sources(): void
+    {
+        $teacher = User::factory()->create(['status' => 'active']);
+        $teacher->assignRole('teacher');
+        $mdj = $this->createSubject('My Deen Journey');
+        $this->createTeacherSubjectContext($teacher, $mdj);
+        $root = GeneralLibraryFolder::create([
+            'title' => 'My Deen Journey',
+            'status' => GeneralLibraryFolder::STATUS_ACTIVE,
+            'content_mode' => GeneralLibraryFolder::CONTENT_MODE_MIXED,
+            'sort_order' => 1,
+            'created_by_user_id' => $teacher->id,
+        ]);
+        $duaBank = GeneralLibraryFolder::create([
+            'parent_id' => $root->id,
+            'title' => 'Dua Bank',
+            'status' => GeneralLibraryFolder::STATUS_ACTIVE,
+            'content_mode' => GeneralLibraryFolder::CONTENT_MODE_SOURCES_ONLY,
+            'sort_order' => 1,
+            'created_by_user_id' => $teacher->id,
+        ]);
+        GeneralLibraryResource::create([
+            'general_library_folder_id' => $duaBank->id,
+            'resource_type' => GeneralLibraryResource::TYPE_TEXT,
+            'title' => 'DUA-001 - Existing Valid Text',
+            'description' => 'Valid existing row.',
+            'text_content' => 'Arabic: existing text',
+            'status' => GeneralLibraryResource::STATUS_ACTIVE,
+            'source_label' => 'DUA-001',
+            'sort_order' => 99,
+            'created_by_user_id' => $teacher->id,
+        ]);
+        GeneralLibraryResource::create([
+            'general_library_folder_id' => $duaBank->id,
+            'resource_type' => GeneralLibraryResource::TYPE_LINK,
+            'title' => 'DUA-002 - Old Link',
+            'description' => 'Wrong stale row shape.',
+            'status' => GeneralLibraryResource::STATUS_ACTIVE,
+            'source_label' => 'DUA-002',
+            'external_url' => 'https://example.test/old-dua',
+            'sort_order' => 2,
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $result = app(AutomationCatalogInstaller::class)->installForTeacher(
+            $teacher,
+            dryRun: false,
+            onlyKeys: ['mdj-dua-bank-series']
+        );
+
+        $this->assertSame(1, $result['skipped']);
+        $this->assertStringContainsString('not a usable text source', implode("\n", $result['messages']));
+        $this->assertDatabaseHas('general_library_resources', [
+            'general_library_folder_id' => $duaBank->id,
+            'source_label' => 'DUA-001',
+            'sort_order' => 99,
+        ]);
+        $this->assertDatabaseMissing('series_tasks', [
+            'title' => 'Dua Bank',
+            'subject_id' => $mdj,
+        ]);
+    }
+
+    public function test_dua_series_task_skips_duplicate_active_seed_source_labels(): void
+    {
+        $teacher = User::factory()->create(['status' => 'active']);
+        $teacher->assignRole('teacher');
+        $mdj = $this->createSubject('My Deen Journey');
+        $this->createTeacherSubjectContext($teacher, $mdj);
+        $root = GeneralLibraryFolder::create([
+            'title' => 'My Deen Journey',
+            'status' => GeneralLibraryFolder::STATUS_ACTIVE,
+            'content_mode' => GeneralLibraryFolder::CONTENT_MODE_MIXED,
+            'sort_order' => 1,
+            'created_by_user_id' => $teacher->id,
+        ]);
+        $duaBank = GeneralLibraryFolder::create([
+            'parent_id' => $root->id,
+            'title' => 'Dua Bank',
+            'status' => GeneralLibraryFolder::STATUS_ACTIVE,
+            'content_mode' => GeneralLibraryFolder::CONTENT_MODE_SOURCES_ONLY,
+            'sort_order' => 1,
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        foreach ([1, 2] as $index) {
+            GeneralLibraryResource::create([
+                'general_library_folder_id' => $duaBank->id,
+                'resource_type' => GeneralLibraryResource::TYPE_TEXT,
+                'title' => 'DUA-001 - Duplicate '.$index,
+                'text_content' => 'Arabic: duplicate '.$index,
+                'status' => GeneralLibraryResource::STATUS_ACTIVE,
+                'source_label' => 'DUA-001',
+                'sort_order' => $index,
+                'created_by_user_id' => $teacher->id,
+            ]);
+        }
+
+        $dryRunResult = app(AutomationCatalogInstaller::class)->installForTeacher(
+            $teacher,
+            dryRun: true,
+            onlyKeys: ['mdj-dua-bank-series']
+        );
+
+        $this->assertSame(1, $dryRunResult['skipped']);
+        $this->assertStringContainsString('duplicate active rows', implode("\n", $dryRunResult['messages']));
+
+        $result = app(AutomationCatalogInstaller::class)->installForTeacher(
+            $teacher,
+            dryRun: false,
+            onlyKeys: ['mdj-dua-bank-series']
+        );
+
+        $this->assertSame(1, $result['skipped']);
+        $this->assertStringContainsString('duplicate active rows', implode("\n", $result['messages']));
         $this->assertDatabaseMissing('series_tasks', [
             'title' => 'Dua Bank',
             'subject_id' => $mdj,
@@ -239,17 +485,6 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
             'sort_order' => 1,
             'created_by_user_id' => $teacher->id,
         ]);
-        GeneralLibraryResource::create([
-            'general_library_folder_id' => $duaBank->id,
-            'resource_type' => GeneralLibraryResource::TYPE_LINK,
-            'title' => 'Before Eating Dua',
-            'description' => 'Reviewed starter dua source.',
-            'status' => GeneralLibraryResource::STATUS_ACTIVE,
-            'external_url' => 'https://example.test/dua-before-eating',
-            'sort_order' => 1,
-            'created_by_user_id' => $teacher->id,
-        ]);
-
         $result = app(AutomationCatalogInstaller::class)->installForTeacher(
             $teacher,
             dryRun: false,
@@ -266,10 +501,10 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
         $this->assertSame('wait_for_completion', $series->release_policy);
         $this->assertSame('stop_at_end', $series->sequence_behavior);
         $this->assertCount(1, $series->versions);
-        $this->assertCount(1, $series->versions->first()->items);
+        $this->assertCount(52, $series->versions->first()->items);
         $this->assertDatabaseHas('series_task_version_items', [
             'library_source_type' => 'general_library_resource',
-            'library_title_snapshot' => 'Before Eating Dua',
+            'library_title_snapshot' => 'DUA-001 - Before Sleeping',
             'sequence_position' => 1,
             'is_active' => 1,
         ]);
@@ -380,6 +615,84 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
         ]);
     }
 
+    public function test_catalog_command_dry_run_requires_text_source_schema(): void
+    {
+        Schema::table('general_library_resources', function (Blueprint $table): void {
+            $table->dropColumn('text_content');
+        });
+
+        $teacher = User::factory()->create([
+            'email' => 'teacher@example.test',
+            'status' => 'active',
+        ]);
+        $teacher->assignRole('teacher');
+        $mdj = $this->createSubject('My Deen Journey');
+        $this->createTeacherSubjectContext($teacher, $mdj);
+
+        $this->artisan('toquran:install-automation-catalog', [
+            '--teacher-email' => 'teacher@example.test',
+            '--dry-run' => true,
+            '--confirm-db' => DB::connection()->getDatabaseName(),
+            '--only' => ['mdj-dua-bank-series'],
+        ])
+            ->expectsOutputToContain('General Library text sources are not installed')
+            ->assertExitCode(1);
+    }
+
+    public function test_catalog_manifest_rejects_version_with_explicit_empty_task_keys(): void
+    {
+        $method = new \ReflectionMethod(AutomationCatalogInstaller::class, 'includedVersionedRoutineTasks');
+        $method->setAccessible(true);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('requires at least one task key');
+
+        $method->invoke(app(AutomationCatalogInstaller::class), [
+            'catalog_key' => 'test-empty-task-keys',
+            'tasks' => [
+                ['key' => 'one', 'title' => 'One'],
+            ],
+        ], [
+            'key' => 'empty',
+            'task_keys' => [],
+        ]);
+    }
+
+    public function test_catalog_manifest_omitted_task_keys_includes_all_tasks(): void
+    {
+        $method = new \ReflectionMethod(AutomationCatalogInstaller::class, 'includedVersionedRoutineTasks');
+        $method->setAccessible(true);
+
+        $tasks = $method->invoke(app(AutomationCatalogInstaller::class), [
+            'catalog_key' => 'test-all-task-keys',
+            'tasks' => [
+                ['key' => 'one', 'title' => 'One'],
+                ['key' => 'two', 'title' => 'Two'],
+            ],
+        ], [
+            'key' => 'all',
+        ]);
+
+        $this->assertSame(['one', 'two'], collect($tasks)->pluck('key')->all());
+    }
+
+    public function test_adhkar_dua_bank_source_counts_are_explicit_and_codes_are_strict(): void
+    {
+        $catalog = app(AdhkarDuaBankCatalog::class);
+
+        $this->assertCount(24, $catalog->morningItems());
+        $this->assertCount(23, $catalog->eveningItems());
+        $this->assertCount(52, $catalog->duaItems());
+
+        $method = new \ReflectionMethod($catalog, 'codeNumber');
+        $method->setAccessible(true);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage("Invalid adhkar/dua bank code 'DUA-1'.");
+
+        $method->invoke($catalog, 'DUA-1');
+    }
+
     private function createSubject(string $title): int
     {
         return DB::table('subjects')->insertGetId([
@@ -388,6 +701,35 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    private function assertVersionTaskTitles(MainDailySessionTemplate $template, string $versionName, array $expectedTitles): void
+    {
+        $version = $template->versions()
+            ->where('display_name', $versionName)
+            ->with('versionTasks.mainTask')
+            ->firstOrFail();
+
+        $this->assertSame(
+            $expectedTitles,
+            $version->versionTasks
+                ->sortBy('sort_order')
+                ->map(fn ($versionTask) => $versionTask->mainTask?->title)
+                ->values()
+                ->all()
+        );
+    }
+
+    private function assertRoutineTaskCount(int $teacherId, int $subjectId, string $title, int $expectedCount): void
+    {
+        $template = MainDailySessionTemplate::query()
+            ->where('title', $title)
+            ->where('subject_id', $subjectId)
+            ->where('created_by_user_id', $teacherId)
+            ->with('mainTasks')
+            ->firstOrFail();
+
+        $this->assertCount($expectedCount, $template->mainTasks);
     }
 
     private function createCatalogRegistryTable(): void
@@ -400,8 +742,8 @@ class ToQuranAutomationCatalogInstallerTest extends TestCase
             $table->string('entry_key', 191);
             $table->string('target_table', 128);
             $table->unsignedBigInteger('target_id');
-            $table->unsignedBigInteger('teacher_user_id');
-            $table->unsignedBigInteger('subject_id');
+            $table->integer('teacher_user_id');
+            $table->integer('subject_id');
             $table->string('installed_version', 80);
             $table->char('manifest_hash', 64);
             $table->json('metadata')->nullable();

@@ -55,6 +55,14 @@ pnpm-debug.log*
 /.claude/settings.local.json
 /.playwright-mcp/
 .phpunit.result.cache
+/Morning-Adhkar-v1.2_compressed.pdf
 
 # prevent accidental root-level SQL dump commits
 /*.sql
+
+# local-only full-fidelity TQ7.5 DB restore dumps; commit evidence notes instead
+/database/manual/backups/2026-06-16-221421-u504065335_to_quran-before-tq7-5-automation-catalog.sql
+/database/manual/backups/2026-06-17-214138-u504065335_to_quran-before-tq7-5-catalog-reset.sql
+/database/manual/backups/2026-06-17-214317-u504065335_to_quran-before-tq7-5-catalog-reset-rerun.sql
+/database/manual/backups/2026-06-17-224621-u504065335_to_quran-before-tq7-5-catalog-v3-reset.sql
+/database/manual/backups/2026-06-17-234010-u504065335_to_quran-before-tq7-5-full-dua-bank.sql

@@ -1,0 +1,172 @@
+-- TQ7.5 automation catalog local reset and revised reinstall execution note
+-- Date: 2026-06-17
+-- Environment: local To Quran app repo and local MySQL via 127.0.0.1:3306
+-- Target DB: u504065335_to_quran
+--
+-- Purpose:
+--   Reset the first selected-teacher TQ7.5 starter catalog smoke copy and
+--   reinstall the revised catalog with per-version task inclusion and safer
+--   child-facing wording.
+--
+-- Teacher target:
+--   id 36: drosamaqandil@gmail.com
+--
+-- Backup/export evidence:
+--   database/manual/backups/2026-06-17-214138-u504065335_to_quran-before-tq7-5-catalog-reset.evidence.sql
+--   size: 666,525 bytes
+--
+--   database/manual/backups/2026-06-17-214317-u504065335_to_quran-before-tq7-5-catalog-reset-rerun.evidence.sql
+--   size: 679,190 bytes
+--
+--   Raw restore dumps are local/offline only and intentionally not committed.
+--
+-- Reset artifact:
+--   database/manual/patches/2026-06-17-reset-tq7-5-automation-catalog-local-smoke.sql
+--
+-- Guard variables used:
+--   SET @toquran_confirm_real_db_target := 'u504065335_to_quran';
+--   SET @toquran_reset_catalog_teacher_id := 36;
+--   SET @toquran_reset_catalog_teacher_email := 'drosamaqandil@gmail.com';
+--
+-- Pre-reset safety checks:
+--   catalog assignments: 0
+--   catalog generated class sessions: 0
+--   catalog series assignments: 0
+--   catalog series generated sessions: 0
+--   catalog assignment history: 0
+--   catalog series history: 0
+--   catalog series generation states: 0
+--
+-- First reset result:
+--   before registry rows: 162
+--   before versioned routine roots: 13
+--   before versioned routine versions: 56
+--   before versioned routine tasks: 17
+--   before versioned routine version tasks: 76
+--   before series roots: 0
+--   after registry rows: 0
+--   after catalog templates remaining: 0
+--   after non-catalog Salah Pro remaining: 1
+--
+-- First revised install command:
+--   D:\php\php-8.4\php.exe artisan toquran:install-automation-catalog --teacher-email=drosamaqandil@gmail.com --confirm-db=u504065335_to_quran
+--
+-- First revised install result:
+--   Catalog install complete: 187 created, 56 updated, 1 skipped.
+--   Skipped:
+--     mdj-dua-bank-series: Shared Library folder path was not found: My Deen Journey / Dua Bank
+--
+-- A second reset/reinstall was performed immediately after a final base-task
+-- wording polish for Wudu/Quran, because the installer intentionally preserves
+-- teacher-editable task descriptions on rerun.
+--
+-- Second reset result:
+--   before registry rows: 187
+--   before versioned routine roots: 13
+--   before versioned routine versions: 44
+--   before versioned routine tasks: 37
+--   before versioned routine version tasks: 93
+--   before series roots: 0
+--   after registry rows: 0
+--   after catalog templates remaining: 0
+--   after non-catalog Salah Pro remaining: 1
+--
+-- Final revised install command:
+--   D:\php\php-8.4\php.exe artisan toquran:install-automation-catalog --teacher-email=drosamaqandil@gmail.com --confirm-db=u504065335_to_quran
+--
+-- Final revised install result:
+--   Catalog install complete: 187 created, 56 updated, 1 skipped.
+--   Skipped:
+--     mdj-dua-bank-series: Shared Library folder path was not found: My Deen Journey / Dua Bank
+--
+-- Final verification:
+--   Well Being templates for teacher 36: 6
+--   My Deen Journey total templates for teacher 36: 8, including one
+--   pre-existing active non-catalog routine: Salah Pro
+--   Registry rows for teacher 36: 187
+--   Salah version task links:
+--     One Salah: Fajr (1)
+--     Two Salahs: Fajr, Dhuhr (2)
+--     Three Salahs: Fajr, Dhuhr, Asr (3)
+--     Four Salahs: Fajr, Dhuhr, Asr, Maghrib (4)
+--     Five Salahs: Fajr, Dhuhr, Asr, Maghrib, Isha (5)
+--   Dua Practice task:
+--     Reviewed Dua Placeholder
+--     [Owner to insert reviewed dua text and instruction before launch use.]
+--   Morning Adhkar task:
+--     Reviewed Morning Dhikr Placeholder
+--     [Owner to insert reviewed morning dhikr text and instruction before launch use.]
+--   Evening Adhkar task:
+--     Reviewed Evening Dhikr Placeholder
+--     [Owner to insert reviewed evening dhikr text and instruction before launch use.]
+--   Quran task:
+--     Quran Practice
+--     Complete the Quran portion assigned by your teacher or parent today.
+--   Wudu task:
+--     Wudu Practice
+--     Complete today's wudu practice.
+--
+-- Third reset/reinstall after product-file content alignment:
+--   Reason:
+--     The owner confirmed that docs/product/to_quran_wellbeing_deen_paths.md
+--     should drive Well Being, My Deen Journey, Dua, Morning Adhkar, and
+--     Evening Adhkar starter content. The catalog was revised to use the
+--     product-file Salah order, add Masjid / Prayer Adab, expand Wudu/Quran,
+--     and replace placeholder Dua/Adhkar rows with draft bank tasks containing
+--     Arabic text, simple meaning, use, repeat count, and source reference.
+--
+--   Backup/export evidence:
+--     database/manual/backups/2026-06-17-224621-u504065335_to_quran-before-tq7-5-catalog-v3-reset.evidence.sql
+--     size: 680,630 bytes
+--     Raw restore dump is local/offline only and intentionally not committed.
+--
+--   Reset result:
+--     before registry rows: 187
+--     before versioned routine roots: 13
+--     before versioned routine versions: 45
+--     before versioned routine tasks: 37
+--     before versioned routine version tasks: 93
+--     before series roots: 0
+--     after registry rows: 0
+--     after catalog templates remaining: 0
+--     after non-catalog Salah Pro remaining: 1
+--
+--   Dry-run result:
+--     Catalog dry-run complete: 14 created, 0 updated, 1 skipped.
+--     Skipped:
+--       mdj-dua-bank-series: Shared Library folder path was not found: My Deen Journey / Dua Bank
+--
+--   Install result:
+--     Catalog install complete: 348 created, 121 updated, 1 skipped.
+--     Skipped:
+--       mdj-dua-bank-series: Shared Library folder path was not found: My Deen Journey / Dua Bank
+--
+--   Current verification:
+--     Well Being templates for teacher 36: 6
+--     My Deen Journey catalog templates for teacher 36: 8
+--     Pre-existing active non-catalog routine still present: Salah Pro
+--     Registry rows for teacher 36: 348
+--     Salah version task links:
+--       Prayer Readiness: Prayer Readiness (1)
+--       Maghrib And Isha Target: Maghrib, Isha (2)
+--       Add Asr: Maghrib, Isha, Asr (3)
+--       Add Dhuhr: Maghrib, Isha, Asr, Dhuhr (4)
+--       Fajr Readiness: Maghrib, Isha, Asr, Dhuhr, Fajr Readiness (5)
+--       Five Salah Consistency: Maghrib, Isha, Asr, Dhuhr, Fajr (5)
+--       Salah On Time: Maghrib, Isha, Asr, Dhuhr, Fajr, Salah On Time (6)
+--       Salah Calmness: Maghrib, Isha, Asr, Dhuhr, Fajr, Salah Calmness (6)
+--       Family / Group / Masjid Prayer: Family / Group / Masjid Prayer (1)
+--       Selected After-Salah Adhkar: Selected After-Salah Adhkar (1)
+--     Draft bank task samples verified with utf8mb4 output:
+--       Before Eating Dua
+--       Morning Dhikr: By You We Reach Morning
+--       Evening Dhikr: By You We Reach Evening
+--     Catalog-generated class_sessions for registry roots: 0
+--     Catalog-generated session_tasks for registry roots: 0
+--
+-- Boundaries:
+--   No all-teacher install was run.
+--   No production deployment was run.
+--   No student assignment rows were intentionally created by the catalog installer.
+--   No generated class_sessions, session_tasks, or attachment_files rows were
+--   intentionally created by the catalog installer.

@@ -1,8 +1,8 @@
 # TQ7/TQ7.5 Automation Tracks And Starter Catalog Plan
 
-Status: TQ7 implemented and merged; TQ7.5 code implementation in progress; no DB execution performed
+Status: TQ7 implemented and merged; TQ7.5 starter catalog implementation revised locally with per-version task inclusion and full parsed adhkar/dua banks; local registry reset/reinstall smoke executed; admin copy UI follow-up planned
 Date: 2026-06-14
-Branch: `codex/tq7-automation-tracks-routines-series`
+Branch: `codex/tq7-5-starter-automation-catalog` for current TQ7.5 follow-up; TQ7 implementation was completed on `codex/tq7-automation-tracks-routines-series`
 Sprint: TQ7 Automation Tracks For Routines, Differentiated Tasks, And Series Tasks; TQ7.5 Prebuilt Routine And Series Task Launch Catalog
 
 ## Objective
@@ -70,10 +70,10 @@ Owner scope clarification after TQ7:
 
 - Launch starter catalog should focus on `Well Being` and `My Deen Journey`.
 - Starter catalog rows should primarily be Versioned Routines / Versioned Tasks.
-- Salah should not be one combined target task. The `Salah` starter uses separate main tasks for `Fajr`, `Dhuhr`, `Asr`, `Maghrib`, and `Isha`, with version text changing the practice target.
+- Salah should not be one combined target task. The `Salah` starter uses separate main tasks for each salah plus readiness/quality tasks from the product file, and each version must include only the tasks active for that stage. Do not link every salah task to every version.
 - Learner-facing task titles should remain simple. Stage/readiness wording belongs in the version label and task description, not in the task title.
-- Morning and Evening Adhkar should be Versioned Routines: each version adds to the assigned adhkar set through the task description.
-- Dua Bank should be both Versioned Routine content and Series Task content eventually. In this implementation, versioned dua practice is launch-ready as editable text prompts; the Series Task is source-gated behind a reviewed Shared Library folder so the installer skips cleanly until reviewed dua resources exist.
+- Morning and Evening Adhkar are Versioned Routines where each dhikr/dua from `to_quran_adhkar_dua_banks.md` is its own draft task with Arabic text, simple meaning, repeat count, Quran reference/source metadata when present, and source URL in the task description. These remain draft/content-review-required before launch use.
+- Dua Bank is both Versioned Routine content and Series Task content. The Versioned Routine uses the 52 daily-dua entries from `to_quran_adhkar_dua_banks.md`; the Series Task uses installer-seeded General Library text sources under `My Deen Journey / Dua Bank`.
 - Do not implement a new `paths` schema from `docs/product/to_quran_wellbeing_deen_paths.md`; treat that file as product/source material and map it into existing automation tables.
 
 Implemented so far:
@@ -82,15 +82,232 @@ Implemented so far:
 - Guarded installer service in `app/Support/ToQuranAutomationCatalog/AutomationCatalogInstaller.php`.
 - Artisan command `toquran:install-automation-catalog` with dry-run, single-teacher install, all-active-teacher install guard, DB confirmation guard, and no automatic student assignment.
 - Guarded manual registry SQL artifact `database/manual/patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql`.
+- Guarded General Library text-source schema artifact `database/manual/patches/2026-06-17-add-general-library-text-sources.sql`.
 - Execution-note template `database/manual/patches/2026-06-15-tq7-5-automation-catalog-install-execution-note-template.sql`.
-- Series catalog installs reuse the same `sourceIsSelectableForSeriesLaunch()` gate as Series authoring/publishing, so mixed Shared Library folders are skipped even if they contain resources.
-- Focused tests for idempotent install, teacher-edit preservation, ineligible-teacher skips, command write guards, missing-library skip behavior, mixed-folder skip behavior, and source-backed Dua Bank Series Task creation.
+- Series catalog installs reuse the same `sourceIsSelectableForSeriesLaunch()` gate as Series authoring/publishing, so mixed Shared Library folders are skipped even if they contain resources; when the reviewed `Dua Bank` folder is missing, the installer creates a sources-only folder and 52 text resources from the bank file.
+- Focused tests for idempotent install, teacher-edit preservation, ineligible-teacher skips, command write guards, full parsed bank counts, missing-library seed creation, mixed-folder skip behavior, and source-backed Dua Bank Series Task creation.
 
-Still not executed:
+Local execution already performed:
 
-- No registry SQL was run.
-- No catalog installer command was run against any persistent DB.
-- No starter rows were written outside the isolated test database.
+- Guarded registry SQL was run locally after backup/export evidence and target confirmation.
+- The first registry attempt exposed a real FK type mismatch; the manual SQL was corrected to match the imported `users.id` and `subjects.id` signed `INT(10)` schema.
+- The starter installer was run locally for `drosamaqandil@gmail.com`.
+- Execution evidence is recorded in `database/manual/patches/2026-06-16-tq7-5-automation-catalog-local-execution-note.sql`.
+- The first local starter rows were treated as a disposable smoke copy and reset through a guarded registry-scoped artifact before reinstalling the revised catalog. Execution evidence is recorded in `database/manual/patches/2026-06-17-tq7-5-catalog-reset-and-reinstall-execution-note.sql`.
+- After the full adhkar/dua bank revision, the guarded General Library text-source schema patch was executed locally, the selected-teacher catalog copy was reset again, and the full bank was reinstalled for `drosamaqandil@gmail.com`. Execution evidence is recorded in `database/manual/patches/2026-06-17-tq7-5-full-dua-bank-execution-note.sql`.
+
+### TQ7.5 Catalog Content-Shape Revision
+
+Owner review found that the first catalog draft is promising but not practical enough for children. The revision must happen before final launch smoke.
+
+Content rules:
+
+1. Every child-visible action should be its own task. Do not combine two actions in one task, for example "brush morning and night", "make bed and clear floor", or "wash face and brush teeth".
+2. A version should decide which tasks are active for the learner, or how many tasks are included. A version should not carry the real content while the task remains vague.
+3. The child should know the action from the task itself. Some content can still be teacher/parent-assigned, for example "your Quran portion" or "your family job", but the task must make the action clear and must not hide an unstated rule.
+4. Use friendly human wording. Replace vague phrases like "with support" with clear wording such as "with your parent or an adult watching and helping you with the steps."
+5. Keep task titles short and normal: `Fajr`, `Brush Teeth In The Morning`, `Make Your Bed`, `Stop When Parent Says Screen Time Is Finished`. Put explanation in the task description.
+6. Keep installed starter rows as teacher-owned drafts. Teachers can still edit wording after copy, but the source catalog should be good enough to test without manual repair for non-religious habit tasks.
+7. Do not fabricate adhkar, dua, Quran Arabic text, translations, transliterations, or religious-source claims. Use the provided `to_quran_adhkar_dua_banks.md` bank items as draft/content-review-required starter material, and keep them as teacher-owned drafts until owner/content review clears launch use.
+
+Installer/catalog structure change required:
+
+- The catalog manifest must support per-version task inclusion, for example a version-level `task_keys` list.
+- Manifest contract: omit `task_keys` when every task belongs in that version; provide a non-empty `task_keys` list when only selected tasks belong; explicit empty `task_keys` is invalid and must fail loudly.
+- The installer must create `main_daily_session_version_tasks` only for the task keys included in that version.
+- The TQ7.5 installer tests must assert per-version inclusion. For `Salah`, the current product-file ladder creates 10 versions and 34 version-task links, not all-tasks-in-all-versions.
+- Existing registry behavior still applies: create newly added rows by stable key, preserve teacher-edited text on rerun, and never auto-delete orphaned rows without a documented reset/cleanup step.
+
+Mandatory reset rule for future revised reinstalls:
+
+- Do not reinstall a structurally revised catalog over an existing copied teacher workspace when the change alters teacher-editable text, version names, task names, or removes version-task links.
+- Create a fresh backup/export and a guarded manual SQL reset artifact before deleting anything.
+- Scope deletion through `toquran_automation_catalog_entries` for the selected teacher, not by template title or subject title. Teacher 36 already has non-catalog automation rows, including `Salah Pro`, that must not be touched.
+- Delete child rows before parent rows, for example Versioned Routine links before tasks/versions/templates and Series items before versions/root tasks.
+- Delete the matching registry rows as part of the reset so stale `version_task` registry identities do not point at deleted rows.
+- Record target DB, backup evidence, row counts, and verification in a new execution note before reinstalling.
+
+Revised starter content direction:
+
+- `Salah`
+  - Follow the product-file ladder order: prayer readiness, Maghrib/Isha, add Asr, add Dhuhr, Fajr readiness, five salah consistency, timing, calmness, group/masjid prayer, and after-salah adhkar.
+  - Keep each salah or readiness/quality action as its own task; versions choose the active set.
+- `Wudu`
+  - Treat Wudu as a single physical action with quality/progression versions, not an additive multi-checkbox routine.
+  - Use clear support wording: "Do wudu while your parent or an adult watches and helps you with the steps."
+  - Later versions can change the one task's description to before-salah wudu, independent wudu, and calm wudu without rushing.
+- `Morning Adhkar` and `Evening Adhkar`
+  - Each product-file dhikr/dua is its own draft task.
+  - Each task description contains Arabic text, simple meaning, repeat count, Quran reference/source metadata when present, and source URL from `to_quran_adhkar_dua_banks.md`.
+  - Keep rows as `draft` and content-review-required before launch use.
+- `Dua Practice`
+  - Each product-file dua is its own draft task with Arabic text, simple meaning, use, repeat count, and source reference in the description.
+  - Keep rows as `draft` and content-review-required before launch use; the installer creates/reuses a sources-only Shared Library `My Deen Journey / Dua Bank` folder and seeds 52 text sources for the Series Task.
+- `Personal Hygiene`
+  - Split combined actions into separate tasks, for example `Brush Teeth In The Morning`, `Brush Teeth At Night`, `Wash Face`, and `Prepare Clean Clothes`.
+  - Versions add one or more clear actions at a time.
+- `Room Reset`
+  - Split into concrete tasks, for example `Make Your Bed`, `Clear The Floor`, `Reset Your Desk`, and `Prepare Your Learning Bag Or Books`.
+  - Weekly versions may include a larger set, but each task remains separately visible and separately pointable.
+- `Screen Balance`
+  - Do not use "follow today's screen-time rule" unless the rule is inside the task.
+  - Prefer concrete tasks such as `Finish Responsibilities Before Screen Time`, `Stop When Parent Says Screen Time Is Finished`, and `Put The Device In The Agreed Place`.
+- `Sleep Routine`, `Learning Readiness`, `Home Responsibility`, and `Deen Reflection`
+  - Re-read every version and task for the same rule: one visible action per task, friendly wording, no hidden external rule unless the task says exactly what to do.
+
+Concrete revision map for the next implementation pass:
+
+- `Personal Hygiene`
+  - Tasks:
+    - `Brush Teeth In The Morning`: "Brush your teeth in the morning. Mark done when you finish."
+    - `Brush Teeth At Night`: "Brush your teeth at night before sleeping. Mark done when you finish."
+    - `Wash Face`: "Wash your face and get fresh for the day."
+    - `Prepare Clean Clothes`: "Wear clean clothes or prepare clean clothes with your parent."
+  - Versions:
+    - `Morning Brush`: include morning brush only.
+    - `Morning And Night`: include morning brush and night brush.
+    - `Clean Start`: include morning brush, wash face, and clean clothes.
+    - `Full Hygiene Routine`: include all hygiene tasks.
+- `Room Reset`
+  - Tasks:
+    - `Make Your Bed`: "Make your bed or straighten your sleeping area."
+    - `Clear The Floor`: "Pick up things from the floor and put them where they belong."
+    - `Reset Your Desk`: "Make your desk or study place neat enough to learn."
+    - `Prepare Learning Bag Or Books`: "Put your learning bag, books, or Quran materials in the right place."
+  - Versions:
+    - `Bed Reset`: include make bed.
+    - `Bed And Floor`: include make bed and clear floor.
+    - `Study Place Ready`: include make bed, clear floor, and reset desk.
+    - `Full Room Reset`: include all room reset tasks.
+- `Sleep Routine`
+  - Tasks:
+    - `Start Bedtime On Time`: "Start getting ready for sleep at the time agreed with your family."
+    - `Put Screens Away`: "Put screens away in the agreed place before bedtime."
+    - `Prepare For Tomorrow`: "Prepare the clothes, books, or things you need for tomorrow."
+    - `Calm Down Before Sleep`: "Do your calm bedtime step, such as reading quietly, making dua, or relaxing without screens."
+  - Versions:
+    - `Start On Time`: include bedtime start.
+    - `No Screens Before Sleep`: include bedtime start and screens away.
+    - `Ready For Tomorrow`: include bedtime start, screens away, and tomorrow preparation.
+    - `Full Sleep Routine`: include all sleep tasks.
+- `Learning Readiness`
+  - Tasks:
+    - `Prepare Quran Or Lesson Materials`: "Prepare the Quran, book, notebook, pencil, or device you need for your lesson."
+    - `Join On Time`: "Be ready to join your lesson on time."
+    - `Sit In A Good Learning Place`: "Sit in a quiet and suitable place for learning."
+    - `Ask For Help Early`: "If something is missing or not working, ask your parent or teacher before the lesson starts."
+  - Versions:
+    - `Materials Ready`: include materials.
+    - `On Time`: include materials and join on time.
+    - `Good Learning Place`: include materials, on time, and learning place.
+    - `Independent Readiness`: include all readiness tasks.
+- `Home Responsibility`
+  - Tasks:
+    - `Do One Family Job`: "Do the family job your parent chose for you today."
+    - `Do It Kindly`: "Do your family job with kind words and no arguing."
+    - `Do It Without Many Reminders`: "Start or finish your family job without waiting for many reminders."
+    - `Help Extra For Two Minutes`: "Give two extra minutes of help at home when your parent asks."
+  - Versions:
+    - `One Job`: include one family job.
+    - `Kind Job`: include one family job and kind words.
+    - `Fewer Reminders`: include one family job, kind words, and fewer reminders.
+    - `Extra Help`: include all home responsibility tasks.
+- `Screen Balance`
+  - Tasks:
+    - `Finish Responsibilities Before Screen Time`: "Finish your agreed responsibility before screen time starts."
+    - `Stop When Parent Says Screen Time Is Finished`: "When your parent says screen time is finished, stop and put the screen down."
+    - `Put Device In The Agreed Place`: "Put the device in the place agreed with your family."
+    - `Choose One Non-Screen Activity`: "Choose one non-screen activity today, such as reading, playing, drawing, or helping at home."
+  - Versions:
+    - `Responsibilities First`: include responsibilities before screen time.
+    - `Stop On Time`: include responsibilities first and stop when asked.
+    - `Device Away`: include responsibilities first, stop when asked, and device away.
+    - `Balanced Day`: include all screen balance tasks.
+- `Salah`
+  - Tasks:
+    - `Prayer Readiness`: "Join or observe family prayer politely when assigned."
+    - `Maghrib`: "Pray Maghrib today. Mark done when you finish."
+    - `Isha`: "Pray Isha today. Mark done when you finish."
+    - `Asr`: "Pray Asr today. Mark done when you finish."
+    - `Dhuhr`: "Pray Dhuhr today. Mark done when you finish."
+    - `Fajr Readiness`: "Work on Fajr readiness by sleeping earlier and preparing to wake up when suitable."
+    - `Fajr`: "Pray Fajr today. Mark done when you finish."
+    - `Salah On Time`, `Salah Calmness`, `Family / Group / Masjid Prayer`, and `Selected After-Salah Adhkar`.
+  - Versions:
+    - Product-file order: `Prayer Readiness`, `Maghrib And Isha Target`, `Add Asr`, `Add Dhuhr`, `Fajr Readiness`, `Five Salah Consistency`, `Salah On Time`, `Salah Calmness`, `Family / Group / Masjid Prayer`, and `Selected After-Salah Adhkar`.
+    - Tests assert the early ladder starts with Maghrib/Isha and does not expose Fajr in the Maghrib/Isha version.
+- `Wudu`
+  - Task:
+    - `Wudu Practice`: "Do wudu while your parent or an adult watches and helps you with the steps."
+  - Versions:
+    - `Wudu With Support`, `Wudu Before Assigned Salah`, `Independent Wudu`, `Calm Wudu`, and `Clean And Ready For Salah`.
+- `Quran`
+  - Treat Quran as a single assigned-content task until Quran integration/content review exists. The assigned portion may remain external, but the action should be clear.
+  - Task:
+    - `Quran Practice`: "Complete the Quran portion assigned by your teacher or parent today."
+  - Versions:
+    - `Quran Listening`, `Repeat After Recitation`, `Read With Support`, `Complete Today's Quran Reading`, `Quran Habit 3-4 Times Weekly`, `Daily / Near-Daily Quran Habit`, `Careful Reading`, and `Quran Reflection`.
+- `Dua Practice`
+  - Tasks:
+    - one task per daily dua from `to_quran_adhkar_dua_banks.md`, with Arabic text, simple meaning, repeat count, Quran reference/source metadata when present, and source URL in the description.
+  - Versions:
+    - add one or more dua tasks according to the product-file daily dua ladder, plus reflection tasks for explain/reflection stages.
+  - Keep installed rows as `draft`; religious content still requires owner/content review before launch use.
+- `Morning Adhkar`
+  - Tasks:
+    - one task per morning dhikr/dua from `to_quran_adhkar_dua_banks.md`, with Arabic text, simple meaning, repeat count, Quran reference/source metadata when present, and source URL in the description.
+  - Versions:
+    - add one draft morning dhikr/dua task at a time through `Morning Adhkar With Focus`.
+  - Keep installed rows as `draft`; religious content still requires owner/content review before launch use.
+- `Evening Adhkar`
+  - Tasks:
+    - one task per evening/bedtime dhikr/dua from `to_quran_adhkar_dua_banks.md`, with Arabic text, simple meaning, repeat count, Quran reference/source metadata when present, and source URL in the description.
+  - Versions:
+    - add one draft evening/bedtime dhikr/dua task at a time through `Calm Evening Adhkar`.
+  - Keep installed rows as `draft`; religious content still requires owner/content review before launch use.
+- `Masjid / Prayer Adab`
+  - Add the product-file weekly draft routine with tasks for prayer manners, preparing for prayer place, good manners in prayer place, listening to reminders, and keeping the prayer space clean.
+- `Deen Reflection`
+  - Tasks:
+    - `Name One Good Thing You Did`: "Name one good thing you did this week."
+    - `Thank Allah For One Blessing`: "Say one blessing Allah gave you this week and say Alhamdulillah."
+    - `Choose One Thing To Improve`: "Choose one Deen habit you want to improve next week."
+  - Versions:
+    - `One Good Thing`: include good thing.
+    - `Gratitude`: include good thing and blessing.
+    - `Improve Next Week`: include all reflection tasks.
+
+### TQ7.5 Ownership And Onboarding Decision
+
+The launch-safe starter catalog model is **admin-curated source catalog -> teacher-owned copies**, not true admin-owned shared automation rows.
+
+Do not create admin-owned Versioned Routine or Series Task rows for teachers to assign in the current architecture. Automation ownership is load-bearing today:
+
+- teacher boards filter by `created_by_user_id = Auth::id()`;
+- assignment services require the current teacher to own the automation row;
+- snapshot/generation services use `created_by_user_id` as the teacher identity for resolving teacher/class/student context.
+
+If admin owned the live automation row, teachers would not reliably see or assign it, and generated student work could resolve the wrong teacher context.
+
+Launch model:
+
+- `StarterAutomationCatalog` is the reviewed/admin-curated master recipe in code.
+- Copying starter tasks creates draft rows in the selected teacher's own Automated Tasks workspace.
+- Teachers can edit, publish, assign, archive, or ignore their own copied starters.
+- New teachers can receive starter tasks later by using the same copy flow.
+- Existing teacher copies are not overwritten automatically when the master catalog changes. Future updates should be explicit/opt-in and should use `manifest_hash` / `installed_version` to detect available updates without clobbering teacher edits.
+
+Required TQ7.5 follow-up before normal operational use:
+
+1. Add a small admin/superadmin UI for copying starter tasks to selected teachers. The UI must call `AutomationCatalogInstaller` directly; it must not shell out to the Artisan command.
+2. UI minimum:
+   - active-teacher search/dropdown;
+   - `Preview` action that runs dry-run and shows created/updated/skipped messages;
+   - `Copy Starter Tasks` action that writes only after the registry table exists;
+   - clear copy explaining that starters are copied into the teacher's own Automated Tasks workspace;
+   - no all-teacher bulk button unless a later owner decision adds an explicit confirmation flow.
+3. Keep `toquran:install-automation-catalog` as the developer/server fallback for controlled launch operations.
+4. Defer true admin-owned shared automation templates. Reopen only if the owner requires central admin edits to propagate into existing teacher assignments; that future design must rework visibility, assignment authorization, and generation context so the assigning teacher, not the template owner, drives student work.
 
 ## Roadmap Relationship
 
@@ -298,7 +515,7 @@ Actions:
    - `Differentiated Tasks`
    - `Series Tasks`
 3. Remove or hide visible launch-facing labels like SAT, Literature, TV Series, Vocabulary, Vocab Games, Friends, Avatar, Grammar, Notice & Note, and Level Up from automation pickers, empty states, tests, and help copy.
-4. Use Quran/Arabic/MDJ examples in tests and starter data.
+4. Use To Quran launch examples in tests and visible copy; keep TQ7.5 starter data scoped to `Well Being` and `My Deen Journey` unless reopened by owner decision.
 5. Do not add student or parent Automation navigation. Learners continue to see generated work in normal subject/session/task surfaces.
 6. If `SeriesTasksBoard` vocabulary policy fields remain in code, keep them dormant/unreachable from default launch source selection rather than deleting them. They are allowed as future TQ8 reuse scaffolding, not as visible English vocabulary functionality.
 
@@ -321,7 +538,7 @@ Actions:
 
 ### Phase TQ7.5-1: Define The Starter Catalog In Code
 
-Goal: create reproducible launch-ready automation templates for teachers without one-off UI setup. These automation rows are created for a teacher/user so existing assignment ownership works; their Library sources remain shared TQ6 General Library content.
+Goal: create reproducible launch-ready automation templates for teachers without one-off manual UI setup. These automation rows are created for a teacher/user so existing assignment ownership works; their Library sources remain shared TQ6 General Library content.
 
 Implementation approach:
 
@@ -337,6 +554,8 @@ Implementation approach:
 3. Versioned Routine entries must declare versions and tasks:
    - stable version keys plus version display names and descriptions;
    - stable task keys plus main task title, prompt/description, sort order, task type, points, and optional `general__{resource}` attachments;
+  - explicit per-version task inclusion, for example `task_keys`, whenever not every task belongs in every version; omitted `task_keys` means include all declared tasks, while explicit empty `task_keys` is invalid;
+   - child-facing task descriptions that are complete enough for the learner to know what to do without hunting for hidden rules, external text, or unstated parent decisions;
    - publish/install status, with text-only starters installed as `draft` and content-backed starters eligible for `active` only after publish validation passes.
 4. Differentiated Task entries must declare:
    - task title/description, task type, points, recurrence, and status;
@@ -365,6 +584,7 @@ Implementation approach:
    - update only platform-managed fields such as source bindings, publish/install status, sort order, and manifest version/hash;
    - preserve teacher-editable text, points, recurrence, and assignment choices on already-installed rows unless a later owner decision marks a field platform-managed;
    - create newly added manifest children when their stable keys do not exist;
+   - for Versioned Routines, create or update version-task links only for the manifest's included task keys; do not assume every task belongs to every version;
    - never delete missing/removed manifest children automatically; mark them skipped/orphaned in dry-run output and require a documented cleanup plan if removal is needed.
 8. Add a guarded Artisan command, for example `toquran:install-automation-catalog`, that:
    - refuses to run unless `--confirm-db=u504065335_to_quran` matches the active DB;
@@ -373,44 +593,22 @@ Implementation approach:
    - verifies teacher activity, role/permission eligibility, and subject/class eligibility for every catalog entry before writing rows;
    - upserts records by the durable catalog identity strategy above, not by mutable titles alone;
    - never deletes teacher-edited rows;
-   - supports `--dry-run` and reports the exact rows it would create/update/skip;
+   - supports `--dry-run` and reports create/update/skip summaries. If the admin copy UI depends on preview counts, improve dry-run to distinguish root rows from child rows instead of overstating precision;
    - reports created/updated/skipped counts.
 9. Add a database/manual execution note template before any run. If the command is executed locally, first create or confirm focused backup/export evidence and then record target, command, counts, and verification.
 
-Initial starter catalog proposal:
+Historical starter catalog proposal, superseded for current TQ7.5 scope:
 
-- Quran Memorization (`content-backed now` for the listed Quran Repetition Series Tasks; `text-only launch starter` for routine task prompts unless owner supplies extra source files):
-  - Versioned Routine: `Daily Hifz And Review`
-    - Beginner: listen/repeat, recite short range, parent check.
-    - Steady: listen/repeat, recite range, correction note, review older ayat.
-    - Challenge: recite from memory, self-check, teacher correction prompt.
-  - Series Tasks:
-    - `Quran Repetition - Al-Faatiha`
-    - `Quran Repetition - Al-Ikhlaas`
-    - `Quran Repetition - Al-Falaq`
-    - `Quran Repetition - An-Naas`
-    - Source from existing TQ6 `Quran Repetition` General Library per-surah folders.
-- Quranic Arabic (`text-only launch starter`; `owner-content required` before presenting as content-backed):
-  - Versioned Routine: `Quranic Arabic Reading Practice`
-    - Letter/sound recognition, word reading, short ayah reading versions.
-  - Differentiated Task: `Reading Support Prompt`
-    - Listen-and-repeat, trace/read, independent reading versions.
-- Arabic Language (`text-only launch starter`; `owner-content required` before presenting as content-backed):
-  - Versioned Routine: `Arabic Practice Loop`
-    - letter/word/sentence versions, text-only until Arabic resources are added.
-- My Deen Journey (`text-only launch starter`; can be launch-ready as prompts/habit checks without Library files):
-  - Versioned Routine: `My Deen Daily Check-In`
-    - Salah check, adab/home habit, reflection task.
-  - Differentiated Task: `Reflection Prompt`
-    - simple, guided, independent versions.
-- Sanad Program (`text-only launch starter`; `owner-content required` before presenting as content-backed):
-  - Versioned Routine: `Sanad Recitation Preparation`
-    - preparation, recording/self-check, teacher recitation note.
+- Earlier planning considered Quran Memorization, Quranic Arabic, Arabic Language, My Deen Journey, Sanad Program, Differentiated Tasks, and Quran Repetition Series starters.
+- Owner decision after implementation review narrowed the current launch TQ7.5 starter catalog to `Well Being` and `My Deen Journey`, primarily as Versioned Routines, plus installer-seeded General Library text sources for the Dua Bank Series.
+- My Deen Journey was retained, not dropped; the superseded part is the broader Quran/Arabic/Sanad/Differentiated launch starter scope.
+- Do not implement the earlier Quran/Arabic/Sanad starter items in this TQ7.5 branch. Reopen them only after Quran integration/content review or a later owner-approved sprint.
 
 Catalog boundaries:
 
 - Do not add English vocabulary games.
 - Do not invent Quranic text/ayah ranges beyond existing owner-approved Library content unless owner supplies content.
+- Do not invent adhkar/dua Arabic text for child-facing tasks. Use the provided draft bank content in `to_quran_adhkar_dua_banks.md`, keep installed rows as `draft`, and mark the content as review-required before launch use.
 - Do not present text-only or owner-content-required starters as content-backed Library material.
 - Do not create production user accounts.
 - Do not assign starter catalog items to students automatically. Teachers assign after smoke.
@@ -425,9 +623,9 @@ Actions:
 1. Before any catalog execution, confirm backup/export evidence for `u504065335_to_quran`.
 2. Confirm active target DB name and that it is intentionally the accelerated To Quran app DB.
 3. Record the command or SQL execution under `database/manual/patches/`.
-4. If durable starter data is created by command instead of raw SQL, add a SQL note file that documents:
+4. If durable starter data is created by command, admin copy UI, or reviewed raw SQL, add a SQL note file that documents:
    - backup evidence;
-   - command and options;
+   - command/options or admin UI action taken;
    - target DB;
    - expected affected tables;
    - idempotency behavior;
@@ -435,6 +633,13 @@ Actions:
    - guard-failure result.
 5. Update `database/manual/README.md` replay/order notes if the catalog becomes part of the launch replay process.
 6. Update `docs/shared/SHARED-DB-HANDOFF.md` only if the catalog execution affects shared deployment expectations.
+7. Before reinstalling a structurally revised starter catalog for a teacher who already received an earlier draft, create and review a guarded reset SQL artifact that:
+   - confirms the intended DB by guard variable and `DATABASE()`;
+   - scopes candidate rows through `toquran_automation_catalog_entries` for the selected teacher/user id;
+   - deletes child rows before parent rows;
+   - deletes matching registry rows;
+   - verifies non-catalog rows for the same teacher, such as `Salah Pro`, remain untouched;
+   - records backup evidence, row counts, and post-reset verification in an execution note.
 
 ## Implementation Sequencing
 
@@ -450,6 +655,7 @@ Land TQ7 and TQ7.5 as separate reviewable units, even if they stay on the same w
    - add the code-defined starter catalog manifest;
    - add the guarded `toquran_automation_catalog_entries` manual SQL;
    - add the guarded installer command and dry-run reporting;
+   - follow-up: add the admin/superadmin copy UI so selected teachers can receive teacher-owned starter drafts without terminal access;
    - add catalog idempotency and eligibility tests;
    - execute nothing against any DB until backup/export evidence, target confirmation, and manual execution notes are complete.
 
@@ -457,18 +663,20 @@ Land TQ7 and TQ7.5 as separate reviewable units, even if they stay on the same w
 
 Expected schema impact: none for TQ7 if the implementation uses existing flexible `varchar(64)` Series source-type columns.
 
-TQ7.5 schema impact: one small guarded registry table, `toquran_automation_catalog_entries`. That table must be created only through reviewed manual SQL with target checks, backup evidence, and an execution note. If the registry table is not used, implementation must amend this plan before building the installer.
+TQ7.5 schema impact: one small guarded registry table, `toquran_automation_catalog_entries`, plus a guarded General Library text-source patch that adds `general_library_resources.text_content` and allows `resource_type = 'text'`. Both must be created only through reviewed manual SQL with target checks, backup evidence, and an execution note. If the registry table is not used, implementation must amend this plan before building the installer.
 
 Expected data impact:
 
 - TQ7 code changes only should not write production data.
-- TQ7.5 starter catalog writes rows to automation tables only when the guarded command or reviewed manual data artifact is explicitly executed.
+- TQ7.5 starter catalog writes rows to automation tables only when the guarded command, admin copy UI, or reviewed manual data artifact is explicitly executed.
 - No DB changes may run until backup/export evidence exists, target DB is confirmed, and the manual artifact/execution note exists.
 - No destructive cleanup is part of this plan.
 
 Potential affected tables for TQ7.5:
 
 - `toquran_automation_catalog_entries`
+- `general_library_folders`
+- `general_library_resources`
 - `main_daily_session_templates`
 - `main_daily_session_versions`
 - `main_daily_session_main_tasks`
@@ -516,17 +724,29 @@ Focused automated tests:
   - Pre-existing automation rows with legacy Week14 source bindings fail closed, skip gracefully during learner lazy generation, and do not break the student subject/session page.
   - Series Task generation snapshots General Library YouTube/link/file resources safely.
   - Starter catalog installer is idempotent for root and child rows, fails loudly on ambiguous/missing/inactive General Library source lookups, verifies teacher/subject eligibility and registry-resolved target ownership/type/parentage before updating, and refuses wrong DB/missing confirmation.
+  - Revised Versioned Routine installer supports per-version `task_keys`; `Salah` product-file versions create 34 version-task links total, and tests assert version-level inclusion instead of all-tasks-in-all-versions.
 
 Manual smoke after implementation:
+
+TQ7 Library adapter smoke:
 
 - Teacher sees Automation tracks.
 - Teacher creates or opens a Quran Memorization Versioned Routine and attaches Quran Repetition from Shared Library.
 - Teacher creates or opens a Differentiated Task and selects Quran/Arabic General Library content.
 - Teacher creates or opens a Series Task from a General Library source-only folder.
-- Teacher assigns a starter routine/series to a smoke student.
 - Student sees generated work in the normal subject/session/task surface.
 - Parent can see generated work through existing parent visibility.
 - Old Week14 source families are not visible in launch-facing automation pickers.
+
+TQ7.5 starter copy smoke:
+
+- Until the admin copy UI follow-up lands, use the guarded `toquran:install-automation-catalog` command as the interim copy path for one selected teacher.
+- Admin/superadmin opens the starter catalog copy UI.
+- Admin/superadmin previews starter copy for one active teacher and sees created/updated/skipped messages.
+- Admin/superadmin copies starter tasks for that teacher only after the registry table exists and DB backup/target/manual evidence is in place.
+- Teacher sees copied `Well Being` and `My Deen Journey` draft starters in their own Automated Tasks workspace.
+- Teacher assigns one copied starter routine or source-backed Dua Bank Series, if available, to a smoke student.
+- Student and parent see generated work through existing learner surfaces.
 
 Frontend form-control verification:
 
@@ -553,13 +773,19 @@ TQ7 is implementation-review ready when:
 - Differentiated Task General Library attachments are linked through both the task-level pool and version-selection rows.
 - Week14 legacy source families are hidden or blocked from launch-facing automation, including pre-existing legacy-source rows, without breaking learner lazy-generation pages.
 - Existing automation behavior remains covered by focused tests.
-- Quran/Arabic/MDJ terminology appears in new tests and visible copy where applicable.
+- To Quran launch terminology appears in new tests and visible copy where applicable.
 
-TQ7.5 is implementation-review ready when:
+TQ7.5 current implementation-review state:
 
-- A reproducible starter catalog exists in code or guarded manual data artifacts.
-- The catalog can create/update launch-ready automation templates for eligible teachers without duplicate drift in root rows, versions, tasks, items, or attachments, and refuses ambiguous source lookups, ineligible teacher/subject targets, or stale registry target mismatches.
-- Catalog idempotency uses the guarded `toquran_automation_catalog_entries` registry table unless this plan is amended and re-reviewed first.
-- Execution is guarded by target DB checks and recorded under `database/manual/` if run.
-- Teachers can assign starter routines/series to smoke students.
-- Student and parent smoke confirms generated output appears through existing learner surfaces.
+- A reproducible starter catalog exists in code and guarded manual data artifacts.
+- The catalog creates/updates launch-ready automation templates for eligible teachers without duplicate drift in root rows, versions, tasks, items, or attachments, and refuses ambiguous source lookups, ineligible teacher/subject targets, stale registry target mismatches, stale `DUA-*` seed rows, duplicate seed labels, and missing text-source schema.
+- Catalog idempotency uses the guarded `toquran_automation_catalog_entries` registry table.
+- Local execution was guarded by target DB checks and recorded under `database/manual/`.
+- The admin/superadmin copy UI follow-up is planned and specified, but not implemented in this branch.
+
+TQ7.5 current launch-smoke state:
+
+- The registry table exists locally through reviewed manual SQL with backup/target evidence.
+- The guarded `toquran:install-automation-catalog` command has been used as the interim one-teacher copy path for local smoke.
+- The selected local teacher has the revised starter routines, parsed Adhkar/Dua routines, generated text-source General Library `Dua Bank`, and source-backed `Dua Bank` Series Task.
+- Remaining operational smoke: assign representative starter routines/series to smoke students and confirm student/parent generated output appears through existing learner surfaces.

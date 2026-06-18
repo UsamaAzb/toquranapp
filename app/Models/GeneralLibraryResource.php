@@ -14,6 +14,8 @@ class GeneralLibraryResource extends Model
 
     public const TYPE_YOUTUBE = 'youtube';
 
+    public const TYPE_TEXT = 'text';
+
     public const STATUS_ACTIVE = 'active';
 
     public const STATUS_ARCHIVED = 'archived';
@@ -33,6 +35,7 @@ class GeneralLibraryResource extends Model
         'mime_type',
         'file_size',
         'external_url',
+        'text_content',
         'sort_order',
         'created_by_user_id',
         'updated_by_user_id',
@@ -86,6 +89,11 @@ class GeneralLibraryResource extends Model
     public function isYoutube(): bool
     {
         return $this->resource_type === self::TYPE_YOUTUBE;
+    }
+
+    public function isText(): bool
+    {
+        return $this->resource_type === self::TYPE_TEXT;
     }
 
     public function isActive(): bool

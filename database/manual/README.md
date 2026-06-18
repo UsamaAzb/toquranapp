@@ -200,9 +200,19 @@ timestamp, and checksum.
 - `patches/2026-06-07-tq6-library-folder-mode-and-quran-repetition-import-execution-note.sql`
   - execution note for the local TQ6 Quran Repetition import, including backup evidence, guard success, and verification counts for 20 surah folders and 106 sources
 - `patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql`
-  - guarded create-only manual SQL artifact for the TQ7.5 starter automation catalog identity registry; not executed during code implementation
+  - guarded create-only manual SQL artifact for the TQ7.5 starter automation catalog identity registry; local execution is recorded in the 2026-06-16 execution note
 - `patches/2026-06-15-tq7-5-automation-catalog-install-execution-note-template.sql`
   - execution-note template for a future guarded TQ7.5 catalog install command run; not an execution record
+- `patches/2026-06-16-tq7-5-automation-catalog-local-execution-note.sql`
+  - execution note for the local TQ7.5 registry creation and selected-teacher starter catalog install, including backup evidence, first-attempt FK-type correction, command output, and verification counts
+- `patches/2026-06-17-reset-tq7-5-automation-catalog-local-smoke.sql`
+  - guarded local reset artifact for deleting the first selected-teacher TQ7.5 catalog smoke copy through registry-scoped row ids before reinstalling the revised starter catalog
+- `patches/2026-06-17-tq7-5-catalog-reset-and-reinstall-execution-note.sql`
+  - execution note for the local registry-scoped resets and revised selected-teacher catalog reinstalls, including backup evidence, product-file content alignment, reset counts, reinstall counts, and final verification shape
+- `patches/2026-06-17-add-general-library-text-sources.sql`
+  - guarded schema patch that adds General Library text-only sources for TQ7.5 Dua Bank content by adding `general_library_resources.text_content` and allowing `resource_type = 'text'`; local execution is recorded in the full Dua Bank execution note
+- `patches/2026-06-17-tq7-5-full-dua-bank-execution-note.sql`
+  - execution note for the local full-bank TQ7.5 reset/reinstall, including backup evidence, General Library text-source schema execution, 52 seeded Dua Bank text sources, and final catalog verification counts
 
 ## Current Local App Target
 

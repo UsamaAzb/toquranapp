@@ -1,0 +1,99 @@
+-- TQ7.5 full Dua/Adhkar bank local execution note
+-- Date: 2026-06-17
+-- Target: local To Quran app DB `u504065335_to_quran`
+-- Branch: codex/tq7-5-starter-automation-catalog
+--
+-- Backup evidence:
+--   database/manual/backups/2026-06-17-234010-u504065335_to_quran-before-tq7-5-full-dua-bank.evidence.sql
+--   size: 1,559,822 bytes
+--   Raw restore dump is local/offline only and intentionally not committed.
+--
+-- Note:
+--   An earlier dump attempt timed out and produced an incomplete file. That partial file was deleted.
+--   The local/offline backup listed above completed successfully and is the evidence used for this local DB work.
+
+-- Target verification:
+--   SELECT DATABASE(), COUNT(*) FROM information_schema.tables WHERE table_schema = 'u504065335_to_quran';
+--   Result: u504065335_to_quran, 357 tables.
+
+-- Schema patch executed:
+--   SET @toquran_confirm_real_db_target := 'u504065335_to_quran';
+--   SOURCE database/manual/patches/2026-06-17-add-general-library-text-sources.sql;
+--
+-- Schema verification result:
+--   general_library_resources.resource_type = enum('file','link','youtube','text') NOT NULL
+--   general_library_resources.text_content = mediumtext NULL
+
+-- Reset executed for selected local smoke teacher:
+--   teacher id: 36
+--   teacher email: drosamaqandil@gmail.com
+--   SET @toquran_confirm_real_db_target := 'u504065335_to_quran';
+--   SET @toquran_reset_catalog_teacher_id := 36;
+--   SET @toquran_reset_catalog_teacher_email := 'drosamaqandil@gmail.com';
+--   SOURCE database/manual/patches/2026-06-17-reset-tq7-5-automation-catalog-local-smoke.sql;
+--
+-- Reset output before:
+--   registry_rows: 348
+--   versioned_routine_roots: 14
+--   versioned_routine_versions: 75
+--   versioned_routine_tasks: 69
+--   versioned_routine_version_tasks: 190
+--   series_roots: 0
+--   series_versions: 0
+--   series_items: 0
+--
+-- Reset output after:
+--   registry_rows: 0
+--   catalog_templates_remaining: 0
+--   non_catalog_salah_pro_remaining: 1
+--
+-- Reset note:
+--   The reset run printed the before/after counts, then mysql reported a collation error against the
+--   teacher-email guard line in the artifact. Post-run verification confirmed the intended registry-scoped
+--   deletes had completed. The email comparisons in the guard were patched to use utf8mb4_unicode_ci
+--   before any future rerun.
+
+-- Dry-run command:
+--   php artisan toquran:install-automation-catalog --teacher-email=drosamaqandil@gmail.com --dry-run --confirm-db=u504065335_to_quran
+--
+-- Dry-run result:
+--   Would create 14 versioned routines.
+--   Would create Shared Library seed My Deen Journey / Dua Bank with 52 text sources.
+--   Would create series task mdj-dua-bank-series with 52 source items after creating the Shared Library seed folder.
+--   Catalog dry-run complete: 69 created, 0 updated, 0 skipped.
+
+-- Real install command:
+--   php artisan toquran:install-automation-catalog --teacher-email=drosamaqandil@gmail.com --confirm-db=u504065335_to_quran
+--
+-- Real install result:
+--   Installed 14 versioned routines.
+--   Installed series task mdj-dua-bank-series.
+--   Catalog install complete: 665 created, 224 updated, 0 skipped.
+
+-- Verification:
+--   SELECT COUNT(*) FROM toquran_automation_catalog_entries WHERE teacher_user_id = 36;
+--   Result: 665
+--
+--   SELECT COUNT(*) FROM general_library_resources WHERE resource_type = 'text' AND source_label LIKE 'DUA-%' AND status = 'active';
+--   Result: 52
+--
+--   SELECT f.id, f.title, f.content_mode, COUNT(r.id)
+--   FROM general_library_folders f
+--   LEFT JOIN general_library_resources r ON r.general_library_folder_id = f.id AND r.status = 'active'
+--   WHERE f.title = 'Dua Bank'
+--   GROUP BY f.id, f.title, f.content_mode;
+--   Result: id 28, Dua Bank, sources_only, 52 direct sources
+--
+--   SELECT st.id, st.title, COUNT(stvi.id)
+--   FROM series_tasks st
+--   JOIN series_task_versions stv ON stv.series_task_id = st.id
+--   LEFT JOIN series_task_version_items stvi ON stvi.version_id = stv.id
+--   WHERE st.created_by_user_id = 36 AND st.title = 'Dua Bank'
+--   GROUP BY st.id, st.title;
+--   Result: id 2, Dua Bank, 52 items
+--
+--   Versioned routine counts:
+--   Salah: 11 tasks, 10 versions, 34 version-task links
+--   Dua Practice: 52 tasks, 8 versions, 133 version-task links
+--   Morning Adhkar: 24 tasks, 8 versions, 58 version-task links
+--   Evening Adhkar: 23 tasks, 8 versions, 57 version-task links

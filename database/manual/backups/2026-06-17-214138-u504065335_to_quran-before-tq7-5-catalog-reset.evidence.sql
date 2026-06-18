@@ -1,0 +1,15 @@
+-- To Quran TQ7.5 local backup evidence note
+-- Original filename: 2026-06-17-214138-u504065335_to_quran-before-tq7-5-catalog-reset.sql
+-- Purpose: before registry-scoped reset of the first selected-teacher TQ7.5 catalog smoke copy.
+-- Target/source DB: u504065335_to_quran
+-- Original bytes: 666525
+-- Original last write: 2026-06-17 21:41:45
+-- Original SHA256: E685E005D994A4A086E31EDB676DD88009463C30C626A13CAB3CDF9EBBC63928
+--
+-- Repository policy:
+-- The raw restore dump is intentionally not stored in Git because it can contain
+-- auth/session/contact data, operational email diagnostics, PINs, tokens, and
+-- other credential-like or personally identifying runtime data.
+--
+-- Keep the full-fidelity restore artifact in secured local/offline storage only.
+-- This file is evidence only and is not executable restore SQL.

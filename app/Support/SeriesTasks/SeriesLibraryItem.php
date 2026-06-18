@@ -17,6 +17,8 @@ readonly class SeriesLibraryItem
 
     public function hasSafeDeliveryTarget(): bool
     {
-        return filled($this->url) || filled($this->mediaPath);
+        return filled($this->url)
+            || filled($this->mediaPath)
+            || ($this->mediaType === 'text' && filled($this->summary));
     }
 }

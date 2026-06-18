@@ -1,7 +1,8 @@
 -- TQ7.5 automation starter catalog registry
 -- Target: u504065335_to_quran
 --
--- Status: reviewed manual artifact; not executed by Codex during implementation.
+-- Status: reviewed manual artifact; local execution recorded in
+-- database/manual/patches/2026-06-16-tq7-5-automation-catalog-local-execution-note.sql.
 --
 -- Before execution:
 --   1. Create/confirm a focused backup/export for the intended To Quran app DB.
@@ -59,8 +60,8 @@ CREATE TABLE IF NOT EXISTS toquran_automation_catalog_entries (
     entry_key VARCHAR(191) NOT NULL,
     target_table VARCHAR(128) NOT NULL,
     target_id BIGINT UNSIGNED NOT NULL,
-    teacher_user_id BIGINT UNSIGNED NOT NULL,
-    subject_id BIGINT UNSIGNED NOT NULL,
+    teacher_user_id INT(10) NOT NULL,
+    subject_id INT(10) NOT NULL,
     installed_version VARCHAR(80) NOT NULL,
     manifest_hash CHAR(64) NOT NULL,
     metadata JSON NULL,

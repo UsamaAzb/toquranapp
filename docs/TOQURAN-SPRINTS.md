@@ -140,12 +140,12 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 
 - Status: `active`
 - Depends on: TQ4/TQ7 planning
-- Goal: Before launch, create code-defined starter Versioned Routines and Series Tasks so teachers have ready-to-assign Quran/Arabic/MDJ launch material instead of an empty automation catalog.
+- Goal: Before launch, create code-defined starter Versioned Routines and Series Tasks so teachers have ready-to-copy Well Being and My Deen Journey launch material instead of an empty automation catalog.
 - Current artifact: `docs/plans/active/2026-06-14-tq7-automation-routines-differentiated-series-plan.md`
-- Current status note: TQ7.5 code-defined Well Being and My Deen Journey starter catalog implementation is in progress on `codex/tq7-5-starter-automation-catalog`; no registry SQL or starter-data installer command has been executed. Any starter-data execution still requires DB backup/target/manual-artifact checks.
-- Launch scope: this is required before treating deployment as ready. Use code or guarded manual data artifacts so the catalog is reproducible; do not rely on one-off admin UI setup.
-- App action: inspect Week14 Versioned Routines and Series Tasks structures, define To Quran starter routines/series, add safe creation/update code, and verify teachers can assign them.
-- Website action: public website should not promise specific automated routine content until this catalog exists and is smoke-tested.
+- Current status note: TQ7.5 code-defined Well Being and My Deen Journey starter catalog implementation is revised locally on `codex/tq7-5-starter-automation-catalog`; local guarded registry SQL, selected-teacher reset, and revised reinstall smoke were executed with backup/evidence. Current starter shape uses per-version task inclusion, the product-file Salah ladder order, concrete Well Being task checklists, expanded Wudu/Quran progression, Masjid/Prayer Adab, full parsed Morning Adhkar/Evening Adhkar/Dua Bank content from `to_quran_adhkar_dua_banks.md`, and installer-seeded General Library text sources for `My Deen Journey / Dua Bank`; religious text still requires owner/content review before launch use. Owner decision: starter catalog is an admin-curated source recipe that copies teacher-owned draft automation rows into selected teacher workspaces, not true admin-owned shared automation rows.
+- Launch scope: this is required before treating deployment as ready. Use code or guarded manual data artifacts so the catalog is reproducible; do not rely on one-off manual UI setup.
+- App action: add a small admin/superadmin copy UI that calls the starter catalog installer service for selected active teachers with preview and result messages, then verify teachers can assign the copied starter routines/series.
+- Website action: public website should not promise specific automated routine content, especially Quran/Arabic automation, until the relevant catalog items exist and are smoke-tested.
 - DB action: use reviewed/manual data patches or code-level bootstrap commands with target checks and backup evidence; no destructive cleanup.
 
 ### TQ8. Arabic Vocabulary Games

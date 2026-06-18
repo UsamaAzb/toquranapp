@@ -1,0 +1,15 @@
+-- To Quran TQ7.5 local backup evidence note
+-- Original filename: 2026-06-17-234010-u504065335_to_quran-before-tq7-5-full-dua-bank.sql
+-- Purpose: before adding General Library text-source schema support and reinstalling the full parsed Dua/Adhkar bank.
+-- Target/source DB: u504065335_to_quran
+-- Original bytes: 1559822
+-- Original last write: 2026-06-17 23:42:43
+-- Original SHA256: 3C31F772F29ED404D05A7D190C5F7772158103E052A3A574BCADAF795BA0FAD5
+--
+-- Repository policy:
+-- The raw restore dump is intentionally not stored in Git because it can contain
+-- auth/session/contact data, operational email diagnostics, PINs, tokens, and
+-- other credential-like or personally identifying runtime data.
+--
+-- Keep the full-fidelity restore artifact in secured local/offline storage only.
+-- This file is evidence only and is not executable restore SQL.

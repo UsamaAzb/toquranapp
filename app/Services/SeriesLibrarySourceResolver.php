@@ -324,11 +324,16 @@ class SeriesLibrarySourceResolver
         $mediaPath = null;
         $mediaType = $resource->resource_type;
 
+        $summary = $resource->description ?: null;
+
         if ($resource->isFile()) {
             $mediaPath = $resource->file_path;
         } elseif ($resource->isYoutube()) {
             $url = Helpers::trustedVideoEmbedUrl((string) $resource->external_url);
             $mediaType = 'youtube';
+        } elseif ($resource->isText()) {
+            $summary = $resource->text_content ?: $summary;
+            $mediaType = 'text';
         } else {
             $url = $resource->external_url;
             $mediaType = 'link';
@@ -338,7 +343,7 @@ class SeriesLibrarySourceResolver
             self::SOURCE_GENERAL_LIBRARY_RESOURCE,
             (int) $resource->id,
             (string) $resource->title,
-            $resource->description ?: null,
+            $summary,
             $url,
             $mediaPath,
             $mediaType,

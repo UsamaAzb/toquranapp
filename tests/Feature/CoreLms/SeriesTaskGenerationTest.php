@@ -277,6 +277,101 @@ class SeriesTaskGenerationTest extends TestCase
         }
     }
 
+    public function test_publisher_generates_snapshot_from_text_library_resource_source(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-05-04 08:00:00'));
+
+        try {
+            $teacher = User::factory()->create();
+            $teacher->assignRole('teacher');
+            $context = $this->createTeacherSubjectContext($teacher);
+            $student = $this->enrollStudent($context, 'Rami', 'Cole', 'Sara');
+            $folderId = $this->createGeneralLibraryFolder($teacher, 'Dua Bank', 1, contentMode: 'sources_only');
+            $text = "Arabic:\nبِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا\n\nMeaning: In Your name, O Allah, I sleep and wake.";
+            $resourceId = (int) DB::table('general_library_resources')->insertGetId([
+                'general_library_folder_id' => $folderId,
+                'resource_type' => 'text',
+                'title' => 'DUA-001 - Before Sleeping',
+                'description' => 'L1 | sleep | Repeat 1',
+                'text_content' => $text,
+                'status' => 'active',
+                'source_label' => 'DUA-001',
+                'sort_order' => 1,
+                'created_by_user_id' => $teacher->id,
+                'updated_by_user_id' => $teacher->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $task = SeriesTask::create([
+                'subject_id' => $context['subject_id'],
+                'created_by_user_id' => $teacher->id,
+                'task_type_id' => 1,
+                'title' => 'Dua Bank',
+                'description' => 'One dua at a time.',
+                'library_collection_type' => SeriesLibrarySourceResolver::TYPE_GENERAL_LIBRARY_FOLDER,
+                'library_collection_id' => $folderId,
+                'recurrence_kind' => 'daily',
+                'recurrence_interval' => 1,
+                'sequence_behavior' => 'stop_at_end',
+                'release_policy' => 'continuous',
+                'default_points' => 5,
+                'max_points' => 10,
+                'status' => 'active',
+                'published_at' => Carbon::parse('2026-05-04 00:00:00'),
+            ]);
+            $version = SeriesTaskVersion::create([
+                'series_task_id' => $task->id,
+                'display_name' => 'Starter Duas',
+                'sort_order' => 1,
+            ]);
+            $item = SeriesTaskVersionItem::create([
+                'version_id' => $version->id,
+                'library_source_type' => SeriesLibrarySourceResolver::SOURCE_GENERAL_LIBRARY_RESOURCE,
+                'library_source_id' => $resourceId,
+                'library_title_snapshot' => 'DUA-001 - Before Sleeping',
+                'library_url_snapshot' => null,
+                'library_summary_snapshot' => $text,
+                'sequence_position' => 1,
+                'is_active' => 1,
+            ]);
+
+            app(SeriesTaskAssignmentService::class)->assign(
+                $student['student_id'],
+                (int) $task->id,
+                (int) $version->id,
+                1,
+                (int) $teacher->id,
+                (int) $context['subject_id']
+            );
+
+            app(SeriesTaskPublisher::class)->generateForStudent(
+                $student['student_id'],
+                Carbon::parse('2026-05-04')->startOfDay()
+            );
+
+            $this->assertDatabaseHas('session_tasks', [
+                'source_series_task_id_snapshot' => $task->id,
+                'source_series_task_version_id_snapshot' => $version->id,
+                'source_series_task_version_item_id_snapshot' => $item->id,
+                'source_series_library_type_snapshot' => SeriesLibrarySourceResolver::SOURCE_GENERAL_LIBRARY_RESOURCE,
+                'source_series_library_id_snapshot' => $resourceId,
+                'title' => 'Dua Bank - DUA-001 - Before Sleeping',
+            ]);
+            $this->assertStringContainsString(
+                'بِاسْمِكَ اللَّهُمَّ',
+                (string) DB::table('session_tasks')
+                    ->where('source_series_task_version_item_id_snapshot', $item->id)
+                    ->value('description')
+            );
+            $this->assertDatabaseMissing('attachment_files', [
+                'title' => 'DUA-001 - Before Sleeping',
+                'type' => 'text',
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_assignment_service_writes_versioned_assignment_state_and_history(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-05-04 08:00:00'));

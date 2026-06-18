@@ -939,14 +939,15 @@
     @foreach($resourceList as $index => $item)
       @php
         $canEdit = $canManageEverything || (int) $item->created_by_user_id === (int) $user?->id;
-        $icon = $item->isFile() ? 'ti tabler-file' : ($item->isYoutube() ? 'ti tabler-brand-youtube' : 'ti tabler-link');
-        $tone = $item->isFile() ? 'info' : ($item->isYoutube() ? 'danger' : 'success');
+        $icon = $item->isFile() ? 'ti tabler-file' : ($item->isYoutube() ? 'ti tabler-brand-youtube' : ($item->isText() ? 'ti tabler-file-text' : 'ti tabler-link'));
+        $tone = $item->isFile() ? 'info' : ($item->isYoutube() ? 'danger' : ($item->isText() ? 'primary' : 'success'));
         $embedUrl = $item->isYoutube() ? \App\Helpers\Helpers::trustedVideoEmbedUrl((string) $item->external_url) : null;
         $viewerSrc = $item->isYoutube() ? $embedUrl : ($item->isFile() ? route('teacher.general-library.resources.file', $item) : null);
         $fileExtension = strtolower(pathinfo((string) ($item->original_filename ?: $item->title ?: $item->file_path), PATHINFO_EXTENSION));
         $mimeType = strtolower((string) $item->mime_type);
         $viewerKind = match (true) {
           $item->isYoutube() => 'youtube',
+          $item->isText() => 'text',
           $item->isFile() && ($mimeType === 'application/pdf' || $fileExtension === 'pdf') => 'pdf',
           $item->isFile() && (str_starts_with($mimeType, 'image/') || in_array($fileExtension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) => 'image',
           $item->isFile() && (str_starts_with($mimeType, 'video/') || in_array($fileExtension, ['mp4', 'webm'], true)) => 'video',
@@ -956,6 +957,7 @@
         };
         $viewerKindLabel = match ($viewerKind) {
           'youtube' => 'YouTube source',
+          'text' => 'Text source',
           'pdf' => 'PDF source',
           'image' => 'Image source',
           'video' => 'Video source',
@@ -1004,19 +1006,25 @@
               {{ $item->description ?: ($item->original_filename ?: $item->external_url) }}
             </div>
           </div>
-          <button
-            type="button"
-            class="btn btn-sm btn-outline-primary mt-auto"
-            data-library-viewer-open
-            data-viewer-index="{{ $index }}"
-            data-viewer-title="{{ $item->title }}"
-            data-viewer-kind="{{ $viewerKind }}"
-            data-viewer-kind-label="{{ $viewerKindLabel }}"
-            data-viewer-context="{{ $currentTitle }}"
-            data-viewer-src="{{ (string) $viewerSrc }}"
-            data-viewer-external-url="{{ (string) $item->external_url }}">
-            Open
-          </button>
+          @if($item->isText())
+            <a href="{{ route('teacher.general-library.resources.open', $item) }}" class="btn btn-sm btn-outline-primary mt-auto">
+              Open
+            </a>
+          @else
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary mt-auto"
+              data-library-viewer-open
+              data-viewer-index="{{ $index }}"
+              data-viewer-title="{{ $item->title }}"
+              data-viewer-kind="{{ $viewerKind }}"
+              data-viewer-kind-label="{{ $viewerKindLabel }}"
+              data-viewer-context="{{ $currentTitle }}"
+              data-viewer-src="{{ (string) $viewerSrc }}"
+              data-viewer-external-url="{{ (string) $item->external_url }}">
+              Open
+            </button>
+          @endif
         </div>
       </div>
 
@@ -1045,7 +1053,7 @@
                       <label class="form-label" for="library-resource-edit-title-{{ $item->id }}">Title</label>
                       <input id="library-resource-edit-title-{{ $item->id }}" name="title" class="form-control" maxlength="255" value="{{ $item->title }}" required>
                     </div>
-                    @if(! $item->isFile())
+                    @if(! $item->isFile() && ! $item->isText())
                       <div class="col-md-6">
                         <label class="form-label" for="library-resource-edit-url-{{ $item->id }}">{{ $item->isYoutube() ? 'YouTube URL' : 'Link URL' }}</label>
                         <input id="library-resource-edit-url-{{ $item->id }}" name="external_url" class="form-control" maxlength="2048" value="{{ $item->external_url }}" required>
@@ -1055,6 +1063,12 @@
                       <label class="form-label" for="library-resource-edit-description-{{ $item->id }}">Description</label>
                       <textarea id="library-resource-edit-description-{{ $item->id }}" name="description" class="form-control" rows="3" maxlength="500">{{ $item->description }}</textarea>
                     </div>
+                    @if($item->isText())
+                      <div class="col-12">
+                        <label class="form-label" for="library-resource-edit-text-{{ $item->id }}">Text source content</label>
+                        <textarea id="library-resource-edit-text-{{ $item->id }}" name="text_content" class="form-control" rows="10">{{ $item->text_content }}</textarea>
+                      </div>
+                    @endif
                   </div>
                 </div>
                 <div class="modal-footer">

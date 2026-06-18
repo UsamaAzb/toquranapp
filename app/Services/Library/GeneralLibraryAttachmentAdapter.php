@@ -67,6 +67,16 @@ class GeneralLibraryAttachmentAdapter
             ];
         }
 
+        if ($resource->isText()) {
+            return [
+                'title' => (string) $resource->title,
+                'description' => $resource->text_content ?: $resource->description,
+                'type' => 'text',
+                'path' => null,
+                'file_size' => null,
+            ];
+        }
+
         return [
             'title' => (string) $resource->title,
             'description' => $resource->description,

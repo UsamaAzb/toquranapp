@@ -218,6 +218,7 @@ trait CreatesAutomatedTaskTestingSchema
                 $table->string('mime_type')->nullable();
                 $table->unsignedBigInteger('file_size')->nullable();
                 $table->string('external_url', 2048)->nullable();
+                $table->text('text_content')->nullable();
                 $table->unsignedSmallInteger('sort_order')->default(0);
                 $table->unsignedBigInteger('created_by_user_id');
                 $table->timestamp('archived_at')->nullable();
@@ -257,6 +258,7 @@ trait CreatesAutomatedTaskTestingSchema
                 $table->string('mime_type')->nullable();
                 $table->unsignedBigInteger('file_size')->nullable();
                 $table->string('external_url', 2048)->nullable();
+                $table->text('text_content')->nullable();
                 $table->unsignedSmallInteger('sort_order')->default(0);
                 $table->unsignedBigInteger('created_by_user_id')->nullable();
                 $table->unsignedBigInteger('updated_by_user_id')->nullable();
