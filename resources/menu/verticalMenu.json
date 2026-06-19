@@ -61,16 +61,16 @@
       "roles": ["admin", "super_admin"]
     },
     {
-      "url": "/teacher/vocabulary/games/launch",
-      "name": "Vocab Games",
+      "url": "#",
+      "name": "Quranic Arabic Games",
       "icon": "menu-icon icon-base ti tabler-pacman",
       "slug": "teacher-vocabulary-games",
       "roles": ["teacher", "admin"]
     },
     
     {
-      "url": "/vocabulary/games",
-      "name": "Vocab Games",
+      "url": "#",
+      "name": "Quranic Arabic Games",
       "icon": "menu-icon icon-base ti tabler-pacman",
       "slug": "vocabulary-games",
       "roles": ["student"]

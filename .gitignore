@@ -54,6 +54,7 @@ pnpm-debug.log*
 # local-only workflow artifacts
 /.claude/settings.local.json
 /.playwright-mcp/
+/tmp/
 .phpunit.result.cache
 /Morning-Adhkar-v1.2_compressed.pdf
 

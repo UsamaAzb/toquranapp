@@ -308,6 +308,45 @@ class LibraryAuthTest extends TestCase
         ]);
     }
 
+    public function test_teacher_can_add_description_only_general_library_text_source(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $folderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Dua Bank',
+            'content_mode' => 'sources_only',
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.resources.store'), [
+                'folder_id' => $folderId,
+                'resource_kind' => 'batch',
+                'description' => "Before sleeping dua\nArabic and meaning source.",
+            ])
+            ->assertRedirect();
+
+        $resourceId = (int) DB::table('general_library_resources')
+            ->where('general_library_folder_id', $folderId)
+            ->where('resource_type', 'text')
+            ->value('id');
+
+        $this->assertNotSame(0, $resourceId);
+        $this->assertDatabaseHas('general_library_resources', [
+            'id' => $resourceId,
+            'general_library_folder_id' => $folderId,
+            'resource_type' => 'text',
+            'title' => 'Before sleeping dua',
+            'description' => "Before sleeping dua\nArabic and meaning source.",
+            'text_content' => "Before sleeping dua\nArabic and meaning source.",
+        ]);
+
+        $this->actingAs($teacher)
+            ->get(route('teacher.general-library.resources.open', $resourceId))
+            ->assertOk()
+            ->assertSee('Before sleeping dua')
+            ->assertSee('Arabic and meaning source.');
+    }
+
     public function test_general_library_source_delete_archives_assigned_source_but_deletes_unused_source(): void
     {
         Storage::fake('local');
@@ -618,6 +657,7 @@ class LibraryAuthTest extends TestCase
                 $table->string('mime_type')->nullable();
                 $table->unsignedBigInteger('file_size')->nullable();
                 $table->string('external_url', 2048)->nullable();
+                $table->text('text_content')->nullable();
                 $table->unsignedInteger('sort_order')->default(0);
                 $table->unsignedBigInteger('created_by_user_id');
                 $table->unsignedBigInteger('updated_by_user_id')->nullable();

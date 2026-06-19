@@ -239,13 +239,78 @@ $configData = Helper::appClasses();
        .behavior_mobile{
           display: block !important;
       }
-      
-        .circle_nomobile{
+  }
+
+  @media (max-width: 575.98px) {
+      .circle_nomobile{
           display: none !important;
       }
        .circle_mobile{
           display: block !important;
       }
+  }
+
+  .tq-workplace-progress .badge {
+    width: 3rem;
+    height: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+  }
+
+  .tq-workplace-progress .badge svg {
+    display: none;
+  }
+
+  .tq-workplace-progress .badge .icon-base {
+    font-size: 1.55rem;
+  }
+
+  .tq-workplace-progress .row.gx-0 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8.75rem, 1fr));
+    gap: 1rem 1.25rem;
+  }
+
+  .tq-workplace-progress .row.gx-0 > [class*="col-"] {
+    width: auto !important;
+    max-width: none;
+    flex: initial;
+    margin-bottom: 0 !important;
+  }
+
+  .tq-workplace-progress .badge.me-4 {
+    margin-inline-end: 0.85rem !important;
+  }
+
+  .tq-workplace-progress .card-info {
+    min-width: 0;
+  }
+
+  @media (min-width: 768px) and (max-width: 1199.98px) {
+    .tq-workplace-welcome .tq-welcome-illustration {
+      padding-inline-end: 1.25rem !important;
+    }
+  }
+
+  @media (max-width: 575.98px) {
+    .circle_mobile .small > div {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 0.5rem;
+    }
+
+    .circle_mobile .small .badge {
+      width: auto !important;
+      min-width: 4.7rem;
+      flex: 0 0 auto;
+    }
+
+    .circle_mobile .small small {
+      white-space: nowrap;
+    }
   }
 </style>
 
@@ -279,6 +344,7 @@ $configData = Helper::appClasses();
 
   // نص الوسط (اختياري): نسبة الإيجابي من إجمالي السلوكيات
   $centerPct = $sum > 0 ? round($posRatio * 100) : 0;
+  $totalReviewBySubject = (int) $student_subjects->sum(fn ($subject) => (int) ($subject->in_review_task_count ?? 0));
 @endphp
 
 
@@ -289,14 +355,14 @@ $configData = Helper::appClasses();
 <div class="row g-6 mb-6">
     
       <div class="col-xl-4 col-lg-4 col-md-6 col-12">
-    <div class="card h-100">
+    <div class="card h-100 tq-workplace-welcome">
       <div class="d-flex  row  card-body">
         <div class="col-7">
         
               <div class="text-uppercase text-primary small fw-semibold mb-1">My Deen Journey</div>
               <h5 class="mb-2">Welcome back,<span class="h4"> {{$student->first_name}} </span></h5>
               
-        <p>Keep up your tasks, rewards, and points follow-up for this week.</p>
+        <p>Finish tasks, earn rewards, and collect points.</p>
       
             <!--<h5 class="card-title mb-0">Congratulations {{$student->first_name}}! 🎉</h5>-->
             
@@ -305,8 +371,8 @@ $configData = Helper::appClasses();
          
         </div>
         <div class="col-5 text-center text-sm-left">
-          <div class=" pb-0 px-0 px-md-4">
-            <img src="{{ asset('assets/img/illustrations/happy_character.svg') }}" height="140" alt="view sales" />
+          <div class="tq-welcome-illustration pb-0 px-0 px-md-4">
+            <img class="tq-welcome-avatar" src="{{ asset('assets/img/illustrations/happy_character.svg') }}" height="140" alt="view sales" />
           </div>
         </div>
       </div>
@@ -349,7 +415,9 @@ $configData = Helper::appClasses();
      </div>
      
      <div class="card-footer ">
-    <a href="{{url('/student/journey/board/'.$student->id)}}" type="button" class="btn-sm col-6 btn btn-primary waves-effect">My Rewards</a>
+    <a href="{{url('/student/journey/board/'.$student->id)}}" type="button" class="btn-sm col-6 btn btn-primary waves-effect">
+      <i class="icon-base ti tabler-gift me-1"></i> My Rewards
+    </a>
     </div>
      
     </div>
@@ -392,7 +460,9 @@ $configData = Helper::appClasses();
      </div>
      
      <div class="card-footer ">
-    <a href="{{url('/student/journey/board/'.$student->id)}}" type="button" class="btn-sm col-12 btn btn-primary waves-effect">My Rewards</a>
+    <a href="{{url('/student/journey/board/'.$student->id)}}" type="button" class="btn-sm col-12 btn btn-primary waves-effect">
+      <i class="icon-base ti tabler-gift me-1"></i> My Rewards
+    </a>
     </div>
      
     </div>
@@ -435,7 +505,7 @@ $configData = Helper::appClasses();
  <div class="card h-100">
       <div class="d-flex align-items-start row card-body">
         
-            <h5 class="mb-1">Behavior Points</h5>
+            <h5 class="mb-1">My Points</h5>
             <small class="text-body-secondary d-block mb-3">Points follow-up</small>
 
     <div class="row">
@@ -520,9 +590,9 @@ $configData = Helper::appClasses();
 
 
 <div class="col-lg-8 col-md-12">
-    <div class="card h-100">
+    <div class="card h-100 tq-workplace-progress">
       <div class="card-header d-flex justify-content-between">
-        <h5 class="card-title mb-0">Statistics</h5>
+        <h5 class="card-title mb-0">My Progress</h5>
         <!--<small class="text-body-secondary">Updated 1 month ago</small>-->
       </div>
       <div class="card-body  row d-flex align-items-center">
@@ -530,6 +600,7 @@ $configData = Helper::appClasses();
           <div class="col-md-3 col-6 mb-lg-0 mb-xl-0 mb-md-0 mb-sm-0 mb-4">
             <div class="d-flex align-items-start">
                  <div class="badge p-2 bg-label-primary me-4 rounded">
+            <i class="icon-base ti tabler-checklist"></i>
             <svg width="30px" height="30px" viewBox="-48 0 480 480" xmlns="http://www.w3.org/2000/svg"><path d="m344 48h-8v-8c-.027344-22.082031-17.917969-39.9726562-40-40h-256c-22.082031.0273438-39.9726562 17.917969-40 40v352c.0273438 22.082031 17.917969 39.972656 40 40h8v8c.027344 22.082031 17.917969 39.972656 40 40h256c22.082031-.027344 39.972656-17.917969 40-40v-352c-.027344-22.082031-17.917969-39.972656-40-40zm-72-32v36.6875l-10.34375-10.34375c-3.125-3.121094-8.1875-3.121094-11.3125 0l-10.34375 10.34375v-36.6875zm-256 376v-352c0-13.253906 10.746094-24 24-24h184v56c0 3.234375 1.949219 6.152344 4.9375 7.390625s6.429688.550781 8.71875-1.734375l18.34375-18.34375 18.34375 18.34375c2.289062 2.285156 5.730469 2.972656 8.71875 1.734375s4.9375-4.15625 4.9375-7.390625v-56h8c13.253906 0 24 10.746094 24 24v352c0 13.253906-10.746094 24-24 24h-256c-13.253906 0-24-10.746094-24-24zm352 48c0 13.253906-10.746094 24-24 24h-256c-13.253906 0-24-10.746094-24-24v-8h232c22.082031-.027344 39.972656-17.917969 40-40v-328h8c13.253906 0 24 10.746094 24 24zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m127.449219 77.238281c-1.152344-3.125-4.117188-5.214843-7.449219-5.238281h-64c-4.417969 0-8 3.582031-8 8v64c0 4.417969 3.582031 8 8 8h64c4.417969 0 8-3.582031 8-8v-44.6875l21.65625-21.65625-11.3125-11.3125zm-15.449219 58.761719h-48v-48h48v4.6875l-16 16-10.34375-10.34375-11.3125 11.3125 16 16c3.125 3.121094 8.1875 3.121094 11.3125 0l10.34375-10.34375zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m138.34375 178.34375-10.894531 10.894531c-1.152344-3.125-4.117188-5.214843-7.449219-5.238281h-64c-4.417969 0-8 3.582031-8 8v64c0 4.417969 3.582031 8 8 8h64c4.417969 0 8-3.582031 8-8v-44.6875l21.65625-21.65625zm-26.34375 69.65625h-48v-48h48v4.6875l-16 16-10.34375-10.34375-11.3125 11.3125 16 16c3.125 3.121094 8.1875 3.121094 11.3125 0l10.34375-10.34375zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m120 288h-64c-4.417969 0-8 3.582031-8 8v64c0 4.417969 3.582031 8 8 8h64c4.417969 0 8-3.582031 8-8v-64c0-4.417969-3.582031-8-8-8zm-8 64h-48v-48h48zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m160 120h80v16h-80zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m160 88h48v16h-48zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m160 232h80v16h-80zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m160 200h48v16h-48zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m160 336h80v16h-80zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m160 304h48v16h-48zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path><path d="m224 304h16v16h-16zm0 0" fill="#000000" style="fill: rgb(32, 146, 236);"></path></svg>
             </div>
               <div class="card-info">
@@ -543,6 +614,7 @@ $configData = Helper::appClasses();
           <div class="col-md-3 col-6 mb-lg-0 mb-xl-0 mb-md-0 mb-sm-0 mb-4">
             <div class="d-flex align-items-start">
 <div class="badge p-2 bg-label-success  rounded me-4">
+            <i class="icon-base ti tabler-circle-check"></i>
             
             <svg width="30px" height="30px" id="Layer_1" enable-background="new 0 0 512 512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="m439.312 92.906-81.855-81.856c-1.313-1.313-3.093-2.05-4.95-2.05h-216.965c-3.866 0-7 3.134-7 7v50.904h-50.904c-3.866 0-7 3.134-7 7v422.096c0 3.866 3.134 7 7 7h298.821c3.866 0 7-3.134 7-7v-50.904h50.904c3.866 0 7-3.134 7-7v-340.241c-.001-1.856-.738-3.636-2.051-4.949zm-79.805-60.007 57.956 57.956h-57.956zm9.951 456.101h-284.82v-408.096h43.904v357.191c0 3.866 3.134 7 7 7h233.917v43.905zm-226.916-57.904v-408.096h202.965v74.855c0 3.866 3.134 7 7 7h74.855v326.24h-284.82zm257.333-277.63c0 3.866-3.134 7-7 7h-113.62c-3.866 0-7-3.134-7-7s3.134-7 7-7h113.62c3.866 0 7 3.135 7 7zm0 32.309c0 3.866-3.134 7-7 7h-113.62c-3.866 0-7-3.134-7-7s3.134-7 7-7h113.62c3.866 0 7 3.134 7 7zm-228.555-16.918c2.238-3.152 6.608-3.894 9.76-1.657l16.569 11.759 31.004-32.716c2.658-2.806 7.09-2.926 9.896-.266 2.806 2.659 2.925 7.089.266 9.896l-35.183 37.125c-1.366 1.441-3.217 2.185-5.083 2.185-1.409 0-2.826-.424-4.049-1.292l-21.523-15.274c-3.152-2.237-3.894-6.607-1.657-9.76zm228.555 75.81c0 3.866-3.134 7-7 7h-113.62c-3.866 0-7-3.134-7-7s3.134-7 7-7h113.62c3.866 0 7 3.134 7 7zm0 32.308c0 3.866-3.134 7-7 7h-113.62c-3.866 0-7-3.134-7-7s3.134-7 7-7h113.62c3.866 0 7 3.134 7 7zm0 58.892c0 3.866-3.134 7-7 7h-113.62c-3.866 0-7-3.134-7-7s3.134-7 7-7h113.62c3.866 0 7 3.134 7 7zm0 32.308c0 3.866-3.134 7-7 7h-113.62c-3.866 0-7-3.134-7-7s3.134-7 7-7h113.62c3.866 0 7 3.135 7 7zm-205.375-83.083-21.523-15.274c-3.152-2.237-3.895-6.607-1.657-9.76 2.238-3.152 6.608-3.894 9.76-1.657l16.569 11.759 31.004-32.716c2.658-2.806 7.09-2.926 9.896-.266 2.806 2.659 2.925 7.089.266 9.896l-35.183 37.125c-1.366 1.441-3.217 2.185-5.083 2.185-1.409-.001-2.826-.425-4.049-1.292zm47.5 43.286c2.806 2.659 2.925 7.089.266 9.896l-35.183 37.125c-1.366 1.441-3.217 2.185-5.083 2.185-1.409 0-2.826-.424-4.049-1.292l-21.522-15.274c-3.153-2.237-3.895-6.607-1.657-9.76 2.238-3.152 6.608-3.894 9.76-1.657l16.569 11.759 31.004-32.716c2.658-2.806 7.089-2.926 9.895-.266z" fill="#000000" style="fill: rgb(40, 199, 111);"></path></svg>
     
@@ -558,7 +630,19 @@ $configData = Helper::appClasses();
           </div>
           <div class="col-md-3 col-6 mb-lg-0 mb-xl-0 mb-md-0 mb-sm-0 mb-4">
             <div class="d-flex align-items-start">
+              <div class="badge p-2 bg-label-warning rounded me-4">
+                <i class="icon-base ti tabler-clock-hour-4"></i>
+              </div>
+              <div class="card-info">
+                <h5 class="mb-0 text-warning">{{ $totalReviewBySubject }}</h5>
+                <span class="text-dark">In Review</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 col-6 mb-lg-0 mb-xl-0 mb-md-0 mb-sm-0 mb-4">
+            <div class="d-flex align-items-start">
 <div class="badge p-2 bg-label-info  rounded me-4">
+            <i class="icon-base ti tabler-gift"></i>
             
             
            
@@ -578,6 +662,7 @@ $configData = Helper::appClasses();
           <div class="col-md-3 col-6 mb-lg-0 mb-xl-0 mb-md-0 mb-sm-0 mb-4">
             <div class="d-flex align-items-start">
 <div class="badge p-2 bg-label-warning  rounded me-4">
+            <i class="icon-base ti tabler-star"></i>
             <svg width="30px" height="30px" id="Capa_1" enable-background="new 0 0 511.661 511.661" viewBox="0 0 511.661 511.661" xmlns="http://www.w3.org/2000/svg"><path d="m446.163 138.607h-66.543c6.622-7.626 10.644-17.568 10.644-28.437v-66.733c0-23.951-19.486-43.437-43.437-43.437h-6.258c-33.846 0-61.562 26.731-63.157 60.189-3.914-1.972-8.329-3.09-13.003-3.09h-17.155c-4.674 0-9.089 1.118-13.003 3.09-1.596-33.458-29.312-60.189-63.158-60.189h-6.258c-23.951 0-43.437 19.486-43.437 43.437v66.733c0 10.869 4.022 20.811 10.644 28.437h-66.543c-11.504 0-20.864 9.36-20.864 20.864v57.176c0 6.267 5.098 11.365 11.365 11.365h18.203v259.001c0 13.591 11.058 24.648 24.649 24.648h313.958c13.591 0 24.649-11.057 24.649-24.648v-259.001h18.203c6.267 0 11.365-5.098 11.365-11.365v-57.176c0-11.504-9.36-20.864-20.864-20.864zm-118.893 74.405h-20.689v-59.405h20.689zm-107.189 0v-59.405h6.747 20.426 17.155 20.426 6.747v59.405zm-35.689 0v-59.405h20.689v59.405zm-60.84-34.202c0-13.897 11.306-25.203 25.203-25.203h16.08 4.557v225.575l-19.546-9.845c-2.122-1.069-4.626-1.069-6.748 0l-19.546 9.845zm175.529-40.203h-9.282c2.302-4.155 3.616-8.93 3.616-14.007v-5.162h22.094c4.142 0 7.5-3.358 7.5-7.5s-3.358-7.5-7.5-7.5h-22.094v-17.564h53.412c10.869 0 20.811-4.022 28.437-10.644v33.94c0 15.68-12.757 28.437-28.437 28.437h-12.057zm-6.747-75.373c0-26.597 21.638-48.234 48.234-48.234h6.258c15.68 0 28.437 12.757 28.437 28.437s-12.757 28.437-28.437 28.437h-54.493v-8.64zm-45.081 8.866h17.155c7.724 0 14.007 6.283 14.007 14.007v38.493c0 7.723-6.283 14.007-14.007 14.007h-17.155c-7.724 0-14.007-6.284-14.007-14.007v-38.494c0-7.723 6.283-14.006 14.007-14.006zm-82.419-57.1h6.258c26.597 0 48.234 21.638 48.234 48.234v8.64h-16.274c-4.142 0-7.5 3.358-7.5 7.5s3.358 7.5 7.5 7.5h15.193v17.564h-22.094c-4.142 0-7.5 3.358-7.5 7.5s3.358 7.5 7.5 7.5h22.094v5.162c0 5.077 1.315 9.851 3.616 14.007h-9.282-35.689-12.057c-15.68 0-28.437-12.757-28.437-28.437v-33.94c7.626 6.622 17.568 10.644 28.437 10.644h6.256c4.142 0 7.5-3.358 7.5-7.5s-3.358-7.5-7.5-7.5h-6.256c-15.68 0-28.437-12.757-28.437-28.437s12.758-28.437 28.438-28.437zm-105.2 144.471c0-3.233 2.631-5.864 5.864-5.864h51.966c-5.569 6.9-8.913 15.667-8.913 25.203v34.202h-48.917zm29.568 327.542v-259.001h19.35v156.362c0 4.127 2.098 7.883 5.612 10.048 3.513 2.164 7.813 2.348 11.499.492l20.809-10.481 20.809 10.481c1.688.851 3.504 1.272 5.315 1.272 2.143 0 4.278-.591 6.183-1.765 3.514-2.165 5.612-5.921 5.612-10.048v-156.361h28.189 1.739v197.032c0 4.142 3.358 7.5 7.5 7.5s7.5-3.358 7.5-7.5v-197.032h53.021v268.649h-53.02v-39.655c0-4.142-3.358-7.5-7.5-7.5s-7.5 3.358-7.5 7.5v39.655h-115.469c-5.32 0-9.649-4.328-9.649-9.648zm333.257 0c0 5.32-4.329 9.648-9.649 9.648h-115.469v-268.649h1.739 28.189v10.831c0 4.142 3.358 7.5 7.5 7.5s7.5-3.358 7.5-7.5v-85.236h4.557 16.08c13.897 0 25.203 11.306 25.203 25.203v124.372l-19.546-9.845c-2.122-1.069-4.626-1.069-6.748 0l-19.546 9.845v-32.376c0-4.142-3.358-7.5-7.5-7.5s-7.5 3.358-7.5 7.5v37.569c0 4.127 2.098 7.883 5.612 10.048 3.513 2.164 7.812 2.349 11.499.492l20.809-10.481 20.81 10.481c1.688.851 3.504 1.272 5.315 1.272 2.143 0 4.278-.591 6.183-1.765 3.514-2.165 5.612-5.921 5.612-10.048v-80.362h19.35zm29.568-274.001h-48.917v-34.202c0-9.537-3.344-18.303-8.913-25.203h51.966c3.233 0 5.864 2.631 5.864 5.864z" fill="#000000" style="fill: rgb(255, 167, 38);"></path></svg>
             
             <!--<i class="icon-base ti tabler-credit-card icon-28px"></i>-->
@@ -611,29 +696,18 @@ $configData = Helper::appClasses();
 
   <div class="col-xl-4 col-lg-4">
     <div class="card h-100">
-      <div class="d-flex card-body   postion-relative">
-        <div class="col-7">
-        
-              <h5 class="mb-2">Vocab Games</h5>
-              
-        <p class="mb-0">Play enabled vocabulary games to boost spelling and reading.</p>
-      
-                <!--<a href="{{url('game/hangman')}}" type="button" class="btn-sm col-6 btn btn-primary waves-effect mt-3">Play</a>-->
-
-         
+      <div class="d-flex align-items-start card-body">
+        <div class="badge p-2 bg-label-warning rounded me-4">
+          <i class="icon-base ti tabler-device-gamepad-2 icon-28px"></i>
         </div>
-        <div class="col-5 text-end text-sm-left" style="position: absolute;top: 15px;right: 0;">
-          <div class=" ">
-            <img src="{{ asset('images/hangman.png')}}" height="150" alt="hangman" />
+        <div>
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <h5 class="mb-0">Quranic Arabic Games</h5>
+            <span class="badge bg-label-warning">Coming Soon</span>
           </div>
+          <p class="mb-0 text-body-secondary">Short practice games will appear here after launch content is ready.</p>
         </div>
       </div>
-      
-      
-      <div class="card-footer ">
-    <a href="{{ route('vocabulary.games.hub') }}" type="button" class="btn-sm col-6 btn btn-primary waves-effect">Play</a>
-    </div>
-      
     </div>
   </div>
   

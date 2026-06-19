@@ -208,13 +208,16 @@ $canAccessTransferredFamilies = auth()->check() && $user?->hasAnyRole(['admin', 
             </ul>
           </li>
 
-              <li class="menu-item {{ str_starts_with($currentPath, 'teacher/vocabulary/games') ? 'active' : '' }}">
-            <a href="{{ route('teacher.vocabulary.games.launch') }}"
-               class="menu-link"
-
+              <li class="menu-item">
+            <a href="javascript:void(0);"
+               class="menu-link disabled"
+               aria-disabled="true"
+               tabindex="-1"
+               style="pointer-events: none; opacity: .7;"
             >
                 <i class="menu-icon icon-base ti tabler-pacman"></i>
-              <div>Vocab Games</div>
+              <div>Quranic Arabic Games</div>
+              <span class="badge bg-label-warning ms-auto">Soon</span>
             </a>
           </li>
       @endrole 
@@ -273,12 +276,16 @@ $canAccessTransferredFamilies = auth()->check() && $user?->hasAnyRole(['admin', 
           </li>
              
           
-              <li class="menu-item {{ str_starts_with($currentPath, 'vocabulary/games') ? 'active' : '' }}">
-            <a href="{{ route('vocabulary.games.hub') }}"
-               class="menu-link"
+              <li class="menu-item">
+            <a href="javascript:void(0);"
+               class="menu-link disabled"
+               aria-disabled="true"
+               tabindex="-1"
+               style="pointer-events: none; opacity: .7;"
             >
                 <i class="menu-icon icon-base ti tabler-pacman"></i>
-              <div>Vocab Games</div>
+              <div>Quranic Arabic Games</div>
+              <span class="badge bg-label-warning ms-auto">Soon</span>
             </a>
           </li>
       @endrole

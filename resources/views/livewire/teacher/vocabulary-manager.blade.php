@@ -310,7 +310,7 @@
           Library Vocabulary
         @endif
       </h5>
-      <p class="mb-0 text-muted small">Manage the word bank, DB-backed roots, folders, lists, access, and vocabulary games.</p>
+      <p class="mb-0 text-muted small">Manage the word bank, DB-backed roots, folders, lists, access, and future practice games.</p>
     </div>
       <div class="vm-actions">
       @if ($viewMode === 'landing')
@@ -319,10 +319,11 @@
           Add course folder
         </button>
       @endif
-      <a class="btn btn-outline-primary" href="{{ route('teacher.vocabulary.games.launch') }}">
-        <i class="icon-base ti tabler-player-play me-1"></i>
-        Vocab Games
-      </a>
+      <button class="btn btn-outline-primary disabled" type="button" disabled aria-disabled="true">
+        <i class="icon-base ti tabler-device-gamepad-2 me-1"></i>
+        Quranic Arabic Games
+        <span class="badge bg-label-warning ms-2">Soon</span>
+      </button>
       @if (auth()->user()?->hasAnyRole(['admin', 'super_admin', 'owner']))
         <button class="btn btn-outline-secondary" type="button" wire:click="toggleLegacyReport">
           <i class="icon-base ti tabler-report-search me-1"></i>

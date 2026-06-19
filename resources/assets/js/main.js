@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'templateCustomizer-' + templateName + '--LayoutCollapsed',
             String(window.Helpers.isCollapsed())
           );
+          document.cookie = `LayoutCollapsed=${String(window.Helpers.isCollapsed())}; path=/; max-age=31536000`;
           // Update customizer checkbox state on click of menu toggler
           let layoutCollapsedCustomizerOptions = document.querySelector('.template-customizer-layouts-options');
           if (layoutCollapsedCustomizerOptions) {
@@ -402,11 +403,11 @@ document.addEventListener('DOMContentLoaded', function () {
   if (typeof config !== 'undefined') {
     if (config.enableMenuLocalStorage) {
       try {
-        if (localStorage.getItem('templateCustomizer-' + templateName + '--LayoutCollapsed') !== null)
-          window.Helpers.setCollapsed(
-            localStorage.getItem('templateCustomizer-' + templateName + '--LayoutCollapsed') === 'true',
-            false
-          );
+        if (localStorage.getItem('templateCustomizer-' + templateName + '--LayoutCollapsed') !== null) {
+          const storedCollapsed = localStorage.getItem('templateCustomizer-' + templateName + '--LayoutCollapsed') === 'true';
+          window.Helpers.setCollapsed(storedCollapsed, false);
+          document.cookie = `LayoutCollapsed=${String(storedCollapsed)}; path=/; max-age=31536000`;
+        }
       } catch (e) {}
     }
   }

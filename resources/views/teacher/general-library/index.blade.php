@@ -744,7 +744,7 @@
               <div>
                 <div class="small fw-semibold text-uppercase text-body-secondary">Adding to folder</div>
                 <h5 class="modal-title">{{ $currentTitle }}</h5>
-                <div class="small text-body-secondary">Files, links, and YouTube links are saved together.</div>
+                <div class="small text-body-secondary">Text notes, files, links, and YouTube links are saved together.</div>
               </div>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -762,7 +762,7 @@
                 <label class="form-label" for="library-resource-title">Title</label>
                 <input id="library-resource-title" name="title" class="form-control mb-2" maxlength="255">
                 <div class="form-text mb-3">Optional for one file. Multiple files use their filenames as titles.</div>
-                <label class="form-label" for="library-resource-description">Description</label>
+                <label class="form-label" for="library-resource-description">Description or text note</label>
                 <textarea id="library-resource-description" name="description" class="form-control mb-3" rows="2" maxlength="500"></textarea>
                 <label class="form-label" for="library-resource-files">Files</label>
                 <input id="library-resource-files" type="file" class="form-control" accept="{{ \App\Services\Library\LibraryResourceValidator::acceptAttribute() }}" data-library-file-input multiple>

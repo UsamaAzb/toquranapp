@@ -36,6 +36,8 @@
 @if ($configData['hasCustomizer'] && $configData['displayCustomizer'])
 <script type="module">
   document.addEventListener('DOMContentLoaded', function() {
+    const customizerControls = <?php echo json_encode($configData['customizerControls']); ?>;
+
     // Initialize template customizer after DOM is loaded
     if (window.TemplateCustomizer) {
       try {
@@ -49,11 +51,12 @@
           @endif
           defaultTheme: "{{ $configData['themeOpt'] }}",
           defaultSkin: appliedSkin,
+          defaultMenuCollapsed: {{ $menuCollapsed ?: 'false' }},
           defaultSemiDark: {{ $configData['semiDark'] ? 'true' : 'false' }},
           defaultShowDropdownOnHover: "{{ $configData['showDropdownOnHover'] }}",
           displayCustomizer: "{{ $configData['displayCustomizer'] }}",
           lang: '{{ app()->getLocale() }}',
-          'controls': <?php echo json_encode($configData['customizerControls']); ?>,
+          'controls': customizerControls,
         });
 
         // Ensure color is applied on page load

@@ -31,6 +31,7 @@ return [
     ],
 
     'games' => [
+        'enabled' => env('VOCABULARY_GAMES_ENABLED', false),
         'progress_dot_cap' => 10,
         'distractor_default' => 6,
         'distractor_cap' => 9,

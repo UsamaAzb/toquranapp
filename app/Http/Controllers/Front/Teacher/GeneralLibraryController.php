@@ -669,13 +669,47 @@ class GeneralLibraryController extends Controller
             $nextSortOrder
         );
 
+        if ($created === 0 && ($description !== null || $this->cleanNullableText($payload['title'] ?? null) !== null)) {
+            $this->createTextResourceFromBatch(
+                folderId: $folderId,
+                title: $this->cleanNullableText($payload['title'] ?? null),
+                description: $description,
+                sortOrder: $nextSortOrder++
+            );
+
+            $created++;
+        }
+
         if ($created === 0) {
-            return back()->withErrors(['library_action' => 'Add at least one file, link, or YouTube source.']);
+            return back()->withErrors(['library_action' => 'Add at least one file, link, YouTube source, or text description.']);
         }
 
         $this->markFolderSourcesOnly($folderId);
 
         return back()->with('success', $created === 1 ? 'Library source added.' : $created.' Library sources added.');
+    }
+
+    private function createTextResourceFromBatch(?int $folderId, ?string $title, ?string $description, int $sortOrder): void
+    {
+        GeneralLibraryResource::query()->create([
+            'general_library_folder_id' => $folderId,
+            'resource_type' => GeneralLibraryResource::TYPE_TEXT,
+            'title' => $title ?? $this->titleFromTextSource($description),
+            'description' => $description,
+            'text_content' => $description ?? $title,
+            'sort_order' => $sortOrder,
+            'created_by_user_id' => (int) Auth::id(),
+            'updated_by_user_id' => (int) Auth::id(),
+        ]);
+    }
+
+    private function titleFromTextSource(?string $description): string
+    {
+        $firstLine = collect(preg_split('/\R/', trim((string) $description)) ?: [])
+            ->map(fn (string $line): string => trim($line))
+            ->first(fn (string $line): bool => $line !== '');
+
+        return $firstLine ? Str::limit($firstLine, 80, '') : 'Text source';
     }
 
     private function storeQueuedUrlResources(

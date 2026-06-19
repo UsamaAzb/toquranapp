@@ -28,6 +28,10 @@ class VocabularyGameController extends Controller
 
     public function hub(): View|RedirectResponse
     {
+        if (! $this->gamesEnabled()) {
+            return view('vocabulary.games.coming-soon');
+        }
+
         if (Auth::user()?->hasAnyRole(['teacher', 'admin', 'super_admin', 'owner'])) {
             return redirect()->route('teacher.vocabulary.games.launch');
         }
@@ -37,6 +41,10 @@ class VocabularyGameController extends Controller
 
     public function teacherLauncher(Request $request): View
     {
+        if (! $this->gamesEnabled()) {
+            return view('vocabulary.games.coming-soon');
+        }
+
         $teacherSubjectClass = $this->resolveTeacherContext($request);
         $contexts = $this->teacherContexts();
         $this->sourceRegistry->ensureLegacySourceProxies();
@@ -106,6 +114,10 @@ class VocabularyGameController extends Controller
         abort_unless($source->canBeLaunched(), 404);
         $this->authorizeSourceLaunch($source);
 
+        if (! $this->gamesEnabled()) {
+            return view('vocabulary.games.coming-soon');
+        }
+
         $game = $this->validateGame($request->string('game')->toString() ?: 'hangman');
         $difficulty = $this->validateDifficulty($request->string('difficulty')->toString() ?: 'sprout');
         $words = $this->wordProvider->playableWordsForSet($source, $game);
@@ -140,6 +152,10 @@ class VocabularyGameController extends Controller
     {
         abort_unless($assignment->isActive(), 404);
         $this->authorizeAssignmentLaunch($assignment);
+
+        if (! $this->gamesEnabled()) {
+            return view('vocabulary.games.coming-soon');
+        }
 
         $availableGames = $this->allGameKeys();
         $game = $this->validateGame($request->string('game')->toString() ?: 'hangman');
@@ -181,6 +197,10 @@ class VocabularyGameController extends Controller
     {
         abort_unless(Auth::user()?->hasAnyRole(['teacher', 'admin', 'super_admin', 'owner']), 403);
 
+        if (! $this->gamesEnabled()) {
+            return view('vocabulary.games.coming-soon');
+        }
+
         $data = $request->validate([
             'game' => ['required', 'in:hangman,missing_letter,spelling_choice'],
             'difficulty' => ['required', 'in:sprout,climber,champion'],
@@ -217,6 +237,10 @@ class VocabularyGameController extends Controller
     public function playCustomSession(Request $request, string $token): View|RedirectResponse
     {
         abort_unless(Auth::user()?->hasAnyRole(['teacher', 'admin', 'super_admin', 'owner']), 403);
+
+        if (! $this->gamesEnabled()) {
+            return view('vocabulary.games.coming-soon');
+        }
 
         $sessionData = session($this->customSessionKey($token));
 
@@ -856,6 +880,11 @@ class VocabularyGameController extends Controller
             'spelling_choice' => 'Correct Spelling',
             default => 'Floatie',
         };
+    }
+
+    private function gamesEnabled(): bool
+    {
+        return (bool) config('vocabulary.games.enabled', false);
     }
 
     private function studentForParent(int $parentUserId): ?Student
