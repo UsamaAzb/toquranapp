@@ -15,21 +15,37 @@ function GetFilesArray(query) {
   return glob.sync(query);
 }
 
+const excludedBuildInputPatterns = [
+  // Unused Vuexy demo assets. Keep source files for reference, but do not ship them.
+  /resources[\/\\]assets[\/\\]js[\/\\]app-ecommerce-category-list\.js$/,
+  /resources[\/\\]assets[\/\\]js[\/\\]app-ecommerce-product-add\.js$/,
+  /resources[\/\\]assets[\/\\]js[\/\\]app-email\.js$/,
+  /resources[\/\\]assets[\/\\]js[\/\\]app-kanban\.js$/,
+  /resources[\/\\]assets[\/\\]js[\/\\]forms-editors\.js$/,
+  /resources[\/\\]assets[\/\\]vendor[\/\\]scss[\/\\]pages[\/\\]app-kanban\.scss$/,
+  /resources[\/\\]assets[\/\\]vendor[\/\\]libs[\/\\]jkanban[\/\\]/,
+  /resources[\/\\]assets[\/\\]vendor[\/\\]libs[\/\\]quill[\/\\]/
+];
+
+function withoutExcludedBuildInputs(files) {
+  return files.filter(file => !excludedBuildInputPatterns.some(pattern => pattern.test(file)));
+}
+
 // Page JS Files
-const pageJsFiles = GetFilesArray('resources/assets/js/*.js');
+const pageJsFiles = withoutExcludedBuildInputs(GetFilesArray('resources/assets/js/*.js'));
 
 // Processing Vendor JS Files
 const vendorJsFiles = GetFilesArray('resources/assets/vendor/js/*.js');
 
 // Processing Libs JS Files
-const LibsJsFiles = GetFilesArray('resources/assets/vendor/libs/**/*.js');
+const LibsJsFiles = withoutExcludedBuildInputs(GetFilesArray('resources/assets/vendor/libs/**/*.js'));
 
 // Processing Libs Scss & Css Files
-const LibsScssFiles = GetFilesArray('resources/assets/vendor/libs/**/!(_)*.scss');
-const LibsCssFiles = GetFilesArray('resources/assets/vendor/libs/**/*.css');
+const LibsScssFiles = withoutExcludedBuildInputs(GetFilesArray('resources/assets/vendor/libs/**/!(_)*.scss'));
+const LibsCssFiles = withoutExcludedBuildInputs(GetFilesArray('resources/assets/vendor/libs/**/*.css'));
 
 // Processing Core, Themes & Pages Scss Files
-const CoreScssFiles = GetFilesArray('resources/assets/vendor/scss/**/!(_)*.scss');
+const CoreScssFiles = withoutExcludedBuildInputs(GetFilesArray('resources/assets/vendor/scss/**/!(_)*.scss'));
 
 // Processing Fonts Scss & JS Files
 const FontsScssFiles = GetFilesArray('resources/assets/vendor/fonts/!(_)*.scss');

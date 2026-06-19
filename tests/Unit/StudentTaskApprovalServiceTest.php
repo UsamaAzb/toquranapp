@@ -624,7 +624,7 @@ class StudentTaskApprovalServiceTest extends TestCase
     public function test_student_gift_image_url_falls_back_for_missing_files(): void
     {
         $this->assertStringEndsWith(
-            '/storage/gifts/default_gift.png',
+            '/'.StudentGift::DEFAULT_GIFT_IMAGE_PATH,
             StudentGift::imageUrlFor('gifts/missing-file.png')
         );
     }
