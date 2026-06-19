@@ -318,7 +318,9 @@ class Helpers
         $b = hexdec(substr($color, 5, 2));
 
         // Calculate contrast color based on YIQ formula
-        if ($color == '#d4af37') {
+        if (strtolower($color) === '#c9a24d') {
+            $contrastColor = '#46412f';
+        } elseif ($color == '#d4af37') {
             $contrastColor = '#fff';
         } else {
             $yiq = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;

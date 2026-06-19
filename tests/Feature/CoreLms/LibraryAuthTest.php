@@ -347,6 +347,59 @@ class LibraryAuthTest extends TestCase
             ->assertSee('Arabic and meaning source.');
     }
 
+    public function test_teacher_can_add_title_only_general_library_text_source(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $folderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Dua Bank',
+            'content_mode' => 'sources_only',
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.resources.store'), [
+                'folder_id' => $folderId,
+                'resource_kind' => 'batch',
+                'title' => 'Morning dua reference',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('general_library_resources', [
+            'general_library_folder_id' => $folderId,
+            'resource_type' => 'text',
+            'title' => 'Morning dua reference',
+            'description' => null,
+            'text_content' => 'Morning dua reference',
+        ]);
+    }
+
+    public function test_teacher_text_source_prefers_explicit_title_and_uses_description_as_content(): void
+    {
+        $teacher = $this->userWithRole('teacher');
+        $folderId = DB::table('general_library_folders')->insertGetId([
+            'title' => 'Dua Bank',
+            'content_mode' => 'sources_only',
+            'created_by_user_id' => $teacher->id,
+        ]);
+
+        $this->actingAs($teacher)
+            ->post(route('teacher.general-library.resources.store'), [
+                'folder_id' => $folderId,
+                'resource_kind' => 'batch',
+                'title' => 'Bedtime dua reference',
+                'description' => 'Arabic, transliteration, and meaning.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('general_library_resources', [
+            'general_library_folder_id' => $folderId,
+            'resource_type' => 'text',
+            'title' => 'Bedtime dua reference',
+            'description' => 'Arabic, transliteration, and meaning.',
+            'text_content' => 'Arabic, transliteration, and meaning.',
+        ]);
+    }
+
     public function test_general_library_source_delete_archives_assigned_source_but_deletes_unused_source(): void
     {
         Storage::fake('local');

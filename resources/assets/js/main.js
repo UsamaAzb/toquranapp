@@ -21,6 +21,11 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 (function () {
+  const setLayoutCollapsedCookie = value => {
+    const secureAttribute = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `LayoutCollapsed=${String(value)}; path=/; max-age=31536000${secureAttribute}; SameSite=Lax`;
+  };
+
   // Window scroll function for navbar
   function onScroll() {
     var layoutPage = document.querySelector('.layout-page');
@@ -116,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'templateCustomizer-' + templateName + '--LayoutCollapsed',
             String(window.Helpers.isCollapsed())
           );
-          document.cookie = `LayoutCollapsed=${String(window.Helpers.isCollapsed())}; path=/; max-age=31536000`;
+          setLayoutCollapsedCookie(window.Helpers.isCollapsed());
           // Update customizer checkbox state on click of menu toggler
           let layoutCollapsedCustomizerOptions = document.querySelector('.template-customizer-layouts-options');
           if (layoutCollapsedCustomizerOptions) {
@@ -406,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (localStorage.getItem('templateCustomizer-' + templateName + '--LayoutCollapsed') !== null) {
           const storedCollapsed = localStorage.getItem('templateCustomizer-' + templateName + '--LayoutCollapsed') === 'true';
           window.Helpers.setCollapsed(storedCollapsed, false);
-          document.cookie = `LayoutCollapsed=${String(storedCollapsed)}; path=/; max-age=31536000`;
+          setLayoutCollapsedCookie(storedCollapsed);
         }
       } catch (e) {}
     }

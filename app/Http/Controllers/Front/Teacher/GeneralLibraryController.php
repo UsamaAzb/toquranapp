@@ -669,10 +669,11 @@ class GeneralLibraryController extends Controller
             $nextSortOrder
         );
 
-        if ($created === 0 && ($description !== null || $this->cleanNullableText($payload['title'] ?? null) !== null)) {
+        $cleanedTitle = $this->cleanNullableText($payload['title'] ?? null);
+        if ($created === 0 && ($description !== null || $cleanedTitle !== null)) {
             $this->createTextResourceFromBatch(
                 folderId: $folderId,
-                title: $this->cleanNullableText($payload['title'] ?? null),
+                title: $cleanedTitle,
                 description: $description,
                 sortOrder: $nextSortOrder++
             );

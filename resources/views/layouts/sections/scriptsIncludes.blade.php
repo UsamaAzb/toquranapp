@@ -36,7 +36,7 @@
 @if ($configData['hasCustomizer'] && $configData['displayCustomizer'])
 <script type="module">
   document.addEventListener('DOMContentLoaded', function() {
-    const customizerControls = <?php echo json_encode($configData['customizerControls']); ?>;
+    const customizerControls = @json($configData['customizerControls']);
 
     // Initialize template customizer after DOM is loaded
     if (window.TemplateCustomizer) {
