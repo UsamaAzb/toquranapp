@@ -152,6 +152,77 @@
 -- - Public storage smoke:
 --   /storage/gifts/5fshNgvuWGk9u5DnqcNLdedoBzaP3kxkCbOtdXB8.png returned 200.
 --
+-- Authenticated production smoke after owner-updated launch passwords:
+-- - Superadmin login succeeded for the owner account.
+-- - Superadmin routes returned 200 with no fatal/error or inherited-branding
+--   markers:
+--   /admin/staff
+--   /admin/teacher-class-assignments
+--   /admin/bookings
+--   /admin/bookings/intake-review
+--   /admin/bookings/transferred
+--   /admin/library
+--   /admin/gifts
+--   /admin/students
+--   /teacher/library
+--   /teacher/vocabulary/games/launch
+--   /vocabulary/games
+-- - Teacher login succeeded for the default teacher account.
+-- - Teacher routes returned 200 with no fatal/error or inherited-branding
+--   markers:
+--   /teacher/classes
+--   /teacher/library
+--   /teacher/library/manage
+--   /teacher/vocabulary/games/launch
+--   /vocabulary/games
+--   /teacher/daily-sessions/subjects
+--   /teacher/differentiated-tasks/subjects
+--   /teacher/series-tasks/subjects
+-- - Teacher negative authorization check:
+--   /admin/staff returned 403.
+-- - /teacher/journey without student_id/teachersubjectid returned 404 because
+--   the controller intentionally resolves an authorized teacher-subject/student
+--   pair before rendering. Re-test Journey after the demo family exists.
+-- - Private/source deny checks returned 403:
+--   /.env, /.gitignore, /composer.json, /composer.lock, /artisan,
+--   /package.json, /phpunit.xml, /vite.config.js, /app/, /vendor/,
+--   /vendor/autoload.php, /database/, /routes/web.php, /storage/logs/,
+--   /to_quran_adhkar_dua_banks.md.
+-- - Public asset checks returned 200:
+--   /login
+--   /assets/img/logo/logo.png
+--   /assets/img/logo/logo-dark.png
+--   /assets/img/favicon/favicon.ico
+--
+-- Server-side production sanity after authenticated smoke:
+-- - PHP runtime: 8.3.31
+-- - storage writable: yes
+-- - bootstrap/cache writable: yes
+-- - public/storage symlink: present
+-- - .env present
+-- - route cache present
+-- - config cache present
+-- - DB target: u504065335_to_quran
+-- - Table count: 357
+-- - Users: 2
+-- - Smoke users: 0
+-- - Roles: 7
+-- - Bookings: 1
+-- - Students: 0
+-- - Teacher subject assignments: 2
+-- - queue:failed reported no failed jobs.
+-- - artisan schedule:list reported:
+--   daily:publish-midnight daily at 00:00
+--   tasks:auto-approve-trusted-children daily at 00:10
+--
+-- Remaining Hostinger panel action:
+-- - Hostinger SSH does not expose a crontab command, so the Laravel scheduler
+--   could not be installed from SSH. Add the scheduler in Hostinger Cron Jobs:
+--   cd /home/u504065335/domains/toquran.org/public_html/appdashboard &&
+--   /opt/alt/php83/usr/bin/php artisan schedule:run >> /dev/null 2>&1
+--   with a one-minute cadence if Hostinger allows it, or the shortest cadence
+--   Hostinger supports.
+--
 -- Remaining launch handoff:
 -- - Continue in the public website repo only after this app readiness note is
 --   committed/pushed.
