@@ -6,7 +6,7 @@
 
 @section('title', 'Login')
 
-{{-- ممكن نستخدم شوية CSS بسيط جوه الصفحة عشان نعمل شكل زي Vuexy --}}
+{{-- Simple page-level CSS for the To Quran login surface. --}}
 @section('content')
 <style>
   body {

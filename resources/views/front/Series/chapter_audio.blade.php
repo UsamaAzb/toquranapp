@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>{{ $title ?? 'Series Audio' }} | Week 14</title>
+	<title>{{ $title ?? 'Series Audio' }} | To Quran</title>
     <meta name="description" content="Listen to this series audio resource.">
 	<style type="text/css">
 		html {

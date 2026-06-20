@@ -7,7 +7,7 @@
     <meta charset="utf-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>{{ $title ?? 'Listen & Read Chapter' }} | Week 14</title>
+	<title>{{ $title ?? 'Listen & Read Chapter' }} | To Quran</title>
     <meta name="description" content="Read or listen to this Listen & Read chapter.">
 	<style type="text/css">
 		html {

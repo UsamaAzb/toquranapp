@@ -31,7 +31,7 @@
               </span>
               @if ($selectedContextId && $teacherSubjectClass)
                 <strong>
-                  {{ $teacherSubjectClass->class_name ?: $teacherSubjectClass->class?->title }} - {{ \Illuminate\Support\Str::lower((string) $teacherSubjectClass->subject_name) === 'english' ? 'Language and Literature' : $teacherSubjectClass->subject_name }}
+                  {{ $teacherSubjectClass->class_name ?: $teacherSubjectClass->class?->title }} - {{ \Illuminate\Support\Str::lower((string) $teacherSubjectClass->subject_name) === 'english' ? 'Quranic Arabic' : $teacherSubjectClass->subject_name }}
                 </strong>
               @else
                 <span class="text-muted">All classes</span>
@@ -51,7 +51,7 @@
                 <div class="vl-context-list">
                   @forelse ($contexts as $context)
                     @php
-                      $subjectLabel = \Illuminate\Support\Str::lower((string) $context->subject_name) === 'english' ? 'Language and Literature' : $context->subject_name;
+                      $subjectLabel = \Illuminate\Support\Str::lower((string) $context->subject_name) === 'english' ? 'Quranic Arabic' : $context->subject_name;
                       $contextLabel = trim(($context->class_name ?: $context->class?->title).' - '.$subjectLabel);
                     @endphp
                     <a class="vl-context-option"

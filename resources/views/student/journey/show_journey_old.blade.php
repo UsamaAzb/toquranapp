@@ -41,8 +41,7 @@
 <style>
 /* Background */
 .background-container {
-    background: url('https://atomlearning.com/cdn-cgi/image/width=1350,format=auto,quality=100/https://assets.atomlearning.com/media/cad03f18-f1b6-41fa-864b-d9d3512d43bf') no-repeat center center;
-    background-size: cover;
+    background-color: #f8f4e8;
     min-height: 100vh;
     position: relative;
     display: flex;

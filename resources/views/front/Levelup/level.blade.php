@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>{{ $title ?? 'Level Up Tutorial' }} | Week 14</title>
+	<title>{{ $title ?? 'Level Up Tutorial' }} | To Quran</title>
     <meta name="description" content="Review this Level Up tutorial lesson.">
 	<style type="text/css">
 		html {

@@ -23,7 +23,7 @@
 <h1>Units</h1>
   </div>
   <div class="col-md-12 text-center page_inside_text mt-3">
-<h2>Language and Literature, units, independant reading, digital library, and more</h2>
+<h2>To Quran learning resources, practice paths, digital library, and more</h2>
   </div>
 </div>--}}
 </div>

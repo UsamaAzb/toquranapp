@@ -136,6 +136,13 @@
 --   the To Quran public files:
 --   /assets/img/logo/logo.png returned 200 with 793150 bytes
 --   /assets/img/favicon/favicon.ico returned 200 with 56738 bytes
+-- - Follow-up branding sweep replaced inherited template OG/default metadata,
+--   PWA theme color, root fallback logo/favicon files, legacy Week 14 page
+--   titles, Language and Literature fallback copy, and Atom-hosted journey
+--   background references. Focused scan over active app/config/view paths
+--   found no remaining Week14, Week 14, Pixinvent, Vuexy, Atom Learning,
+--   atomlearning, IB Mastery, or Language and Literature strings after
+--   excluding archived Atom reference views.
 -- - https://toquran.org/appdashboard/login returned 403, confirming the app
 --   is not executable from the main website path.
 -- - Source/private deny checks returned 403:

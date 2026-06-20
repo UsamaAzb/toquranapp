@@ -956,7 +956,7 @@
 
 
 
-/* wrapper جه جوه layout vuexy */
+/* Journey wrapper inside the main app layout. */
 .layout-wrapper {
   position: relative;   /* مهم علشان الـ pseudo-element */
   min-height: 100vh;
@@ -982,8 +982,6 @@
   content:"";
   position: fixed;
   inset: 0;
-  /*background: url('https://atomlearning.com/cdn-cgi/image/width=1350,format=auto,quality=100/https://assets.atomlearning.com/media/cad03f18-f1b6-41fa-864b-d9d3512d43bf')*/
-  /*            no-repeat center center;*/
   background:
     linear-gradient(135deg, rgba(217, 237, 244, 0.34), rgba(242, 212, 189, 0.22)),
     url('{{ $bgUrl ?: asset('images/journey/background34.webp') }}')
@@ -999,17 +997,6 @@
 
 
 
-/*.background-container {*/
-/*    background: url('https://atomlearning.com/cdn-cgi/image/width=1350,format=auto,quality=100/https://assets.atomlearning.com/media/cad03f18-f1b6-41fa-864b-d9d3512d43bf') no-repeat center center;*/
-/*    background-size: cover;*/
-/*    min-height: 100vh;*/
-/*    position: relative;*/
-/*    display: flex;*/
-/*    justify-content: center;*/
-/*    align-items: center;*/
-/*    padding: 20px;*/
-/*    overflow-x: auto;*/
-/*}*/
   .background-container{
        min-height: calc(100vh - 300px); /* حسب ارتفاع الـ navbar */
     display: flex;
@@ -1350,7 +1337,7 @@ justify-content: flex-start;
       } catch (error) {}
     };
 
-    const bindVuexyLayoutToggles = () => {
+    const bindLayoutToggles = () => {
       document.querySelectorAll('.layout-menu-toggle').forEach((toggle) => {
         if (toggle.dataset.w14JourneyLayoutToggleBound === 'true') {
           return;
@@ -1368,7 +1355,7 @@ justify-content: flex-start;
       });
     };
 
-    const bindVuexyHoverToggleReveal = () => {
+    const bindHoverToggleReveal = () => {
       const layoutMenu = document.getElementById('layout-menu');
       if (!layoutMenu || layoutMenu.dataset.w14JourneyHoverRevealBound === 'true') {
         return;
@@ -1393,7 +1380,7 @@ justify-content: flex-start;
       layoutMenu.dataset.w14JourneyHoverRevealBound = 'true';
     };
 
-    const restoreVuexyLayoutMenu = () => {
+    const restoreLayoutMenu = () => {
       const helpers = window.Helpers;
       const layoutMenu = document.getElementById('layout-menu');
       if (!helpers || !layoutMenu) return;
@@ -1406,8 +1393,8 @@ justify-content: flex-start;
       helpers._unbindMenuMouseEvents?.();
       helpers._bindMenuMouseEvents?.();
       helpers.update?.();
-      bindVuexyLayoutToggles();
-      bindVuexyHoverToggleReveal();
+      bindLayoutToggles();
+      bindHoverToggleReveal();
 
       window.dispatchEvent(new Event('resize'));
     };
@@ -1434,8 +1421,8 @@ justify-content: flex-start;
       document.body.classList.remove('modal-open');
       document.body.style.removeProperty('overflow');
       document.body.style.removeProperty('padding-right');
-      setTimeout(restoreVuexyLayoutMenu, 0);
-      setTimeout(restoreVuexyLayoutMenu, 250);
+      setTimeout(restoreLayoutMenu, 0);
+      setTimeout(restoreLayoutMenu, 250);
     };
 
     const hardReleaseHiddenModal = (id) => {
