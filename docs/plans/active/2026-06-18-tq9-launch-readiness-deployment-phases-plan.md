@@ -46,13 +46,28 @@ Local audit on 2026-06-18 found:
 - read-only inspection of `D:\xampp\htdocs\toquran` confirms the public website already has real launch forms: `/book-trial/store` writes app-owned booking/review rows with generated `TQ-` references, and `/contact/store` writes app-owned `contacts` rows with generated `CNT-` references;
 - public website local smoke/build evidence reported on 2026-06-18 is healthy for behavior: website handoff tests passed, routes exist, build passes with Sass deprecation warnings, and contract values align with the app handoff;
 - public website dependency audit evidence reported on 2026-06-18 is not launch-clean: `composer audit` reports 35 advisories across 15 packages, `composer audit --no-dev` reports 31 advisories across 13 packages, and `npm audit --audit-level=moderate` reports 10 vulnerabilities including critical/high items;
-- owner clarified on 2026-06-18 that the Hostinger DB is empty and will be removed/recreated for a clean start before deployment. Codex still must not drop/remove/import/restore without exact approval and backup/empty-target evidence;
-- owner clarified on 2026-06-18 that deployment covers both the public website and the app subdomain. On Hostinger, subdomains are inside the main domain folder, and `app.toquran.org` should use the custom `appdashboard` folder because the main domain already has an `app` folder belonging to the public website. The `appdashboard` folder is connected to GitHub and can pull the repo from Hostinger server settings; Remote SSH is also available for inspection and command execution;
-- local public website repo is `https://github.com/UsamaAzb/toquran.git` on `main`; as of second-pass verification, `HEAD` and `origin/main` are `24d76d1 Polish launch email branding` and the worktree is clean;
-- `toquran` commit `24d76d1` is two commits after the original shared-DB handoff commit `6dfb71f` and touches `BookingController`, `ContactController`, and launch email templates. Treat it as the current website deployment candidate only after reviewing the booking/contact controller changes against the app-owned `TQ-` / `CNT-` intake contract;
+- public website deployment-prep hardening was completed after the 2026-06-18 audit findings: package source commit `018a7c7478df`, evidence commit `ccd02d8 Record Hostinger pre-env upload evidence`, curated package `toquran-deploy-018a7c7478df-20260620-161544.tgz`, uploaded/extracted to `/home/u504065335/domains/toquran.org/public_html`;
+- public website Phase 3 pre-`.env` slice is complete as of 2026-06-20: no real `.env` was created, no shared `DB_*` credentials were written, no production DB action or form smoke was run, and the hardened `.htaccess` now returns `403/404` for `/.env`, `/.gitignore`, `/composer.json`, `/composer.lock`, `/artisan`, `/package.json`, `/package-lock.json`, `/phpunit.xml`, `/vite.config.js`, `/app/`, `/vendor/`, `/vendor/autoload.php`, `/database/`, `/routes/web.php`, `/storage/logs/`, and sample `.sql` paths;
+- public website Hostinger runtime evidence on 2026-06-20: web runtime PHP is `8.3.31`; SSH default `php` is `8.2.31`; PHP 8.3 binary exists at `/opt/alt/php83/usr/bin/php`; platform requirements passed with `/opt/alt/php83/usr/bin/php $(which composer) check-platform-reqs --no-dev`;
+- public website stop point on 2026-06-20: before creating real website `.env`, writing shared `DB_*`, or running public form smoke, app-side readiness must be confirmed: app DB import/replacement complete, schema verified, app `.env` points to the same DB, and `https://app.toquran.org/login` boots;
+- owner clarified on 2026-06-18 that the intended launch posture was a clean Hostinger DB start. New owner-provided Hostinger evidence on 2026-06-19 shows an existing MySQL database/user named `u504065335_to_quran` with size `5 MB`, so it must be treated as existing data until backup/export, table-count, and clean-start-versus-reuse evidence are captured. Codex still must not drop/remove/import/restore without exact approval and backup/empty-target evidence;
+- owner clarified on 2026-06-18 that deployment covers both the public website and the app subdomain. On Hostinger, subdomains are inside the main domain folder, and `app.toquran.org` should use the custom `appdashboard` folder because the main domain already has an `app` folder belonging to the public website. The `appdashboard` folder can be recreated before app deployment; as of 2026-06-19 the owner has emptied the public folder and the previous subdomain folder is no longer present. Remote SSH is also available for inspection and command execution;
+- local public website repo is `https://github.com/UsamaAzb/toquran.git` on `main`; earlier second-pass verification used `24d76d1 Polish launch email branding`, now superseded by the pre-`.env` deployment evidence commit `ccd02d8` and package source commit `018a7c7478df`;
+- `toquran` commit `018a7c7478df` is the website package source now staged on Hostinger before real `.env`; website form traffic remains blocked until app-side DB/import/login readiness gates pass;
 - owner clarified on 2026-06-18 that the TQ7.5 religious Adhkar/Dua starter content has been reviewed and is correct for launch use;
-- owner clarified on 2026-06-18 that the current public website has no active users and can be recovered by downloading/backing up and reuploading files if a website deployment problem occurs. The deployment plan can use a simple website rollback path, but still requires backup/disposable confirmation before replacing server files;
-- owner clarified on 2026-06-18 that the mailbox accounts are working. Email passwords must not be pasted into chat, committed, or recorded in deployment notes; only secret presence and successful mail behavior should be documented.
+- owner clarified on 2026-06-18 that the current public website has no active users and can be recovered by downloading/backing up and reuploading files if a website deployment problem occurs. On 2026-06-19 the owner provided a local old-website backup/reference path: `E:\My Websites\1- ToQuran\New website\19-6-2026`. Do not copy raw `.env` secrets from that path into Git, chat, screenshots, or deployment notes;
+- owner clarified on 2026-06-18 that the mailbox accounts are working, and on 2026-06-19 confirmed the intended official support mailbox is `support@toquran.org`. Email passwords must not be pasted into chat, committed, or recorded in deployment notes; only secret presence and successful mail behavior should be documented.
+- owner clarified on 2026-06-19 that the owner will not manually upload website media, hero videos, app/library source files, or other deployment assets. The deployment package/checklist must include all required tracked assets, built assets, and any required non-Git private uploads or import steps.
+- owner clarified on 2026-06-19 that production should not preserve or create extra human accounts beyond the owner/root superadmin and any minimal required operating accounts needed for launch behavior, such as the default teacher if required by transfer/catalog workflows. Support mailbox configuration is mail infrastructure, not a separate LMS user unless a launch feature explicitly requires one.
+- owner clarified on 2026-06-19 that the Hostinger DB contains an old DB and the intended direction is to remove/replace it with the current reviewed local DB shape/data. This is still a production DB replacement and requires the normal backup/export, manifest, host guard, and exact approval gate before any destructive/import/restore action.
+- owner clarified on 2026-06-20 that one intentional demo/showcase family is desired after core launch DB readiness: one parent/family with three children and realistic task, gift, behavior/punishment, customized My Deen Journey, Well Being, and versioned routine history. This should be a separate reviewed demo-data seed plan or guarded command, not random preserved local smoke/trial rows.
+- owner provided SSH access details on 2026-06-19 and has not set up VS Code Remote SSH yet. Treat SSH as available for read-only inspection and possibly deployment if easier than Hostinger GitHub pull, but do not record SSH passwords in repo notes, chat, screenshots, or terminal logs; rotate the SSH password after setup/deployment because it was shared in chat.
+- owner noted that production email and other important deployment values are likely present in the local app `.env`. Use the local `.env` only as a private reference for key names/presence and owner-guided production entry; do not copy secret values into Git, chat, screenshots, or deployment notes.
+- owner-provided Hostinger FTP evidence on 2026-06-20 shows the `toquran.org` FTP upload folder as `public_html`, with host `145.14.151.126` and account user `u504065335.toquran.org`. Treat the likely website webroot as `/home/u504065335/domains/toquran.org/public_html`, pending SSH verification. Owner clarified on 2026-06-20 that the app repo path should be inside the domain public path as `public_html/appdashboard`, likely `/home/u504065335/domains/toquran.org/public_html/appdashboard`, pending SSH verification.
+- app-side production DB replacement/import manifest was drafted on 2026-06-20 at `database/manual/patches/2026-06-20-tq9-production-db-replacement-manifest.sql`. It is comment-only, must not be sourced, and does not authorize any production DB write; it records the reviewed pre-account SQL order, post-account Library/content order, app deployment readiness gates, do-not-run local smoke artifacts, and stop conditions.
+- read-only Hostinger SSH/DB identity evidence captured on 2026-06-20: SSH user `u504065335` lands in `/home/u504065335` on host `nl-srv-web512.main-hosting.eu`; `toquran.org` webroot is `/home/u504065335/domains/toquran.org/public_html`; `appdashboard` is absent and must be created before app deployment; Hostinger PHP 8.3 CLI is `/opt/alt/php83/usr/bin/php` reporting `8.3.31`, while default SSH `php` reports `8.2.31`; read-only MySQL identity check selected `u504065335_to_quran` as `u504065335_to_quran@127.0.0.1` on `nl-srv-web512.main-hosting.eu` with 44 existing tables, so the production DB is confirmed Hostinger-side and not empty.
+- owner confirmed a DB backup exists, deleted/recreated the Hostinger DB on 2026-06-20, and supplied the new DB credential through chat. Treat the new DB and SSH credentials as exposed temporary launch credentials that must be rotated after setup/deployment. Read-only MySQL verification after recreation selected `u504065335_to_quran` as `u504065335_to_quran@127.0.0.1` on `nl-srv-web512.main-hosting.eu` with table count `0`.
+- production pre-account DB replay completed on 2026-06-20 after exact owner approval, using `database/manual/patches/2026-06-20-tq9-hostinger-safe-baseline-wrapper.sql` plus reviewed pre-account manual SQL artifacts. First attempt using MySQL `SOURCE` failed before baseline execution because Hostinger sandbox mode blocks `SOURCE`; rerun as a combined SQL stream succeeded. Persistent post-replay verification on Hostinger showed table count `357`, key table count `13`, users `0`, smoke users `0`, roles `7`, services `6`, subjects `6`, grade-level subjects `24`, General Library tables `4`, catalog registry table `1`, `contacts.child_age` nullable, and General Library text-source schema present. Evidence is recorded in `database/manual/patches/2026-06-20-tq9-pre-account-production-replay-execution-note.sql`.
 
 ## Phase 0: Plan And Authorization Gate
 
@@ -99,8 +114,8 @@ Actions:
 6. Rebuild assets with `corepack yarn build` after dependency changes.
 7. Verify `public/build/manifest.json`, `build/manifest.json`, and `docs/BUILD-DEPLOY-MARKER.md`.
 8. Prepare the public website repo for deployment before Hostinger work:
-   - confirm the intended public website deployment commit, currently expected to be `24d76d1` unless superseded;
-   - review `6dfb71f..24d76d1` changes, especially `BookingController` and `ContactController`, against the app-owned booking/contact intake contract;
+   - confirm the intended public website deployment commit, currently evidenced by Hostinger package source `018a7c7478df` and repo evidence commit `ccd02d8`;
+   - confirm changes since shared-DB handoff commit `6dfb71f`, especially `BookingController` and `ContactController`, remain aligned with the app-owned booking/contact intake contract;
    - run and resolve public website dependency audits:
      - `composer audit`;
      - `composer audit --no-dev`;
@@ -163,17 +178,20 @@ Actions:
 1. If VS Code Remote SSH is connected, inspect only:
    - home directory structure;
    - public website code directory for `toquran.org`;
-   - app subdomain code directory, expected to be the custom `appdashboard` folder for `app.toquran.org`;
+   - app subdomain code directory, expected to be the custom `appdashboard` folder for `app.toquran.org` once recreated;
    - public webroot for `app.toquran.org`;
-   - public webroot for `toquran.org`;
+   - public webroot for `toquran.org`, likely `/home/u504065335/domains/toquran.org/public_html` based on owner-provided FTP evidence, pending SSH verification;
    - current PHP version and extensions;
    - Composer availability;
    - Node/Yarn availability, if builds might run server-side;
    - cron/scheduler configuration options;
    - process manager or queue worker options;
    - file permissions for app path, `storage/`, and `bootstrap/cache/`.
-2. Confirm whether `app.toquran.org` points to Laravel `public/` under `appdashboard` or relies on root compatibility files.
-3. Confirm whether the public website deploy path is the main domain folder and whether it is Git-connected or requires SSH/manual sync.
+2. Confirm whether `app.toquran.org` points to Laravel `public/` under `appdashboard` or relies on root compatibility files. If `appdashboard` is absent, record that it must be recreated before app deployment.
+3. Confirm whether the public website deploy path is the main domain folder and whether it is Git-connected or requires SSH/manual sync. Since the owner emptied the public folder on 2026-06-19, record the current empty-folder evidence before connecting Git or uploading website files.
+   - Verify whether the SSH path matching FTP `public_html` is `/home/u504065335/domains/toquran.org/public_html`.
+   - Verify the owner-confirmed app path `/home/u504065335/domains/toquran.org/public_html/appdashboard` exists or can be recreated.
+   - Verify Hostinger points `app.toquran.org` at the intended `appdashboard` public entry path, preferably `appdashboard/public`, or document the approved root-compatibility setup if Hostinger cannot point to `public`.
 4. Confirm `app.toquran.org` serving details in plain terms:
    - DNS for `app.toquran.org` resolves to the intended Hostinger account;
    - SSL is active for `https://app.toquran.org`;
@@ -182,17 +200,22 @@ Actions:
 5. Confirm the safest deployment mechanism:
    - preferred for `appdashboard` if configured: Hostinger GitHub pull for `UsamaAzb/toquranapp`, followed by SSH/terminal commands for Composer/cache/storage;
    - preferred for the public website only after its local repo is clean and pushed: Hostinger GitHub connection to `UsamaAzb/toquran`;
-   - SSH/manual sync only if GitHub pull cannot deploy the right commit/build artifacts safely.
+   - SSH/manual sync if it is safer/easier than Hostinger GitHub pull for exact reviewed commits, complete assets, dependency installation, `.htaccess`, cache/storage commands, or server layout verification.
 6. If connecting the public website folder to Hostinger Git requires an empty folder, schedule that as a deployment-window action only after:
-   - current server files are backed up or confirmed disposable;
+   - current server files are backed up or confirmed disposable, or the owner-provided empty-folder state is verified;
    - target commit for `UsamaAzb/toquran` is known;
    - owner explicitly approves deleting/replacing the current website files.
 7. Identify the simple public website rollback path:
-   - backup/download current website files before replacement, or record owner confirmation that they are disposable;
+   - use the owner-provided old-website backup/reference path only as a local rollback reference, without recording secrets;
+   - backup/download current website files before replacement if any files exist, or record owner confirmation that they are disposable/empty;
    - know the previous website commit or file backup location;
    - if website smoke fails, restore the backed-up files or previous commit before continuing.
 8. Identify where raw server DB backups can be stored outside Git.
-9. Do not edit production files during this phase.
+9. Confirm SSH secret-handling procedure before connection:
+   - enter SSH password only in VS Code Remote SSH, terminal prompt, or Hostinger private UI;
+   - do not paste or record SSH password in any repo file, execution note, screenshot, or chat;
+   - rotate SSH password after launch setup/deployment because it was shared in chat.
+10. Do not edit production files during this phase.
 
 Exit criteria:
 
@@ -215,58 +238,64 @@ Actions:
    - `APP_KEY` presence;
    - DB connection host/database/user presence;
    - `MAIL_*` presence and sender identity;
+   - official support mailbox identity, currently expected to be `support@toquran.org`;
    - any webhook, automation, or third-party secret key presence required by launch features;
    - `QUEUE_CONNECTION`;
    - `CACHE_STORE`;
    - `SESSION_DRIVER`;
    - `FILESYSTEM_DISK`;
    - `TOQURAN_DEFAULT_TEACHER_EMAIL`.
-2. Confirm no local smoke/test values are present in production config.
-3. Confirm the intended production `TOQURAN_DEFAULT_TEACHER_EMAIL` value is present or ready to set. The email will only be resolution-checked after the default teacher account is created in Phase 6.
-4. Confirm mail behavior for activation/password/support emails. Mailbox passwords must be entered only through the approved private Hostinger/server configuration path, never through chat, Git, screenshots, or deployment notes.
-5. Confirm queue behavior:
+2. Use local app `.env` as a private reference only for key names and intended production values. Secret values must be entered through Hostinger/server private configuration channels and never copied into deployment notes.
+3. Confirm no local smoke/test values are present in production config.
+4. Confirm the intended production `TOQURAN_DEFAULT_TEACHER_EMAIL` value is present or ready to set. The email will only be resolution-checked after the default teacher account is created in Phase 6.
+5. Confirm mail behavior for activation/password/support emails. Mailbox passwords must be entered only through the approved private Hostinger/server configuration path, never through chat, Git, screenshots, or deployment notes.
+6. Confirm queue behavior:
    - real worker if available;
    - otherwise an owner-approved cron fallback with known limitations.
-6. Confirm scheduler cron:
+7. Confirm scheduler cron:
    - `* * * * * php /path/to/artisan schedule:run`.
-7. Repeat the DB-related `.env` review after any Hostinger DB removal/recreation, because a recreated Hostinger database may receive a new DB name, user, password, or host.
-8. Decide whether the public website should use a restricted DB user scoped to booking/contact/intake tables instead of the app's full-access DB credential. If creating or changing a DB user/grant is needed, treat it as a production DB change requiring guarded manual SQL or an execution note, target/instance evidence, backup/export evidence, and exact owner approval. If deferred, record the launch risk decision and follow-up.
+8. Repeat the DB-related `.env` review after any Hostinger DB removal/recreation, because a recreated Hostinger database may receive a new DB name, user, password, or host.
+9. Decide whether the public website should use a restricted DB user scoped to booking/contact/intake tables instead of the app's full-access DB credential. If creating or changing a DB user/grant is needed, treat it as a production DB change requiring guarded manual SQL or an execution note, target/instance evidence, backup/export evidence, and exact owner approval. If deferred, record the launch risk decision and follow-up.
 
 Exit criteria:
 
 - production env readiness checklist is complete without secret disclosure;
 - any missing keys or unsafe values are fixed only after explicit approval.
 
-## Phase 5: Production DB Clean-Start, Backup Evidence, And Manual SQL Manifest
+## Phase 5: Production DB Clean-Start Or Reuse Decision, Backup Evidence, And Manual SQL Manifest
 
-Goal: start from the intended empty Hostinger app DB safely, preserve evidence of the pre-deployment state, and apply only reviewed DB changes to the intended app target.
+Goal: start from the intended Hostinger app DB safely, preserve evidence of the pre-deployment state, decide clean-start versus reuse based on current evidence, and apply only reviewed DB changes to the intended app target.
 
 Actions:
 
-1. Before the owner removes/recreates the Hostinger DB, capture safe evidence that the target is empty or disposable:
+1. Before the owner removes/recreates, reuses, imports into, or changes the Hostinger DB, capture safe evidence that the target is empty, disposable, or intentionally reused:
    - DB name;
    - table count;
+   - safe size summary;
    - Hostinger backup/export status, even if the export is empty;
    - owner confirmation that removal/recreation is intentional for To Quran clean-start deployment.
-2. Codex must not drop, remove, truncate, import, restore, or overwrite the Hostinger DB unless the owner explicitly approves the exact action/command after the target and backup/empty evidence are recorded.
-3. After the owner removes/recreates the DB, verify the active target DB identity and reconcile configuration:
+2. Treat the current Hostinger database evidence as existing data because the owner-provided Hostinger panel screenshot shows `u504065335_to_quran` at `5 MB`. Do not assume it is empty until table-count/export evidence proves it.
+3. The owner currently prefers replacing the old Hostinger DB with the current reviewed local DB shape/data. Before this can happen, produce a DB manifest that names the exact local export/baseline source, manual SQL replay order, app commands, and verification queries. Codex must not drop, remove, truncate, import, restore, or overwrite the Hostinger DB unless the owner explicitly approves the exact action/command after the target and backup/empty evidence are recorded.
+4. If the owner removes/recreates the DB, verify the active target DB identity and reconcile configuration:
    - expected DB name, or the new Hostinger-assigned DB name if it changed;
    - DB host;
    - DB user;
    - app `.env` DB values updated to match the recreated target;
    - website `.env` DB values updated to match the same shared target;
    - all `--confirm-db` command literals and manual SQL guard literals updated if the DB name changed.
-4. Because local and production both may use the same DB name, do not rely on `DATABASE()` or `--confirm-db` alone for production DB safety. Before every production DB write, import, command-driven catalog install, and cleanup, record a host/instance-level guard including:
+5. Because local and production both may use the same DB name, do not rely on `DATABASE()` or `--confirm-db` alone for production DB safety. Before every production DB write, import, command-driven catalog install, and cleanup, record a host/instance-level guard including:
    - execution location, such as Hostinger SSH path or Hostinger panel action;
    - `DB_HOST` safe summary showing Hostinger, not local `127.0.0.1` / `localhost`;
    - DB name;
    - DB user;
    - MySQL identity evidence such as safe output from `SELECT DATABASE(), USER(), @@hostname;`;
    - owner approval of the exact command/action after this identity evidence is captured.
-5. Confirm the recreated target is empty before applying baseline/import work. If it is not empty, stop and write a separate reviewed delta/restore plan instead of replaying baseline SQL.
-6. Confirm the website and app point to the intended shared app DB target before public form launch.
-7. If using a restricted public website DB user, verify it can perform required public booking/contact writes but cannot read or write unrelated app tables such as users, credentials, sessions, family/student records, and staff/admin data.
-8. Produce a concrete production DB manifest before any DB action. The manifest must list exact filenames/commands in execution order and classify each step as:
+6. Confirm the target is empty before applying baseline/import work. If it is not empty, stop and write a separate reviewed delta/restore plan or owner-approved clean-start plan instead of replaying baseline SQL.
+7. Confirm the website and app point to the intended shared app DB target before public form launch.
+8. If using a restricted public website DB user, verify it can perform required public booking/contact writes but cannot read or write unrelated app tables such as users, credentials, sessions, family/student records, and staff/admin data.
+9. Review and approve the concrete production DB manifest before any DB action:
+   - `database/manual/patches/2026-06-20-tq9-production-db-replacement-manifest.sql`.
+   The manifest must list exact filenames/commands in execution order and classify each step as:
    - schema baseline;
    - schema correction;
    - reference/starter data;
@@ -274,8 +303,8 @@ Actions:
    - command-driven catalog install;
    - cleanup;
    - verification only.
-9. Update `database/manual/README.md` replay/order notes before production replay if the current order is stale.
-10. Confirm which manual artifacts must be present on production, including:
+10. Update `database/manual/README.md` replay/order notes before production replay if the current order is stale.
+11. Confirm which manual artifacts must be present on production, including:
    - real app baseline and framework/index/identifier corrections, only for the confirmed empty clean-start target;
    - starter/reference data;
    - learning catalog, Arabic Language service, task types;
@@ -285,21 +314,28 @@ Actions:
    - `users.country`;
    - legacy booking child normalization and school defaults;
    - MDJ behavior/reward/consequence patches;
-   - TQ6 General Library tables, Quran Repetition import, and hardening/private-storage shape;
+   - TQ6 General Library tables, Quran Repetition import, and URL hardening repair; the local private-storage move note is not replayed on a clean production target because there are no pre-existing Library file originals to move;
    - TQ7.5 automation catalog registry;
    - TQ7.5 General Library text-source schema;
    - any approved TQ7.5 catalog install command for intended teacher(s).
-11. For each DB-changing action, require:
-   - backup/export evidence;
-   - target DB confirmation;
-   - host/instance-level production guard evidence, not only DB name;
-   - guarded manual SQL or execution note under `database/manual/`;
-   - owner approval of the exact command/action.
-12. Do not run Laravel migrations, seeders, `migrate:fresh`, `db:wipe`, restore/import, or destructive SQL unless separately approved with the required DB safety evidence.
-13. Validate backup/restore confidence before production launch:
-   - record backup file size/checksum or Hostinger backup identifier;
-   - verify the dump has the expected table list/count;
-   - restore to an isolated scratch DB when practical, or document why Hostinger access prevents a scratch restore.
+12. For each DB-changing action, require:
+    - backup/export evidence;
+    - target DB confirmation;
+    - host/instance-level production guard evidence, not only DB name;
+    - guarded manual SQL or execution note under `database/manual/`;
+    - owner approval of the exact command/action.
+13. Before baseline replay, empty/recreate the existing 44-table Hostinger DB only through a reviewed mechanism:
+    - preferred: Hostinger hPanel/phpMyAdmin controlled removal/recreation or table-emptying after backup/export evidence and exact owner approval;
+    - fallback: a separate reviewed host/instance-guarded manual SQL artifact, not ad-hoc DROP/TRUNCATE commands;
+    - if the DB name/user/host/password changes, stop and update all `.env`, manual guard, and `--confirm-db` values before continuing.
+14. Use a Hostinger-safe baseline wrapper/copy as the default production replay path. It must assume the DB already exists and is already selected, remove `CREATE DATABASE` and `USE`, and run only after host/instance identity evidence proves the session is connected to the approved target.
+15. Expected production table count after pre-account schema replay and after post-account Library/content SQL is `357`; catalog install and demo-family seed add rows, not tables.
+16. Rotate the DB password after pre-account SQL replay completes and before writing app/website production `.env` files; the manual pre-account SQL uses the pre-rotation credential, and all later app/artisan, post-account SQL, catalog, and smoke steps use the rotated credential.
+17. Do not run Laravel migrations, seeders, `migrate:fresh`, `db:wipe`, restore/import, or destructive SQL unless separately approved with the required DB safety evidence.
+18. Validate backup/restore confidence before production launch:
+    - record backup file size/checksum or Hostinger backup identifier;
+    - verify the dump has the expected table list/count;
+    - restore to an isolated scratch DB when practical, or document why Hostinger access prevents a scratch restore.
 
 Exit criteria:
 
@@ -328,17 +364,24 @@ Actions:
 
 1. Confirm deploy source commit and release path for `UsamaAzb/toquranapp` into Hostinger `appdashboard`.
 2. Confirm deploy source commit and release path for public website repo `UsamaAzb/toquran` into the main `toquran.org` folder.
-3. Prefer Hostinger GitHub pull for `appdashboard` if it can deploy the exact reviewed commit. Use SSH for inspection, Composer/cache/storage commands, and verification.
-4. Before connecting or pulling the public website repo on Hostinger, ensure the local website repo is clean and pushed to `origin/main`, or explicitly document why a different commit/source is being deployed.
-5. If Hostinger requires deleting current website files to connect GitHub, do that only during the approved deployment window after backup/disposable confirmation.
-6. Ensure app `.env` and website `.env` are not overwritten by repo sync.
-7. Ensure app `storage/`, `bootstrap/cache/`, and private Library upload paths are writable.
-8. Ensure app public storage link is correct for Hostinger.
-9. Ensure app generated build artifacts match `docs/BUILD-DEPLOY-MARKER.md`; upload `public/build/` and root `build/` if builds are produced locally.
-10. Ensure public website build/static assets are deployed according to `D:\xampp\htdocs\toquran\docs\DEPLOYMENT-DAY-NOTES.md`.
-11. Configure scheduler and queue after code is in place.
-12. Execute the production account/bootstrap sequence after app code is present:
+3. Prepare the public website for website-first deployment if selected by the owner:
+   - verify the website repo has the correct `.htaccess` / rewrite rules for Hostinger;
+   - verify public build assets are present and deployable;
+   - verify all required website media, including hero video and static images, are included in the repo/build artifact or in a documented deployment asset package handled by Codex/SSH, not by owner manual upload;
+   - verify the website `.env` can be entered privately with the shared app DB, `APP_URL=https://toquran.org`, `APP_DEBUG=false`, `APP_ENV=production`, and `support@toquran.org` mail identity without exposing secrets.
+4. Prefer Hostinger GitHub pull for `appdashboard` if it can deploy the exact reviewed commit. Use SSH for inspection, Composer/cache/storage commands, and verification.
+5. Before connecting or pulling the public website repo on Hostinger, ensure the local website repo is clean and pushed to `origin/main`, or explicitly document why a different commit/source is being deployed.
+6. If Hostinger requires an empty folder to connect GitHub for the public website, verify the owner-provided empty-folder state and use it during the approved deployment window.
+7. Ensure app `.env` and website `.env` are not overwritten by repo sync.
+8. Ensure app `storage/`, `bootstrap/cache/`, and private Library upload paths are writable.
+9. Ensure app public storage link is correct for Hostinger.
+10. Ensure app generated build artifacts match `docs/BUILD-DEPLOY-MARKER.md`; upload `public/build/` and root `build/` if builds are produced locally.
+11. Ensure private/shared Library source files and any required app media/import assets are included through Git, reviewed manual DB/content imports, or an approved SSH deployment step. Do not depend on owner manual upload.
+12. Ensure public website build/static assets are deployed according to `D:\xampp\htdocs\toquran\docs\DEPLOYMENT-DAY-NOTES.md`.
+13. Configure scheduler and queue after code is in place.
+14. Execute the production account/bootstrap sequence after app code is present:
     - do not import local user rows wholesale just to preserve existing accounts;
+    - do not create extra human LMS accounts beyond the owner/root superadmin and minimal required operating accounts for launch behavior;
     - run the guarded `php artisan toquran:bootstrap-superadmin --confirm-db=...` command only after the Phase 5 host/instance-level production DB guard is captured and the owner supplies the final email/name/phone through a private, non-logged method;
     - for the initial password, prefer omitting `--password` so the command generates a one-time password, then immediately rotate it after first login; do not copy the generated password into Git, chat, screenshots, execution notes, or shared logs;
     - do not pass a real production password through `--password` unless a separate code change first adds a hidden prompt or another owner-approved non-logged secret path;
@@ -353,8 +396,8 @@ Actions:
     - only after the default teacher exists and resolves, run any approved `toquran:install-automation-catalog --teacher-email=drosamaqandil@gmail.com --confirm-db=...` command with the Phase 5 host/instance-level production DB guard and record an execution note;
     - if Staff Users cannot create the teacher before catalog install, stop and create a separate guarded teacher-bootstrap artifact/command plan instead of ad hoc SQL;
     - never record production passwords in Git, execution notes, chat, screenshots, or terminal logs.
-13. After code deployment and account/bootstrap steps complete, capture a known-good backup of the populated production DB before public website smoke begins. This is the preferred rollback point for launch-day smoke failures.
-14. Confirm launch rollback checkpoints before mutating public smoke:
+15. After code deployment and account/bootstrap steps complete, capture a known-good backup of the populated production DB before public website smoke begins. This is the preferred rollback point for launch-day smoke failures.
+16. Confirm launch rollback checkpoints before mutating public smoke:
     - app deployed commit and previous known-good state are recorded;
     - public website deployed commit and backup/restore path are recorded;
     - populated production DB backup from Phase 6 is available;
@@ -480,7 +523,7 @@ Expected future DB-impacting deployment work may include applying or preserving 
 
 ## Public Website Handoff
 
-The public website handoff was introduced in `toquran` commit `6dfb71f`; the current deployment candidate is `24d76d1` pending booking/contact controller review. Deployment target verification remains required:
+The public website handoff was introduced in `toquran` commit `6dfb71f`; the current Hostinger pre-`.env` package source is `018a7c7478df`, with evidence commit `ccd02d8`. Deployment target verification remains required:
 
 - website and app must share the intended app-owned DB target;
 - public website and `app.toquran.org` must both be deployed and verified;
@@ -494,20 +537,25 @@ The public website handoff was introduced in `toquran` commit `6dfb71f`; the cur
 
 - App Composer audits are clean after updating `laravel/framework` to `v12.62.0`; keep rechecking before deployment.
 - JS audit tool decision is resolved: use `corepack yarn 1.22.22` with existing `yarn.lock`. App production dependency audit is clean after the 2026-06-19 hardening pass. Full JS audit still has dev/tooling-only advisories; do not install dev dependencies or run server-side builds on Hostinger unless those dev-tooling advisories are separately fixed or risk-accepted.
-- Public website dependency audits currently fail: Composer reports many advisories, including production advisories, and npm reports critical/high vulnerabilities. These must be fixed or explicitly risk-accepted before production-changing deployment.
+- Public website dependency/audit hardening is complete through the website pre-`.env` package evidence, but the website is intentionally stopped before real `.env`, shared `DB_*`, production form smoke, or launch announcement until app-side DB/import/login readiness is complete.
 - Hostinger PHP has been set in panel to PHP `8.3`; remaining read-only verification still includes effective CLI/web PHP version, PHP extensions, cron, queue worker options, server layout, storage-link behavior, and public path.
-- Hostinger app subdomain must deploy into `appdashboard`, not the public website's existing `app` folder.
-- Public website deployment uses `UsamaAzb/toquran`; current candidate `24d76d1` is clean/pushed but includes Booking/Contact controller changes after `6dfb71f` that must be reviewed against the intake contract before relying on Hostinger GitHub pull.
+- Hostinger app subdomain must deploy into `appdashboard`, not the public website's existing `app` folder. The owner emptied the public folder on 2026-06-19, so `appdashboard` must be recreated and pointed correctly before app deployment.
+- Owner-provided FTP evidence shows `toquran.org` uploads to `public_html`, likely `/home/u504065335/domains/toquran.org/public_html`. Owner clarified that the app repo should live inside that public path at `appdashboard`, likely `/home/u504065335/domains/toquran.org/public_html/appdashboard`. Exact SSH paths and the subdomain document root still must be inspected before any upload or file edit.
+- Public website deployment uses `UsamaAzb/toquran`; current Hostinger pre-`.env` evidence commit is `ccd02d8`, with package source `018a7c7478df`. Public form traffic remains blocked until app-side readiness gates pass and real website `.env` is created privately.
+- Deployment cannot depend on owner manual upload for hero video, website media, Library source files, or private content assets; all required assets must be packaged, tracked, imported, or deployed through an approved SSH/Git step.
 - Public website DB credential scope is undecided. A full-access shared app DB credential increases blast radius from the public website; prefer a restricted website DB user or record explicit launch risk acceptance.
-- If Hostinger GitHub connection for the public website requires an empty folder, deleting current website files must wait for the approved deployment window and a server-file backup/disposable confirmation.
-- Hostinger DB is expected to be empty and removed/recreated for clean start, but Codex still needs target/empty/backup evidence and exact approval before any destructive or import action.
+- If Hostinger GitHub connection for the public website requires an empty folder, use the owner-provided empty-folder state only after verifying it during the approved deployment window; do not delete/recreate server files without exact approval.
+- Hostinger DB pre-account replay is complete and verified at 357 tables with zero users. Post-account DB/content actions remain pending and still require their own host/instance guard evidence and exact approval where DB-changing.
 - Local and production DBs may share the same database name, so production DB writes and cleanup require host/instance-level guard evidence in addition to DB-name checks.
-- `database/manual/README.md` replay order needs review for newer TQ6/TQ7.5 artifacts before production replay, and a concrete production DB manifest must be created before DB execution.
+- `database/manual/README.md` now points production replay planning to the drafted TQ9 manifest, but the manifest still needs owner/reviewer approval before any DB execution. The old numbered replay list is historical/superseded and must not be used for production replay.
 - Clean-start production needs deliberate account bootstrap: owner/root superadmin and active default teacher must exist before final transfer/catalog smoke.
+- Account setup should stay minimal: owner/root superadmin plus only the necessary default teacher/system-operating accounts required for launch behavior. Do not create support/admin/staff accounts unless a launch feature requires them and the owner approves.
+- Intentional demo/showcase data is now in scope as a separate post-core-readiness seed plan: one demo family with three children and rich history. It must not be confused with local smoke/trial data or imported by copying the raw local DB.
 - TQ7.5 religious Adhkar/Dua starter content is owner-confirmed reviewed and correct, but production catalog install still requires the normal DB safety gate and exact command approval.
 - Production smoke cleanup and credential rotation are mandatory before public launch, including public-form `TQ-` / `CNT-` smoke rows and all transfer-created downstream smoke data unless owner approves retaining them as launch evidence.
 - A known-good populated production DB backup and simple website rollback path must exist before mutating public smoke.
 - Production file edits and DB writes remain blocked until explicit owner approval of exact actions.
+- SSH access is available but VS Code Remote SSH is not configured yet. Passwords must be entered only through private prompts and rotated after setup/deployment because the current password was shared in chat.
 
 ## Explicit Non-Goals
 

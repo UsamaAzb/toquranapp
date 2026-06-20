@@ -141,6 +141,10 @@ timestamp, and checksum.
   - guarded real-target smoke-data correction patch that activates only transferred smoke child subjects selected in `booking_children.service_interests`
 - `patches/2026-06-02-correct-tq9-smoke-selected-service-subjects-execution-note.sql`
   - execution note for the TQ9 smoke selected-service subject correction
+- `patches/2026-06-03-tq5-mdj-starter-behavior-reference-data.sql`
+  - guarded starter/reference data patch for TQ5 My Deen Journey behavior, reward, discipline icon, and consequence defaults; required before later MDJ wording/icon/consequence refresh patches
+- `patches/2026-06-03-tq5-mdj-starter-behavior-reference-data-execution-note.sql`
+  - execution note for the TQ5 MDJ starter behavior reference data patch, including backup evidence and verification counts
 - `patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql`
   - guarded real-target schema patch that aligns `booking_intake_review.detection_reason` with the intake correction flow by adding `clean_new_customer`
 - `patches/2026-06-04-add-clean-new-customer-intake-review-enum-execution-note.sql`
@@ -199,6 +203,10 @@ timestamp, and checksum.
   - guarded additive patch that adds final-destination `content_mode` to general Library folders and imports the preserved Quran YouTube list as `Quran Repetition` > per-surah source-only folders > YouTube sources
 - `patches/2026-06-07-tq6-library-folder-mode-and-quran-repetition-import-execution-note.sql`
   - execution note for the local TQ6 Quran Repetition import, including backup evidence, guard success, and verification counts for 20 surah folders and 106 sources
+- `patches/2026-06-13-tq6-library-hardening-repair.sql`
+  - guarded TQ6 Library content correction patch that repairs malformed Quran Repetition YouTube embed URLs after import
+- `patches/2026-06-13-tq6-library-private-storage-execution-note.sql`
+  - execution note for the local-only TQ6 Library private-storage file move; intentionally not replayed for clean production because there are no pre-existing Library file originals to move
 - `patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql`
   - guarded create-only manual SQL artifact for the TQ7.5 starter automation catalog identity registry; local execution is recorded in the 2026-06-16 execution note
 - `patches/2026-06-15-tq7-5-automation-catalog-install-execution-note-template.sql`
@@ -213,6 +221,12 @@ timestamp, and checksum.
   - guarded schema patch that adds General Library text-only sources for TQ7.5 Dua Bank content by adding `general_library_resources.text_content` and allowing `resource_type = 'text'`; local execution is recorded in the full Dua Bank execution note
 - `patches/2026-06-17-tq7-5-full-dua-bank-execution-note.sql`
   - execution note for the local full-bank TQ7.5 reset/reinstall, including backup evidence, General Library text-source schema execution, 52 seeded Dua Bank text sources, and final catalog verification counts
+- `patches/2026-06-20-tq9-production-db-replacement-manifest.sql`
+  - comment-only production replacement/import manifest and app deployment readiness checklist for TQ9; this is the current review artifact for Hostinger DB replacement planning and must not be sourced
+- `patches/2026-06-20-tq9-hostinger-safe-baseline-wrapper.sql`
+  - production-safe baseline wrapper for Hostinger replay; derived from the real-target baseline with `CREATE DATABASE` and `USE` removed so it runs only against an already-created, already-selected `u504065335_to_quran` target after identity and empty-table checks
+- `patches/2026-06-20-tq9-pre-account-production-replay-execution-note.sql`
+  - execution note for the Hostinger production pre-account replay, including owner backup/recreate confirmation, first-attempt SOURCE sandbox failure, successful combined SQL replay, and persistent verification counts
 
 ## Current Local App Target
 
@@ -248,7 +262,15 @@ timestamp, and checksum.
 
 ## Current Real-Target Replay Order
 
-For a fresh accelerated To Quran app DB target, use the documented real-target artifacts in this order:
+For production TQ9 replacement/import planning, use:
+
+- `patches/2026-06-20-tq9-production-db-replacement-manifest.sql`
+
+That manifest extends and supersedes the historical replay list below with the newer TQ5/TQ6/TQ7.5 launch artifacts, app deployment readiness gates, account bootstrap order, and explicit do-not-run smoke/local reset artifacts.
+
+Superseded historical fresh accelerated To Quran app DB target order before the full TQ5/TQ6/TQ7.5 production manifest:
+
+Do not use this numbered list for production replay. It is kept only as history; use `patches/2026-06-20-tq9-production-db-replacement-manifest.sql` for TQ9.
 
 1. `patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql`
 2. `patches/2026-05-28-add-framework-infrastructure-indexes.sql`

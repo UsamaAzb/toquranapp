@@ -1,0 +1,102 @@
+-- TQ9 pre-account production DB replay execution note
+--
+-- Status: execution evidence note only. Do not source this file.
+-- Date: 2026-06-20
+-- Target: Hostinger production DB u504065335_to_quran
+-- Execution location: Hostinger SSH as u504065335
+--
+-- Owner authorization:
+-- - Owner confirmed a current backup exists.
+-- - Owner deleted/recreated the Hostinger DB before replay.
+-- - Owner approved proceeding with the production-safe pre-account replay.
+--
+-- Safety evidence before replay:
+-- - SSH host: nl-srv-web512.main-hosting.eu
+-- - Webroot: /home/u504065335/domains/toquran.org/public_html
+-- - Intended app path: /home/u504065335/domains/toquran.org/public_html/appdashboard
+-- - MySQL selected DB/user/host:
+--     u504065335_to_quran / u504065335_to_quran@127.0.0.1 / nl-srv-web512.main-hosting.eu
+-- - Table count before replay after owner DB recreation: 0
+--
+-- Secret handling:
+-- - SSH and DB passwords were used only through temporary local/remote runtime
+--   handling and were not written to this note.
+-- - Temporary MySQL defaults files were removed after execution.
+-- - Because SSH and DB passwords were pasted in chat, they must be treated as
+--   temporary/exposed launch credentials and rotated after setup/deployment.
+--
+-- Artifact created for production replay:
+-- - database/manual/patches/2026-06-20-tq9-hostinger-safe-baseline-wrapper.sql
+--   Derived from the historical real-target baseline with CREATE DATABASE and
+--   USE removed for an already-created, already-selected Hostinger DB.
+--
+-- First attempt:
+-- - Remote staging directory:
+--     /home/u504065335/tq9-pre-account-20260620-180524
+-- - Method: mysql runner using SOURCE commands.
+-- - Result: failed before baseline execution because Hostinger MySQL refused
+--   SOURCE in sandbox mode:
+--     ERROR at line 7: Not allowed in the sandbox mode
+-- - Follow-up read-only check confirmed table count remained 0.
+--
+-- Successful attempt:
+-- - Remote staging directory:
+--     /home/u504065335/tq9-pre-account-combined-20260620-180756
+-- - Method: combined SQL stream generated from the reviewed pre-account files.
+-- - UTF-8 BOMs at file boundaries were stripped while combining.
+-- - Result: mysql exit status 0.
+--
+-- Pre-account replay files, in order:
+--  1. database/manual/patches/2026-06-20-tq9-hostinger-safe-baseline-wrapper.sql
+--  2. database/manual/patches/2026-05-28-add-framework-infrastructure-indexes.sql
+--  3. database/manual/patches/2026-05-28-fix-library-dp-global-context-column.sql
+--  4. database/manual/patches/2026-05-28-fix-library-schema-identifier-drift.sql
+--  5. database/manual/patches/2026-05-28-toquran-starter-reference-data.sql
+--  6. database/manual/patches/2026-05-29-toquran-learning-catalog-reference-data.sql
+--  7. database/manual/patches/2026-05-29-add-arabic-language-service-reference.sql
+--  8. database/manual/patches/2026-05-29-add-launch-task-types.sql
+--  9. database/manual/patches/2026-05-29-correct-launch-task-types.sql
+-- 10. database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql
+-- 11. database/manual/patches/2026-06-03-tq5-mdj-starter-behavior-reference-data.sql
+-- 12. database/manual/patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql
+-- 13. database/manual/patches/2026-06-04-add-family-workspace-permissions.sql
+-- 14. database/manual/patches/2026-06-04-add-users-country.sql
+-- 15. database/manual/patches/2026-06-04-normalize-legacy-booking-children.sql
+-- 16. database/manual/patches/2026-06-04-heal-booking-child-school-defaults.sql
+-- 17. database/manual/patches/2026-06-05-mdj-behavior-wording-refresh.sql
+-- 18. database/manual/patches/2026-06-05-mdj-behavior-icon-mapping-refresh.sql
+-- 19. database/manual/patches/2026-06-06-mdj-lms-consequence-behavior-refresh.sql
+-- 20. database/manual/patches/2026-06-06-mdj-behavior-icon-remap.sql
+-- 21. database/manual/patches/2026-06-06-mdj-popup-category-flag-fix.sql
+-- 22. database/manual/patches/2026-06-06-mdj-good-job-popup-flag-fix.sql
+-- 23. database/manual/patches/2026-06-06-create-tq6-general-library.sql
+-- 24. database/manual/patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql
+-- 25. database/manual/patches/2026-06-17-add-general-library-text-sources.sql
+--
+-- Post-replay persistent verification:
+-- - MySQL identity:
+--     u504065335_to_quran / u504065335_to_quran@127.0.0.1 / nl-srv-web512.main-hosting.eu
+-- - table_count: 357
+-- - key_tables: 13
+-- - users: 0
+-- - smoke_users: 0
+-- - roles: 7
+-- - services: 6
+-- - subjects: 6
+-- - grade_level_subjects: 24
+-- - general_library_tables: 4
+-- - catalog_registry_tables: 1
+-- - contacts.child_age IS_NULLABLE: YES
+-- - general_library_resources.text_content column count: 1
+--
+-- Important notes:
+-- - The replay log briefly reported 364 tables inside the same MySQL session.
+--   Persistent post-session verification showed the expected 357 tables; the
+--   session count likely included temporary/helper tables visible during the
+--   combined run.
+-- - No production app .env was created by this step.
+-- - No app code was deployed by this step.
+-- - No accounts were bootstrapped by this step.
+-- - Post-account Library content import, app deployment, default teacher,
+--   catalog install, demo-family seed, website .env, and public smoke remain
+--   pending.

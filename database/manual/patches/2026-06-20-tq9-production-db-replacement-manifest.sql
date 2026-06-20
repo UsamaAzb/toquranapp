@@ -1,0 +1,397 @@
+-- TQ9 production DB replacement/import manifest and app deployment readiness checklist
+--
+-- Status: review manifest only. Do not source this file.
+-- Date: 2026-06-20
+-- Target production DB name: u504065335_to_quran
+-- Target app path, SSH-verified as intended but not yet created:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard
+-- Hostinger SSH/DB identity evidence, read-only on 2026-06-20:
+--   SSH host: nl-srv-web512.main-hosting.eu
+--   Webroot: /home/u504065335/domains/toquran.org/public_html
+--   MySQL selected DB/user/host:
+--     u504065335_to_quran / u504065335_to_quran@127.0.0.1 / nl-srv-web512.main-hosting.eu
+--   Existing production table count before replacement: 44
+--   Owner confirmed backup existed and recreated the DB on 2026-06-20.
+--   Read-only post-recreate table count: 0
+--   Pre-account replay completed on 2026-06-20; persistent table count: 357
+--   Evidence note:
+--     database/manual/patches/2026-06-20-tq9-pre-account-production-replay-execution-note.sql
+--
+-- This file is intentionally comment-only. It records the reviewed order,
+-- guard requirements, and stop conditions for production replacement of the
+-- old Hostinger DB. It does not authorize execution.
+
+-- 0. Non-negotiable gates before any production DB write
+--
+-- 0.1. Export/backup current Hostinger DB u504065335_to_quran.
+--      Record safe evidence only: DB name, size, timestamp, checksum or
+--      Hostinger backup id, storage location outside Git, and table count.
+--      Do not commit the raw dump.
+--
+-- 0.2. Confirm production target identity from the execution location:
+--      SELECT DATABASE(), USER(), @@hostname;
+--      The evidence must show Hostinger, not local 127.0.0.1 / localhost.
+--
+-- 0.3. Owner must approve the exact destructive/replacement action after
+--      backup/export and identity evidence are captured.
+--
+-- 0.4. Keep the same DB name/user if Hostinger allows it. Rotate the DB
+--      password after replacement and before writing production app/website
+--      .env values.
+--
+-- 0.5. Do not import a raw local DB dump by default. The local DB has been
+--      useful for smoke testing and may contain smoke rows, local users, or
+--      temporary credentials. The default production path is clean replay of
+--      reviewed manual artifacts plus guarded app commands.
+--
+-- 0.6. Do not delete the public website SQL/export file from
+--      D:\xampp\htdocs\toquran as part of app deployment prep. It is excluded
+--      from the website package and should remain local evidence/backup until
+--      the launch DB replacement and rollback path are complete. It must not
+--      be uploaded to Hostinger public folders or committed if it contains
+--      raw DB contents.
+--
+-- 0.7. Existing production DB emptying mechanism:
+--      Read-only production evidence on 2026-06-20 showed 44 existing tables.
+--      The baseline preflight will refuse to run until the target is empty.
+--      Preferred emptying path is Hostinger hPanel/phpMyAdmin controlled
+--      removal/recreation or table-emptying after backup/export evidence and
+--      exact owner approval of the selected panel/phpMyAdmin action. Record
+--      safe evidence of the chosen method and post-empty table count before
+--      baseline replay. If Hostinger cannot preserve the same DB name, user,
+--      host, and password, stop and update this manifest, app .env, website
+--      .env, manual guard literals, and command --confirm-db values.
+--      Do not run ad-hoc DROP/TRUNCATE commands from memory. A fallback SQL
+--      table-emptying script would require its own reviewed, host/instance-
+--      guarded manual artifact before execution.
+
+-- 1. Replacement strategy
+--
+-- Preferred shape:
+--   A. Keep DB name u504065335_to_quran.
+--   B. Backup/export current old Hostinger DB.
+--   C. Empty/recreate the target only through the reviewed mechanism in 0.7,
+--      after exact owner approval.
+--   D. Replay the reviewed pre-account schema/data artifacts below using the
+--      existing pre-rotation DB credential.
+--   E. Rotate the DB password after pre-account replay completes and before
+--      writing app/website production .env files. All later app/artisan,
+--      post-account SQL, catalog, and smoke steps use the rotated credential.
+--   F. Deploy app code and create production app .env privately.
+--   G. Bootstrap only required launch accounts.
+--   H. Replay reviewed post-account Library/content artifacts that require an
+--      existing owner/admin user.
+--   I. Run guarded catalog install only after default teacher resolves.
+--   J. Capture a known-good populated production DB backup before public form smoke.
+--
+-- If Hostinger forces a new DB name/user, stop and update all .env values,
+-- manual guard literals, --confirm-db values, and this manifest before proceeding.
+
+-- 2. Manual SQL replay order for a clean/empty production target
+--
+-- Copy these files to a private server staging directory outside the public
+-- webroot, or execute them from a trusted local terminal against the verified
+-- Hostinger DB. Do not place raw DB dumps or secrets in Git or public folders.
+--
+-- 2.a. Hostinger-safe baseline execution note:
+--      The baseline file contains CREATE DATABASE IF NOT EXISTS and USE
+--      statements. On Hostinger shared MySQL, the DB is normally created from
+--      the panel and the DB user may not have CREATE DATABASE privilege.
+--      Production replay default is a reviewed Hostinger-safe baseline copy or
+--      wrapper for an already-created, already-selected empty Hostinger DB.
+--      That production-safe version must remove CREATE DATABASE and USE, then
+--      run only after target identity proves the session is connected to the
+--      approved DB. The historical baseline file remains the local/source
+--      artifact; do not rely on Hostinger CREATE DATABASE privileges.
+--      Do not edit the historical baseline file in place during deployment.
+--
+-- 2.b. Operator confirmation variable:
+--      Before every guarded SQL file that checks
+--      @toquran_confirm_real_db_target, set it in the same MySQL session:
+--        SET @toquran_confirm_real_db_target := 'u504065335_to_quran';
+--      Record in the execution note exactly how it was set. Do not bypass the
+--      guard. If a DB name changes, stop and update the file/command literals
+--      before replay.
+--
+-- 2.c. Pre-account SQL. These steps must complete before app account
+--      bootstrap. Expected users before account bootstrap: 0.
+--
+--  1. database/manual/patches/2026-06-20-tq9-hostinger-safe-baseline-wrapper.sql
+--     Classification: schema baseline. Guard: empty target DB preflight.
+--     Production wrapper for:
+--       database/manual/patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql
+--  2. database/manual/patches/2026-05-28-add-framework-infrastructure-indexes.sql
+--     Classification: schema correction. Guard: DB name + operator variable.
+--  3. database/manual/patches/2026-05-28-fix-library-dp-global-context-column.sql
+--     Classification: schema correction. Guard: DB name.
+--  4. database/manual/patches/2026-05-28-fix-library-schema-identifier-drift.sql
+--     Classification: schema correction. Guard: DB name.
+--  5. database/manual/patches/2026-05-28-toquran-starter-reference-data.sql
+--     Classification: reference/starter data. Guard: DB name + operator variable.
+--  6. database/manual/patches/2026-05-29-toquran-learning-catalog-reference-data.sql
+--     Classification: reference/starter data. Guard: DB name + operator variable.
+--  7. database/manual/patches/2026-05-29-add-arabic-language-service-reference.sql
+--     Classification: reference/starter data. Guard: DB name.
+--  8. database/manual/patches/2026-05-29-add-launch-task-types.sql
+--     Classification: reference/starter data. Guard: DB name.
+--  9. database/manual/patches/2026-05-29-correct-launch-task-types.sql
+--     Classification: reference/starter data correction. Guard: DB name.
+-- 10. database/manual/patches/2026-06-02-make-contacts-child-age-nullable.sql
+--     Classification: schema correction. Guard: DB name.
+-- 11. database/manual/patches/2026-06-03-tq5-mdj-starter-behavior-reference-data.sql
+--     Classification: reference/starter data. Guard: DB name.
+-- 12. database/manual/patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql
+--     Classification: schema correction. Guard: DB name.
+-- 13. database/manual/patches/2026-06-04-add-family-workspace-permissions.sql
+--     Classification: reference/starter permission data. Guard: DB name.
+-- 14. database/manual/patches/2026-06-04-add-users-country.sql
+--     Classification: schema correction. Guard: DB name.
+-- 15. database/manual/patches/2026-06-04-normalize-legacy-booking-children.sql
+--     Classification: cleanup/data correction. Guard: DB name. Expected no-op on empty production.
+-- 16. database/manual/patches/2026-06-04-heal-booking-child-school-defaults.sql
+--     Classification: cleanup/data correction. Guard: DB name. Expected no-op on empty production.
+-- 17. database/manual/patches/2026-06-05-mdj-behavior-wording-refresh.sql
+--     Classification: reference/starter data correction. Guard: DB name.
+-- 18. database/manual/patches/2026-06-05-mdj-behavior-icon-mapping-refresh.sql
+--     Classification: reference/starter data correction. Guard: DB name.
+-- 19. database/manual/patches/2026-06-06-mdj-lms-consequence-behavior-refresh.sql
+--     Classification: reference/starter data correction. Guard: DB name.
+-- 20. database/manual/patches/2026-06-06-mdj-behavior-icon-remap.sql
+--     Classification: reference/starter data correction. Guard: DB name.
+-- 21. database/manual/patches/2026-06-06-mdj-popup-category-flag-fix.sql
+--     Classification: reference/starter data correction. Guard: DB name.
+-- 22. database/manual/patches/2026-06-06-mdj-good-job-popup-flag-fix.sql
+--     Classification: reference/starter data correction. Guard: DB name.
+-- 23. database/manual/patches/2026-06-06-create-tq6-general-library.sql
+--     Classification: schema/content table creation. Guard: DB name.
+-- 24. database/manual/patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql
+--     Classification: schema correction/additive registry. Guard: DB name + operator variable.
+-- 25. database/manual/patches/2026-06-17-add-general-library-text-sources.sql
+--     Classification: schema correction. Guard: DB name + operator variable.
+--
+-- 2.d. Pause after pre-account SQL:
+--      - verify table count and key tables;
+--      - expected table count after pre-account schema replay: 357;
+--      - verify users are 0 and smoke users are 0;
+--      - rotate DB password before writing app/website production .env files;
+--      - deploy app code and create private production app .env;
+--      - bootstrap owner/root superadmin;
+--      - create/verify default teacher if needed for launch flow.
+--
+-- 2.e. Post-account SQL/content. These require an owner/admin user because
+--      the TQ6 Library content rows are owned by created_by_user_id. Run these
+--      with the rotated production DB credential after app .env/account
+--      bootstrap, not with stale pre-rotation credentials.
+--
+-- 26. database/manual/patches/2026-06-07-tq6-library-folder-mode-and-quran-repetition-import.sql
+--     Classification: content import. Guard: DB name + existing superadmin/admin user.
+-- 27. database/manual/patches/2026-06-13-tq6-library-hardening-repair.sql
+--     Classification: content correction. Guard: DB name.
+--
+-- 2.f. Command-driven catalog install:
+--      Run only after default teacher resolves. See section 5.8.
+--
+-- 2.g. TQ6 private-storage note:
+--      database/manual/patches/2026-06-13-tq6-library-private-storage-execution-note.sql
+--      is intentionally excluded from production replay. It moved local file
+--      originals from public to private storage for existing local file rows.
+--      A clean production target has no pre-existing Library file originals to
+--      move; new uploads are handled by app code/storage configuration.
+
+-- 3. Do not run during production replacement
+--
+-- These artifacts are local smoke/test/reset/evidence artifacts, not clean
+-- production replay steps:
+--
+-- - database/manual/patches/*execution-note.sql
+-- - database/manual/patches/*execution-note-template.sql
+-- - database/manual/patches/*-toquranapp-local.sql
+-- - database/manual/patches/2026-05-28-create-toquranapp-local-baseline.sql
+-- - database/manual/patches/2026-05-29-launch-smoke-data-execution-note.sql
+-- - database/manual/patches/2026-05-29-launch-smoke-data-cleanup-plan.sql
+-- - database/manual/patches/2026-05-29-test-password-reset-execution-note.sql
+-- - database/manual/patches/2026-06-02-correct-tq9-smoke-selected-service-subjects.sql
+-- - database/manual/patches/2026-06-05-booking-child-service-grade-cleanup-execution-note.sql
+-- - database/manual/patches/2026-06-05-osama-duplicate-intake-cleanup-execution-note.sql
+-- - database/manual/patches/2026-06-17-reset-tq7-5-automation-catalog-local-smoke.sql
+-- - database/manual/patches/2026-06-17-tq7-5-catalog-reset-and-reinstall-execution-note.sql
+-- - raw backup dumps under database/manual/backups/
+-- - D:\xampp\htdocs\toquran\u504065335_to_quran.sql
+-- - Laravel migrations, seeders, migrate:fresh, migrate:refresh, db:wipe
+
+-- 4. Verification queries after pre-account SQL replay
+--
+-- Run and record safe outputs:
+--
+-- SELECT DATABASE(), USER(), @@hostname;
+-- SELECT COUNT(*) AS table_count
+-- FROM information_schema.tables
+-- WHERE table_schema = DATABASE();
+-- Expected after pre-account SQL replay: 357.
+-- Expected after post-account Library/content SQL: 357.
+-- Catalog install and demo-family seed add rows, not tables.
+-- The 357-table clean-start target intentionally includes the inherited
+-- Week14 schema inventory from the baseline, including legacy Library,
+-- vocabulary/game, and curriculum tables. Their launch safety is an app-level
+-- routing/UI/access-control concern, not evidence that the DB replay imported
+-- old users. Verify inherited surfaces remain hidden or denied during Phase 7
+-- app smoke before public launch.
+--
+-- SELECT table_name
+-- FROM information_schema.tables
+-- WHERE table_schema = DATABASE()
+--   AND table_name IN (
+--     'users',
+--     'roles',
+--     'permissions',
+--     'model_has_roles',
+--     'bookings',
+--     'booking_children',
+--     'booking_intake_review',
+--     'booking_intake_review_children',
+--     'booking_intake_submission_locks',
+--     'contacts',
+--     'general_library_folders',
+--     'general_library_resources',
+--     'toquran_automation_catalog_entries'
+--   )
+-- ORDER BY table_name;
+--
+-- SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE
+-- FROM information_schema.columns
+-- WHERE table_schema = DATABASE()
+--   AND table_name = 'contacts'
+--   AND column_name IN ('reference', 'child_age');
+--
+-- SELECT COUNT(*) AS user_count FROM users;
+-- Expected here, before account bootstrap: 0.
+--
+-- SELECT COUNT(*) AS smoke_user_count
+-- FROM users
+-- WHERE email LIKE '%@toquran-smoke.test%';
+-- Expected: 0.
+--
+-- After account bootstrap and post-account Library/content SQL, rerun the table
+-- and smoke-user checks. At that later point users should contain only the
+-- explicitly approved owner/root superadmin, default teacher if created, and
+-- any separately approved demo-data accounts from the later demo seed plan.
+
+-- 5. App deployment readiness checklist
+--
+-- 5.1. App code/package target:
+--      /home/u504065335/domains/toquran.org/public_html/appdashboard
+--      Verify by SSH before upload/extract.
+--
+-- 5.2. Public serving rule:
+--      Prefer app.toquran.org document root = appdashboard/public.
+--      If Hostinger cannot point to /public, document and approve a root-entry
+--      compatibility setup before putting source under a public path.
+--
+-- 5.3. Runtime:
+--      Use PHP 8.3 binary on Hostinger, currently evidenced as:
+--      /opt/alt/php83/usr/bin/php
+--      Do not use default SSH php 8.2 for app Composer/artisan commands.
+--
+-- 5.4. Composer/build:
+--      composer install --no-dev --optimize-autoloader
+--      composer check-platform-reqs --no-dev
+--      Use already-built app assets matching docs/BUILD-DEPLOY-MARKER.md unless
+--      a separate approved server-side build path is prepared.
+--
+-- 5.5. Production app .env:
+--      Create privately on Hostinger only after DB replacement/verification.
+--      Required safe values/classes:
+--        APP_ENV=production
+--        APP_DEBUG=false
+--        APP_URL=https://app.toquran.org
+--        APP_KEY present
+--        DB_* target u504065335_to_quran with rotated password
+--        MAIL_* using approved support mailbox
+--        TOQURAN_DEFAULT_TEACHER_EMAIL=drosamaqandil@gmail.com
+--      Do not copy local .env wholesale.
+--
+-- 5.6. Permissions/cache:
+--      storage/ writable
+--      bootstrap/cache/ writable
+--      php artisan optimize:clear
+--      php artisan storage:link
+--      php artisan config:cache after final .env
+--      php artisan route:cache only if verified safe
+--      php artisan view:cache
+--
+-- 5.7. Accounts:
+--      Do not import local user rows wholesale.
+--      Create only owner/root superadmin and required default teacher.
+--      Prefer bootstrap-superadmin without --password so it generates a
+--      one-time password; rotate immediately after first login.
+--
+--      Example shape, not approved for execution:
+--        /opt/alt/php83/usr/bin/php artisan toquran:bootstrap-superadmin \
+--          --confirm-db=u504065335_to_quran \
+--          --email=<owner-email> \
+--          --name=<owner-name> \
+--          --phone=<owner-phone>
+--
+--      Create/verify default teacher through Staff Users if possible.
+--      Expected default teacher: drosamaqandil@gmail.com.
+--
+-- 5.7.a. Local cleanup is still useful before creating any production export,
+--        but it is not a substitute for the clean replay path above. If a
+--        local-export fallback is ever reconsidered, first create a separate
+--        reviewed cleanup/export plan that removes local trial/smoke admin,
+--        teacher, support, parent, and student users; keeps only the approved
+--        owner/root superadmin; rotates credentials; and proves zero
+--        @toquran-smoke.test / shared-test-password records remain.
+--
+-- 5.7.b. Owner wants one intentional demo/showcase family for launch demos:
+--        one parent/family with three children and a realistic history of
+--        tasks, gifts, behavior/punishment points, customized My Deen Journey,
+--        Well Being, and versioned routine data. This must be built through a
+--        separate reviewed demo-data seed plan or guarded command after the
+--        core production DB is ready. Do not preserve random local trial rows
+--        as the demo family.
+--
+--        Demo family seed plan should define:
+--        - parent/family identity, clearly marked as demo;
+--        - three child profiles and their subject/class access;
+--        - teacher/default-teacher ownership;
+--        - task/session history depth and dates;
+--        - gifts/rewards names and required image assets;
+--        - behavior/punishment/consequence history;
+--        - customized My Deen Journey and Well Being versioned routines;
+--        - cleanup/disable strategy if the demo family should be hidden later.
+--
+-- 5.8. TQ7.5 catalog install after default teacher resolves:
+--
+--      Dry-run first:
+--        /opt/alt/php83/usr/bin/php artisan toquran:install-automation-catalog \
+--          --teacher-email=drosamaqandil@gmail.com \
+--          --dry-run \
+--          --confirm-db=u504065335_to_quran
+--
+--      Write command only after exact owner approval:
+--        /opt/alt/php83/usr/bin/php artisan toquran:install-automation-catalog \
+--          --teacher-email=drosamaqandil@gmail.com \
+--          --confirm-db=u504065335_to_quran
+
+-- 6. Known-good backup before website smoke
+--
+-- After DB replay, app deployment, app .env, account bootstrap, default teacher
+-- verification, and catalog install are complete, capture a new known-good
+-- populated production DB backup before creating the website .env or running
+-- public /book-trial and /contact smoke.
+
+-- 7. Stop conditions
+--
+-- Stop if:
+-- - Hostinger DB backup/export evidence is missing.
+-- - Target identity does not prove Hostinger production.
+-- - The DB name/user changes and this manifest has not been updated.
+-- - Any manual SQL guard refuses to run.
+-- - app.toquran.org cannot be pointed safely at appdashboard/public or an
+--   approved protected root-entry setup.
+-- - Composer platform checks fail under PHP 8.3.
+-- - The app boots with APP_DEBUG=true or local/test .env values.
+-- - Any smoke/test users or shared local test passwords are imported.
+-- - Production passwords or DB/mail/SSH secrets appear in Git, chat, package
+--   contents, execution notes, or screenshots.
