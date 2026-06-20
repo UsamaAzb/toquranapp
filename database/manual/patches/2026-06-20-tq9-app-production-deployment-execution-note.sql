@@ -42,6 +42,12 @@
 -- - public/storage was corrected from a copied directory to the Laravel
 --   storage symlink, and root .htaccess rewrites /storage/* to public storage
 --   files only when the public file exists.
+-- - Visual login smoke then showed the inherited Week14/KL root logo/favicon
+--   because Hostinger serves this subdomain from the project root. Root
+--   .htaccess was updated to rewrite public asset URLs for /assets, /images,
+--   /pwa, and /build into public/ when the public file exists, preserving the
+--   private-source deny rules while making asset() resolve to the To Quran
+--   public logo/favicon.
 --
 -- Production .env safe summary:
 -- - APP_ENV=production
@@ -126,6 +132,10 @@
 --
 -- HTTP smoke:
 -- - https://app.toquran.org/login returned 200 on PHP 8.3.31.
+-- - After root asset rewrite correction, public visual assets resolve to
+--   the To Quran public files:
+--   /assets/img/logo/logo.png returned 200 with 793150 bytes
+--   /assets/img/favicon/favicon.ico returned 200 with 56738 bytes
 -- - https://toquran.org/appdashboard/login returned 403, confirming the app
 --   is not executable from the main website path.
 -- - Source/private deny checks returned 403:

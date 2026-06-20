@@ -10,6 +10,20 @@
     RewriteCond %{HTTP_HOST} !^app\.toquran\.org$ [NC]
     RewriteRule ^ - [F,L]
 
+    # Shared-hosting root entry: Laravel asset() URLs should resolve to
+    # public/ even when Hostinger serves the app from the project root.
+    RewriteCond %{DOCUMENT_ROOT}/public/assets/$1 -f
+    RewriteRule ^assets/(.+)$ public/assets/$1 [L]
+
+    RewriteCond %{DOCUMENT_ROOT}/public/images/$1 -f
+    RewriteRule ^images/(.+)$ public/images/$1 [L]
+
+    RewriteCond %{DOCUMENT_ROOT}/public/pwa/$1 -f
+    RewriteRule ^pwa/(.+)$ public/pwa/$1 [L]
+
+    RewriteCond %{DOCUMENT_ROOT}/public/build/$1 -f
+    RewriteRule ^build/(.+)$ public/build/$1 [L]
+
     # Shared-hosting root entry: Laravel still generates /storage/... URLs.
     # Serve only files that exist through the public storage symlink.
     RewriteCond %{DOCUMENT_ROOT}/public/storage/$1 -f
