@@ -1,0 +1,142 @@
+-- TQ9 app production deployment execution note
+-- Status: executed on Hostinger on 2026-06-20 after the pre-account DB replay.
+-- This is an evidence note only. Do not source this file.
+--
+-- Target:
+-- - App URL: https://app.toquran.org
+-- - Hostinger user/home: u504065335 / /home/u504065335
+-- - App path:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard
+-- - Production DB: u504065335_to_quran
+-- - PHP runtime used for app commands: /opt/alt/php83/usr/bin/php (8.3.31)
+-- - Composer path: /usr/local/bin/composer
+--
+-- Secret handling:
+-- - SSH, DB, mail, app key, generated account passwords, and reset tokens are
+--   not recorded here.
+-- - The production .env was written directly on Hostinger with mode 600.
+-- - Because temporary SSH/DB credentials were shared during deployment prep,
+--   rotate them after website smoke and launch handoff complete.
+--
+-- Code/package:
+-- - Source commit packaged: 2fe1b2dbaf22
+-- - Local archive name:
+--   toquranapp-deploy-2fe1b2dbaf22-20260620-182346.tgz
+-- - Archive size: 175,295,382 bytes
+-- - Remote archive:
+--   /home/u504065335/toquranapp-deploy-2fe1b2dbaf22-20260620-182346.tgz
+-- - Package scan excluded .env, .git, Composer vendor, node_modules, docs,
+--   tests, database/manual, raw SQL, and backups.
+-- - Package included built assets, app runtime files, public assets, and
+--   Library/storage content. The required catalog source file
+--   to_quran_adhkar_dua_banks.md was uploaded after the first catalog dry-run
+--   reported it missing.
+--
+-- App install:
+-- - composer install --no-dev --optimize-autoloader completed.
+-- - composer check-platform-reqs --no-dev passed on PHP 8.3.31.
+-- - artisan optimize:clear completed.
+-- - artisan config:cache completed.
+-- - artisan view:cache completed.
+-- - artisan route:cache completed.
+-- - public/storage was corrected from a copied directory to the Laravel
+--   storage symlink, and root .htaccess rewrites /storage/* to public storage
+--   files only when the public file exists.
+--
+-- Production .env safe summary:
+-- - APP_ENV=production
+-- - APP_DEBUG=false
+-- - APP_URL=https://app.toquran.org
+-- - APP_KEY present
+-- - DB target present for u504065335_to_quran
+-- - MAIL_* present, with support mailbox identity present
+-- - TOQURAN_DEFAULT_TEACHER_EMAIL=drosamaqandil@gmail.com
+-- - SESSION_DRIVER=database
+-- - QUEUE_CONNECTION=database
+-- - CACHE_STORE=database
+-- - FILESYSTEM_DISK=local
+--
+-- Account bootstrap:
+-- - Created two launch users only:
+--   - owner superadmin (active, super_admin role)
+--   - default teacher drosamaqandil@gmail.com (active, teacher role)
+-- - Generated one-time passwords were not printed or committed.
+-- - A password reset email was sent for the owner superadmin account; mailer
+--   returned passwords.sent and one password_reset_tokens row exists.
+--
+-- Post-account SQL:
+-- - Ran database/manual/patches/
+--   2026-06-07-tq6-library-folder-mode-and-quran-repetition-import.sql
+-- - Ran database/manual/patches/
+--   2026-06-13-tq6-library-hardening-repair.sql
+-- - Verification after post-account SQL:
+--   TABLES=357
+--   USERS=2
+--   FOLDERS=21
+--   RESOURCES=106
+--   QURAN_ROOTS=1
+--   QURAN_SOURCES=106
+--   DOUBLE_EMBED=0
+--   CONTENT_MODE=1
+--
+-- Default teacher eligibility:
+-- - Created two active teacher_subject_classes for the default teacher:
+--   - Launch My Deen Journey
+--   - Launch Well Being
+-- - Verification:
+--   TSC_TOTAL=2
+--   CLASSES=2
+--   CLASS_SUBJECTS=2
+--
+-- TQ7.5 automation catalog:
+-- - First dry-run stopped safely because to_quran_adhkar_dua_banks.md was
+--   missing from the deployed package.
+-- - After uploading that source file and adding .htaccess deny coverage for
+--   markdown/source files, the dry-run reported:
+--   69 created, 0 updated, 0 skipped.
+-- - Guarded write command:
+--   /opt/alt/php83/usr/bin/php artisan toquran:install-automation-catalog \
+--     --teacher-email=drosamaqandil@gmail.com \
+--     --confirm-db=u504065335_to_quran
+-- - Write result:
+--   665 created, 224 updated, 0 skipped.
+-- - Verification:
+--   REGISTRY=665
+--   MDS_TEMPLATES=14
+--   MDS_VERSIONS=79
+--   MDS_TASKS=147
+--   MDS_VERSION_TASKS=371
+--   SERIES_TASKS=1
+--   SERIES_VERSIONS=1
+--   SERIES_ITEMS=52
+--   DUA_TEXT_SOURCES=52
+--
+-- Final app DB verification:
+--   TABLES=357
+--   USERS=2
+--   SMOKE_USERS=0
+--   ROLES=7
+--   TEACHER_SUBJECT_CLASSES=2
+--   QURAN_REPETITION_ROOTS=1
+--   QURAN_SOURCES=106
+--   DUA_TEXT_SOURCES=52
+--   CATALOG_REGISTRY=665
+--   SERIES_ITEMS=52
+--   PASSWORD_RESET_ROWS=1
+--
+-- HTTP smoke:
+-- - https://app.toquran.org/login returned 200 on PHP 8.3.31.
+-- - https://toquran.org/appdashboard/login returned 403, confirming the app
+--   is not executable from the main website path.
+-- - Source/private deny checks returned 403:
+--   /.env, /composer.json, /composer.lock, /artisan, /package.json,
+--   /vite.config.js, /vendor/autoload.php, /database/, /routes/web.php,
+--   /storage/logs/, /to_quran_adhkar_dua_banks.md.
+-- - Public storage smoke:
+--   /storage/gifts/5fshNgvuWGk9u5DnqcNLdedoBzaP3kxkCbOtdXB8.png returned 200.
+--
+-- Remaining launch handoff:
+-- - Continue in the public website repo only after this app readiness note is
+--   committed/pushed.
+-- - Website next steps: create private website .env against the same DB, run
+--   website cache/build checks, and run public booking/contact smoke.

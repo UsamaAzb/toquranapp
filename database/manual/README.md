@@ -227,6 +227,8 @@ timestamp, and checksum.
   - production-safe baseline wrapper for Hostinger replay; derived from the real-target baseline with `CREATE DATABASE` and `USE` removed so it runs only against an already-created, already-selected `u504065335_to_quran` target after identity and empty-table checks
 - `patches/2026-06-20-tq9-pre-account-production-replay-execution-note.sql`
   - execution note for the Hostinger production pre-account replay, including owner backup/recreate confirmation, first-attempt SOURCE sandbox failure, successful combined SQL replay, and persistent verification counts
+- `patches/2026-06-20-tq9-app-production-deployment-execution-note.sql`
+  - execution note for Hostinger app deployment to `public_html/appdashboard`, private production `.env` creation, Composer/PHP 8.3 setup, launch account bootstrap, post-account Library SQL, TQ7.5 catalog install, HTTP deny checks, and final app-side verification counts
 
 ## Current Local App Target
 
