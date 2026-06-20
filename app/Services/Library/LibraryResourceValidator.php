@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class LibraryResourceValidator
 {
-    public const MAX_UPLOAD_KB = 51200;
+    public const MAX_UPLOAD_KB = 512000;
 
     public const ALLOWED_EXTENSIONS = [
         'pdf',
@@ -96,7 +96,7 @@ class LibraryResourceValidator
 
         if ($file->getSize() > self::MAX_UPLOAD_KB * 1024) {
             throw ValidationException::withMessages([
-                'file' => 'Library files must be 50 MB or smaller.',
+                'file' => sprintf('Library files must be %d MB or smaller.', self::MAX_UPLOAD_KB / 1024),
             ]);
         }
     }

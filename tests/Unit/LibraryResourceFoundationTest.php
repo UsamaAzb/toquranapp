@@ -83,6 +83,8 @@ class LibraryResourceFoundationTest extends TestCase
             $this->assertTrue(true);
         }
 
+        $validator->validateFileUpload(UploadedFile::fake()->create('large-but-allowed.pdf', LibraryResourceValidator::MAX_UPLOAD_KB));
+
         $this->expectException(ValidationException::class);
 
         $validator->validateFileUpload(UploadedFile::fake()->create('large.pdf', LibraryResourceValidator::MAX_UPLOAD_KB + 1));
