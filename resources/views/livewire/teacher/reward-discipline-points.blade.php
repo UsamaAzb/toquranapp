@@ -1043,7 +1043,7 @@
           </div>
         @if(!empty($behaviorCounts[$item['id']] ?? null))
           <span class="position-absolute bottom-0 end-0 behavior-count-pill bg-label-{{ $activeColor }} text-{{ $activeColor }} m-2">
-            {{ $behaviorCounts[$item['id']] }}
+            x{{ $behaviorCounts[$item['id']] }}
           </span>
         @endif
 @else
@@ -1250,7 +1250,7 @@
 
         @if($count !== 0)
           <span class="position-absolute bottom-0 end-0 behavior-count-pill bg-label-{{ $badgeColor }} text-{{ $badgeColor }} m-2">
-            {{ $count }}
+            x{{ $count }}
           </span>
         @endif
 
@@ -1434,7 +1434,7 @@
       
       @if(!empty($behaviorCounts[$item['id']] ?? null))
         <span class="position-absolute bottom-0 end-0 behavior-count-pill bg-label-{{ $badgeColor }} text-{{ $badgeColor }} m-2">
-          {{ $behaviorCounts[$item['id']] }}
+          x{{ $behaviorCounts[$item['id']] }}
         </span>
       @endif
       

@@ -10,6 +10,7 @@ use App\Models\ClassSession;
 use App\Models\GeneralLibraryFolder;
 use App\Models\GeneralLibraryResource;
 use App\Models\ParentModel;
+use App\Models\RewardDisciplinePoint;
 use App\Models\RewardPointsLedger;
 use App\Models\RewardTotal;
 use App\Models\Services_type;
@@ -28,6 +29,7 @@ use App\Services\BookingTransferService;
 use App\Services\Library\LibraryResourceAttachmentWriter;
 use App\Support\BookingServiceInterest;
 use App\Support\BookingSubjectProvisioning;
+use App\Support\MyDeenJourneyLaunchDefaults;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -104,7 +106,7 @@ class BootstrapDemoFamily extends Command
                 ];
 
                 foreach ($students as $key => $student) {
-                    $this->seedDemoGifts($student, $this->giftNamesFor($key));
+                    $this->seedDemoGifts($student, $key, $this->giftNamesFor($key));
                     $this->seedDemoAcademicHistory($student, $key, $attachmentWriter, $libraryResources, $quranRepetitionResources);
                     $this->seedDemoDailyHistory($student, $key);
                     $this->seedDemoBehaviorHistory($student, $key);
@@ -567,7 +569,7 @@ class BootstrapDemoFamily extends Command
     /**
      * @param list<string> $names
      */
-    private function seedDemoGifts(Student $student, array $names): void
+    private function seedDemoGifts(Student $student, string $childKey, array $names): void
     {
         $academicYearId = (int) $this->context['academic_year_id'];
         $reachedDates = [
@@ -587,7 +589,7 @@ class BootstrapDemoFamily extends Command
 
             $attributes = [
                 'gift_name' => $name,
-                'gift_image' => null,
+                'gift_image' => $this->demoGiftImagePath($childKey, $name),
                 'gift_id' => null,
                 'points_required' => $pointsRequired,
                 'status' => match (true) {
@@ -612,6 +614,33 @@ class BootstrapDemoFamily extends Command
                 $attributes
             );
         }
+    }
+
+    private function demoGiftImagePath(string $childKey, string $giftName): ?string
+    {
+        $folder = match ($childKey) {
+            'yusuf' => 'Yusuf',
+            'maryam' => 'Maryam',
+            default => 'Omar',
+        };
+
+        $baseName = preg_replace('/[^A-Za-z0-9]+/', '-', $giftName);
+        $baseName = trim((string) $baseName, '-');
+
+        foreach (['webp', 'jpg', 'jpeg', 'png', 'gif'] as $extension) {
+            $source = base_path("resources/demo-gifts/{$folder}/{$baseName}.{$extension}");
+
+            if (! is_file($source)) {
+                continue;
+            }
+
+            $target = "gifts/demo-family/{$folder}/{$baseName}.{$extension}";
+            Storage::disk('public')->put($target, file_get_contents($source));
+
+            return $target;
+        }
+
+        return null;
     }
 
     /**
@@ -1028,24 +1057,26 @@ class BootstrapDemoFamily extends Command
 
     private function seedDemoBehaviorHistory(Student $student, string $childKey): void
     {
+        app(MyDeenJourneyLaunchDefaults::class)->ensureBehaviorTemplates($student->id);
+
         $behaviors = match ($childKey) {
             'yusuf' => [
-                ['Tried Again', 'Positive', 4, 'Tried again after a difficult ayah.'],
-                ['Said Salam Politely', 'Positive', 3, 'Started class with good adab.'],
-                ['Rushed Recitation', 'Slip', 1, 'Needed one reminder to slow down.'],
-                ['Cleaned Toys', 'Positive', 2, 'Cleaned toys before class.'],
+                ['Good Effort', 'Positive', 4, 'Tried again after a difficult ayah.'],
+                ['Good Adab', 'Positive', 3, 'Started class with good adab.'],
+                ['Low Practice', 'Slip', 1, 'Needed one reminder to slow down during recitation.'],
+                ['Responsibility', 'Positive', 2, 'Cleaned toys before class.'],
             ],
             'maryam' => [
-                ['Completed Salahs', 'Positive', 5, 'Marked all Salahs for the day.'],
-                ['Helped Sibling', 'Positive', 3, 'Helped Yusuf prepare his page.'],
-                ['Delayed Homework', 'Slip', 1, 'Needed a parent reminder.'],
-                ['Careful Arabic Practice', 'Positive', 4, 'Read the page carefully.'],
+                ['Responsibility', 'Positive', 5, 'Marked all Salahs for the day.'],
+                ['Helping Others', 'Positive', 3, 'Helped Yusuf prepare his page.'],
+                ['Task Not Done', 'Slip', 1, 'Needed a parent reminder.'],
+                ['Focused', 'Positive', 4, 'Read the page carefully.'],
             ],
             default => [
-                ['Prayed In Mosque', 'Positive', 5, 'Kept mosque Salah habit.'],
-                ['Helped Younger Sibling', 'Positive', 4, 'Helped with page review.'],
-                ['Device Distraction', 'Slip', 2, 'Needed a device reminder.'],
-                ['Patient Review', 'Positive', 4, 'Reviewed without rushing.'],
+                ['Responsibility', 'Positive', 5, 'Kept mosque Salah habit.'],
+                ['Helping Others', 'Positive', 4, 'Helped with page review.'],
+                ['Device Slip', 'Slip', 2, 'Needed a device reminder.'],
+                ['Self-Control', 'Positive', 4, 'Reviewed without rushing.'],
             ],
         };
 
@@ -1055,25 +1086,45 @@ class BootstrapDemoFamily extends Command
         );
 
         foreach ($behaviors as $index => [$title, $type, $points, $description]) {
+            $createdAt = CarbonImmutable::parse('2026-06-05')->addDays($index * 4)->toDateTimeString();
+            $behaviorTemplate = $this->rewardBehaviorTemplate($student, $title, $type);
+
             Student_Session_Discipline::query()->updateOrCreate(
                 [
                     'student_id' => $student->id,
-                    'title' => '[Demo] '.$title,
-                    'created_at' => CarbonImmutable::parse('2026-06-05')->addDays($index * 4)->toDateTimeString(),
+                    'created_at' => $createdAt,
                 ],
                 [
-                    'discipline_icon_id' => 1,
-                    'discipline_icon_path' => 'images/discipline/respect.png',
+                    'title' => $title,
+                    'discipline_icon_id' => (int) ($behaviorTemplate?->discipline_icon_id ?: 1),
+                    'discipline_icon_path' => (string) ($behaviorTemplate?->discipline_icon_path ?: 'images/discipline/respect.png'),
                     'class_session_id' => null,
                     'teacher_subject_classes_id' => $teacherSubjectClass->id,
-                    'student_reward_discipline_id' => null,
+                    'student_reward_discipline_id' => $behaviorTemplate?->id,
                     'points' => $points,
-                    'description' => $description.' '.self::FAMILY_REFERENCE,
+                    'description' => $description,
                     'type' => $type,
-                    'updated_at' => CarbonImmutable::parse('2026-06-05')->addDays($index * 4)->toDateTimeString(),
+                    'updated_at' => $createdAt,
                 ]
             );
         }
+    }
+
+    private function rewardBehaviorTemplate(Student $student, string $title, string $type): ?RewardDisciplinePoint
+    {
+        if (! Schema::hasTable('reward_discipline_points')) {
+            return null;
+        }
+
+        return RewardDisciplinePoint::query()
+            ->where('title', $title)
+            ->where('type', $type)
+            ->where(function ($query) use ($student): void {
+                $query->where('student_id', $student->id)
+                    ->orWhereNull('student_id');
+            })
+            ->orderByRaw('CASE WHEN student_id = ? THEN 0 ELSE 1 END', [$student->id])
+            ->first();
     }
 
     private function reconcileRewards(Student $student, string $childKey): void
@@ -1131,7 +1182,9 @@ class BootstrapDemoFamily extends Command
 
         $behaviorRows = Student_Session_Discipline::query()
             ->where('student_id', $student->id)
-            ->where('description', 'like', '%'.self::FAMILY_REFERENCE.'%')
+            ->whereIn('created_at', collect([0, 1, 2, 3])
+                ->map(fn (int $index): string => CarbonImmutable::parse('2026-06-05')->addDays($index * 4)->toDateTimeString())
+                ->all())
             ->get();
 
         foreach ($behaviorRows as $behavior) {

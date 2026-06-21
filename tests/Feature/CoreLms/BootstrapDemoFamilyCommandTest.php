@@ -65,13 +65,35 @@ class BootstrapDemoFamilyCommandTest extends TestCase
         foreach (Student::query()->pluck('id') as $studentId) {
             $this->assertSame(20, DB::table('student_gifts')->where('student_id', $studentId)->count());
             $this->assertSame(10, DB::table('student_gifts')->where('student_id', $studentId)->where('status', 'redeemed')->count());
+            $this->assertSame(10, DB::table('student_gifts')->where('student_id', $studentId)->where('status', 'redeemed')->whereNotNull('gift_image')->count());
             $this->assertGreaterThanOrEqual(1040, (int) DB::table('student_gift_points_history')->where('student_id', $studentId)->value('points'));
         }
+
+        $stickerImage = (string) DB::table('student_gifts')
+            ->where('student_id', $yusuf->id)
+            ->where('gift_name', 'Sticker Pack')
+            ->value('gift_image');
+
+        $this->assertSame('gifts/demo-family/Yusuf/Sticker-Pack.webp', $stickerImage);
+        Storage::disk('public')->assertExists($stickerImage);
 
         $this->assertGreaterThan(0, DB::table('class_sessions')->where('title', 'like', '[Demo]%')->count());
         $this->assertGreaterThan(0, DB::table('session_materials')->where('status', 'published')->count());
         $this->assertGreaterThan(0, DB::table('session_tasks')->where('description', 'like', '%TQDEMO-001%')->count());
         $this->assertGreaterThan(0, DB::table('attachment_files')->count());
+
+        $this->assertSame(0, DB::table('student_session_discipline')->where('title', 'like', '[Demo]%')->count());
+        $this->assertSame(0, DB::table('student_session_discipline')->where('description', 'like', '%TQDEMO-001%')->count());
+        $this->assertSame(12, DB::table('student_session_discipline')->whereNotNull('student_reward_discipline_id')->count());
+        $this->assertGreaterThanOrEqual(
+            1,
+            DB::table('student_session_discipline')
+                ->join('reward_discipline_points', 'reward_discipline_points.id', '=', 'student_session_discipline.student_reward_discipline_id')
+                ->where('student_session_discipline.student_id', $omar->id)
+                ->where('reward_discipline_points.title', 'Helping Others')
+                ->count()
+        );
+
         $watchTaskIds = DB::table('session_tasks')
             ->where('title', 'Watch the repetition video')
             ->pluck('id');
@@ -263,6 +285,50 @@ class BootstrapDemoFamilyCommandTest extends TestCase
                 $table->timestamps();
             });
         }
+
+        if (! Schema::hasTable('discipline_icons')) {
+            Schema::create('discipline_icons', function (Blueprint $table): void {
+                $table->id();
+                $table->string('path');
+                $table->timestamps();
+            });
+        }
+
+        if (! Schema::hasTable('reward_discipline_transfer')) {
+            Schema::create('reward_discipline_transfer', function (Blueprint $table): void {
+                $table->id();
+                $table->string('title');
+                $table->string('status')->default('active');
+                $table->unsignedBigInteger('student_id')->nullable();
+                $table->integer('points')->default(1);
+                $table->text('description')->nullable();
+                $table->string('type');
+                $table->unsignedBigInteger('discipline_icon_id')->nullable();
+                $table->text('discipline_icon_path')->nullable();
+                $table->integer('sort')->default(0);
+                $table->boolean('teacher_desc')->default(false);
+                $table->boolean('selected')->default(false);
+                $table->timestamps();
+            });
+        }
+
+        if (! Schema::hasTable('reward_discipline_points')) {
+            Schema::create('reward_discipline_points', function (Blueprint $table): void {
+                $table->id();
+                $table->unsignedBigInteger('student_id')->nullable();
+                $table->string('title');
+                $table->string('status')->default('active');
+                $table->integer('points')->default(1);
+                $table->text('description')->nullable();
+                $table->string('type');
+                $table->unsignedBigInteger('discipline_icon_id')->nullable();
+                $table->text('discipline_icon_path')->nullable();
+                $table->integer('sort')->default(0);
+                $table->boolean('teacher_desc')->default(false);
+                $table->boolean('selected')->default(false);
+                $table->timestamps();
+            });
+        }
     }
 
     private function ensureColumn(string $table, string $column, callable $definition): void
@@ -319,6 +385,40 @@ class BootstrapDemoFamilyCommandTest extends TestCase
             ['id' => 7],
             ['title' => 'Assignment', 'table_name' => 'attachment_files', 'default_points' => 5, 'max_points' => 10]
         );
+
+        foreach ([
+            ['Good Effort', 'Positive', 1, 'images/discipline/74-Dizvjp7n.png', 20],
+            ['Focused', 'Positive', 1, 'images/discipline/20-BPaZ4Ete.png', 30],
+            ['Good Adab', 'Positive', 1, 'images/discipline/respect.png', 40],
+            ['Responsibility', 'Positive', 1, 'images/discipline/61-DWTOj_T6.png', 60],
+            ['Self-Control', 'Positive', 1, 'images/discipline/71-Ey5tyt2G.png', 70],
+            ['Helping Others', 'Positive', 1, 'images/discipline/shakehands.png', 80],
+            ['Low Practice', 'Slip', 1, 'images/discipline/leafpng.png', 60],
+            ['Task Not Done', 'Slip', 1, 'images/discipline/61-DWTOj_T6.png', 50],
+            ['Device Slip', 'Slip', 1, 'images/discipline/63-C0dY3Flz.png', 80],
+        ] as [$title, $type, $points, $iconPath, $sort]) {
+            $iconId = DB::table('discipline_icons')->insertGetId([
+                'path' => $iconPath,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('reward_discipline_transfer')->updateOrInsert(
+                ['title' => $title, 'type' => $type],
+                [
+                    'status' => 'active',
+                    'points' => $points,
+                    'description' => $title,
+                    'discipline_icon_id' => $iconId,
+                    'discipline_icon_path' => $iconPath,
+                    'sort' => $sort,
+                    'teacher_desc' => false,
+                    'selected' => false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 
     private function seedUsers(): void
