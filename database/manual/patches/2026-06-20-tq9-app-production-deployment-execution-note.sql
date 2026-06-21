@@ -228,3 +228,39 @@
 --   committed/pushed.
 -- - Website next steps: create private website .env against the same DB, run
 --   website cache/build checks, and run public booking/contact smoke.
+
+-- 2026-06-21 app follow-up deployment:
+-- - Pushed branch codex/tq9-launch-readiness through commit e2ba8f6.
+-- - Deployed only the runtime files needed for the demo-family command and
+--   review fixes to the existing package deployment:
+--   .htaccess
+--   app/Console/Commands/BootstrapDemoFamily.php
+--   app/Services/Library/LibraryResourceValidator.php
+--   resources/views/vocabulary/games/custom-launch.blade.php
+-- - Did not upload .env, storage, vendor, node_modules, docs, tests, raw SQL,
+--   or DB backup artifacts.
+-- - Remote syntax checks passed on PHP 8.3.31 for:
+--   app/Console/Commands/BootstrapDemoFamily.php
+--   app/Services/Library/LibraryResourceValidator.php
+-- - Refreshed Laravel caches:
+--   artisan optimize:clear
+--   artisan config:cache
+--   artisan view:cache
+--   artisan route:cache
+-- - Verified artisan command registration:
+--   toquran:bootstrap-demo-family
+-- - Production dry-run only command:
+--   /opt/alt/php83/usr/bin/php artisan toquran:bootstrap-demo-family \
+--     --dry-run \
+--     --confirm-db=u504065335_to_quran
+-- - Dry-run result:
+--   Demo family dry-run passed. No data was written.
+--   DB: u504065335_to_quran
+--   Teacher: drosamaqandil@gmail.com
+--   Library resources: 84
+--   Quran repetition resources: 11
+--   Family reference: TQDEMO-001
+-- - Read-only post-dry-run no-write check:
+--   TQDEMO_BOOKINGS=0
+--   TQDEMO_STUDENTS=0
+-- - No production demo-family write command has been run yet.

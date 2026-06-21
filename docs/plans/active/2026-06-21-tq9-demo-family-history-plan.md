@@ -1,6 +1,6 @@
 # TQ9 Demo Family History Plan
 
-Status: Phases 1-2 complete locally; Phase 3 blocked on missing local `Tajweed Beginner's Book`; no production demo data written yet
+Status: Phases 1-2 complete; production dry-run passed; no production demo data written yet
 Date: 2026-06-21
 Branch: `codex/tq9-launch-readiness`
 Scope: one intentional production demo family after core app deployment smoke
@@ -44,6 +44,12 @@ Local implementation evidence as of 2026-06-21:
   - `php artisan test tests\Feature\CoreLms\BootstrapDemoFamilyCommandTest.php tests\Feature\BookingTransferGatingTest.php tests\Feature\StudentWorkplaceLoadTest.php tests\Unit\LibraryResourceAttachmentWriterTest.php`
   - result: `42 passed`, `261 assertions`.
 - local dry-run against the developer DB currently stops because the local DB does not have the owner-uploaded `Tajweed Beginner's Book` folder; this is expected until testing is performed against the deployed/production app DB where the owner uploaded the files.
+- production follow-up deployment and dry-run evidence on 2026-06-21:
+  - branch commit deployed through `e2ba8f6`;
+  - deployed only runtime files needed for the command/review fixes;
+  - `toquran:bootstrap-demo-family --dry-run --confirm-db=u504065335_to_quran` passed on Hostinger;
+  - production dry-run saw `84` beginner-book resources and `11` Quran Repetition resources;
+  - read-only no-write check after dry-run showed `TQDEMO_BOOKINGS=0` and `TQDEMO_STUDENTS=0`.
 
 ## Safety Rules
 
