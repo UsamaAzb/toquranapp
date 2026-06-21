@@ -134,7 +134,24 @@
       }
 
       .w14-approval-task__check {
+        align-items: flex-start;
+        display: flex;
+        justify-content: center;
         padding-top: 0.2rem;
+      }
+
+      .w14-approval-task__check-label {
+        align-items: center;
+        cursor: pointer;
+        display: inline-flex;
+        justify-content: center;
+        min-height: 2.75rem;
+        min-width: 2.75rem;
+      }
+
+      .w14-approval-task__check-label .form-check-input {
+        cursor: pointer;
+        margin: 0;
       }
 
       .w14-approval-task__meta {

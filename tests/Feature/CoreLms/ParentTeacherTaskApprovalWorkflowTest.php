@@ -130,6 +130,10 @@ class ParentTeacherTaskApprovalWorkflowTest extends TestCase
         $this->assertStringContainsString('Open task details', $teacherView);
         $this->assertStringContainsString('aria-label="Select {{ $task[\'title\'] }}"', $parentView);
         $this->assertStringContainsString('aria-label="Select {{ $task[\'title\'] }}"', $teacherView);
+        $this->assertStringContainsString('for="approval-task-check-{{ $task[\'pivot_id\'] }}"', $parentView);
+        $this->assertStringContainsString('id="approval-task-check-{{ $task[\'pivot_id\'] }}"', $parentView);
+        $this->assertStringContainsString('for="teacher-approval-task-check-{{ $task[\'pivot_id\'] }}"', $teacherView);
+        $this->assertStringContainsString('id="teacher-approval-task-check-{{ $task[\'pivot_id\'] }}"', $teacherView);
         $this->assertStringContainsString("route('teacher.sessions'", $teacherComponent);
     }
 
@@ -234,6 +238,9 @@ class ParentTeacherTaskApprovalWorkflowTest extends TestCase
         $this->assertStringContainsString('w14-approval-task__editor', $sharedStyles);
         $this->assertStringContainsString('w14-approval-points-badge', $sharedStyles);
         $this->assertStringContainsString('w14-approval-selected-badge', $sharedStyles);
+        $this->assertStringContainsString('w14-approval-task__check-label', $sharedStyles);
+        $this->assertStringContainsString('min-height: 2.75rem', $sharedStyles);
+        $this->assertStringContainsString('min-width: 2.75rem', $sharedStyles);
         $this->assertStringContainsString('--w14-approval-mint-bg', $sharedStyles);
         $this->assertStringContainsString('w14-approval-meta-badge__text', $sharedStyles);
         $this->assertStringContainsString('text-overflow: ellipsis', $sharedStyles);

@@ -85,11 +85,14 @@
         @endphp
         <article class="w14-approval-task" wire:key="teacher-approval-task-{{ $task['pivot_id'] }}">
           <div class="w14-approval-task__check">
-            <input
-              type="checkbox"
-              class="form-check-input"
-              wire:model.live="selected.{{ $task['pivot_id'] }}"
-              aria-label="Select {{ $task['title'] }}">
+            <label class="w14-approval-task__check-label" for="teacher-approval-task-check-{{ $task['pivot_id'] }}">
+              <input
+                id="teacher-approval-task-check-{{ $task['pivot_id'] }}"
+                type="checkbox"
+                class="form-check-input"
+                wire:model.live="selected.{{ $task['pivot_id'] }}"
+                aria-label="Select {{ $task['title'] }}">
+            </label>
           </div>
 
           <div class="min-w-0">
