@@ -22,6 +22,15 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 
 ## Decisions
 
+### 2026-06-21 - Islamic Studies And Quran Literature Are Selected LMS Subjects
+- Decision: Add `Islamic Studies` and `Quran Literature` as child-facing service values and real LMS class subjects. They should appear in every student's Subject Access catalog like Arabic Language and Sanad Program, but remain inactive unless selected during intake transfer or manually activated by staff.
+- Why: Owner wants both to be normal To Quran subjects/services, not just public website labels. Owner also clarified that Arabic/Quranic subjects should not be active for every child by default; only My Deen Journey and Well Being are default active.
+- App/LMS impact: `BookingServiceInterest` and `BookingSubjectProvisioning` include both services/subjects; the selected-service provisioning rule activates Quran Memorization, Quranic Arabic, Arabic Language, Sanad Program, Islamic Studies, and Quran Literature only when selected. The guarded manual SQL artifact `database/manual/patches/2026-06-21-add-islamic-studies-quran-literature-services-subjects.sql` adds service/subject reference rows after backup and target confirmation.
+- Website impact: Public website service options must be updated separately after the app contract is deployed, then smoke-tested from public booking through app transfer.
+- Owner: `toquranapp` owns the app contract and DB patch; `toquran` owns public form/copy implementation.
+- Follow-up: Apply the DB patch with backup evidence and exact approval, deploy app code, then update the public website booking service list.
+- Status: App-side implementation in progress on `codex/tq9-launch-readiness`; production DB patch not yet executed.
+
 ### 2026-06-06 - Quran Library Content Lives In The App
 - Decision: Quran Memorization Library videos and editable Quran/Arabic content live in the private app, not as a public website content system. TQ6 shared app Library materials are general app materials visible to all subject teachers by default, not subject-dedicated Week14-style resources. Teachers can create LMS-style folders/resources inside the general Library so all teachers benefit; teachers edit only their own creations, while admins/superadmins can edit all.
 - Why: The owner needs an app-side Quran Memorization Library where admins/superadmins can add new surahs, ayah-range/repetition subtitles, and YouTube links, while teachers across Quran Memorization, Quranic Arabic, Arabic Language, Sanad, and My Deen Journey can reuse the same shared material pool. Teacher-created folders/resources remain useful as shared teaching sources, not private subject-locked content.
@@ -122,12 +131,12 @@ Use this for product names, service definitions, intake behavior, DB ownership, 
 - Status: Approved for public website handoff.
 
 ### 2026-05-29 - LMS Learning-Class Catalog And MDJ / Well Being Boundary
-- Decision: The To Quran app-side LMS class-subject catalog is Quran Memorization, Arabic Language, Quranic Arabic, Sanad Program, My Deen Journey / `MDJ`, and Well Being. My Deen Journey and Well Being are fixed LMS surfaces available to all students and/or one or more class subjects. Inherited Week14 school-subject classes/subjects should be kept inactive where practical for future MDJ expansion.
+- Decision: The To Quran app-side LMS class-subject catalog is Quran Memorization, Arabic Language, Quranic Arabic, Sanad Program, My Deen Journey / `MDJ`, and Well Being. On 2026-06-21, Islamic Studies and Quran Literature were added as selected-only catalog subjects. My Deen Journey and Well Being are fixed LMS surfaces available to all students and/or one or more class subjects. Inherited Week14 school-subject classes/subjects should be kept inactive where practical for future MDJ expansion.
 - Why: Launch needs clear teacher/class assignment choices now, while preserving a future path for MDJ to support broader school-subject help without re-importing Week14 academic subjects later.
 - App/LMS impact: Teacher-class assignment, subject provisioning, and future starter/reference data patches must use this catalog. Parent-written behavior points must continue to affect Well Being only through `ParentBehaviorSubjectResolver`, not MDJ.
 - Website impact: Public copy may talk about My Deen Journey, Quran/Arabic, and Sanad services, but should not expose inactive Week14 school subjects or imply launch-time school-subject tutoring unless approved.
 - Owner: `toquranapp`
-- Follow-up: Use the 6-subject catalog in TQ4 launch smoke and keep inactive Week14 school subjects hidden by default unless future MDJ expansion is approved.
+- Follow-up: Use the To Quran catalog in TQ4/TQ9 launch smoke and keep inactive Week14 school subjects hidden by default unless future MDJ expansion is approved.
 - Status: Approved by owner clarification; guarded reference-data patch executed locally in `u504065335_to_quran`; teacher assignment UI uses the catalog in `529f7bc`.
 
 ### 2026-05-29 - Launch Default Teacher For Transfers

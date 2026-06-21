@@ -304,6 +304,8 @@ class BootstrapDemoFamilyCommandTest extends TestCase
             'Quran Memorization',
             'Quranic Arabic',
             'Arabic Language',
+            'Islamic Studies',
+            'Quran Literature',
             'My Deen Journey',
             'Sanad Ijazah',
         ] as $index => $service) {

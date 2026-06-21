@@ -23,6 +23,10 @@ final class BookingSubjectProvisioning
 
     public const SUBJECT_WELL_BEING = 16;
 
+    public const SUBJECT_ISLAMIC_STUDIES = 17;
+
+    public const SUBJECT_QURAN_LITERATURE = 18;
+
     /** @deprecated Use SUBJECT_QURAN_MEMORIZATION. */
     public const SUBJECT_LANGUAGE_AND_LITERATURE = self::SUBJECT_QURAN_MEMORIZATION;
 
@@ -102,8 +106,6 @@ final class BookingSubjectProvisioning
     public static function activeByDefaultSubjectIds(): array
     {
         return [
-            self::SUBJECT_QURAN_MEMORIZATION,
-            self::SUBJECT_QURANIC_ARABIC,
             self::SUBJECT_MY_DEEN_JOURNEY,
             self::SUBJECT_WELL_BEING,
         ];
@@ -119,6 +121,8 @@ final class BookingSubjectProvisioning
                 BookingServiceInterest::QURAN_MEMORIZATION => self::SUBJECT_QURAN_MEMORIZATION,
                 BookingServiceInterest::QURANIC_ARABIC => self::SUBJECT_QURANIC_ARABIC,
                 BookingServiceInterest::ARABIC_LANGUAGE => self::SUBJECT_ARABIC_LANGUAGE,
+                BookingServiceInterest::ISLAMIC_STUDIES => self::SUBJECT_ISLAMIC_STUDIES,
+                BookingServiceInterest::QURAN_LITERATURE => self::SUBJECT_QURAN_LITERATURE,
                 BookingServiceInterest::SANAD_IJAZAH => self::SUBJECT_SANAD_PROGRAM,
                 BookingServiceInterest::MY_DEEN_JOURNEY => self::SUBJECT_MY_DEEN_JOURNEY,
                 // Consultation is an intake/support service, not an LMS class subject.
@@ -140,6 +144,8 @@ final class BookingSubjectProvisioning
             self::SUBJECT_SANAD_PROGRAM => 'Sanad Program',
             self::SUBJECT_MY_DEEN_JOURNEY => 'My Deen Journey',
             self::SUBJECT_WELL_BEING => 'Well Being',
+            self::SUBJECT_ISLAMIC_STUDIES => 'Islamic Studies',
+            self::SUBJECT_QURAN_LITERATURE => 'Quran Literature',
             default => 'Subject '.$subjectId,
         };
     }
@@ -160,6 +166,8 @@ final class BookingSubjectProvisioning
             self::SUBJECT_SANAD_PROGRAM => 'Sanad',
             self::SUBJECT_MY_DEEN_JOURNEY => 'Deen Journey',
             self::SUBJECT_WELL_BEING => 'Well Being',
+            self::SUBJECT_ISLAMIC_STUDIES => 'Islamic Studies',
+            self::SUBJECT_QURAN_LITERATURE => 'Quran Literature',
             default => self::displaySubjectName($subjectId, $storedTitle),
         };
     }
@@ -252,6 +260,14 @@ final class BookingSubjectProvisioning
 
         if ($subjectId === self::SUBJECT_WELL_BEING) {
             return ['icon' => 'ti tabler-heart-handshake', 'tone' => 'wellbeing'];
+        }
+
+        if ($subjectId === self::SUBJECT_ISLAMIC_STUDIES) {
+            return ['icon' => 'ti tabler-moon-stars', 'tone' => 'wellbeing'];
+        }
+
+        if ($subjectId === self::SUBJECT_QURAN_LITERATURE) {
+            return ['icon' => 'ti tabler-book', 'tone' => 'quran'];
         }
 
         if (str_contains($title, 'arabic') || str_contains($title, 'language')) {

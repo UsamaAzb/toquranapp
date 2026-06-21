@@ -12,6 +12,10 @@ class BookingServiceInterest
 
     public const ARABIC_LANGUAGE = 'Arabic Language';
 
+    public const ISLAMIC_STUDIES = 'Islamic Studies';
+
+    public const QURAN_LITERATURE = 'Quran Literature';
+
     public const MY_DEEN_JOURNEY = 'My Deen Journey';
 
     public const PAID_PARENTAL_CONSULTATION = 'Paid Parental Consultation';
@@ -24,6 +28,8 @@ class BookingServiceInterest
             self::QURAN_MEMORIZATION,
             self::QURANIC_ARABIC,
             self::ARABIC_LANGUAGE,
+            self::ISLAMIC_STUDIES,
+            self::QURAN_LITERATURE,
             self::MY_DEEN_JOURNEY,
             self::PAID_PARENTAL_CONSULTATION,
             self::SANAD_IJAZAH,
@@ -44,6 +50,8 @@ class BookingServiceInterest
             self::QURAN_MEMORIZATION,
             self::QURANIC_ARABIC,
             self::ARABIC_LANGUAGE,
+            self::ISLAMIC_STUDIES,
+            self::QURAN_LITERATURE,
             self::MY_DEEN_JOURNEY,
             self::SANAD_IJAZAH,
         ];
@@ -82,6 +90,15 @@ class BookingServiceInterest
             'arabic',
             'arabic language' => self::ARABIC_LANGUAGE,
 
+            'islamic studies',
+            'islamic study',
+            'islamic' => self::ISLAMIC_STUDIES,
+
+            'quran literature',
+            'qur\'an literature',
+            'quranic literature',
+            'quran stories' => self::QURAN_LITERATURE,
+
             'help me study',
             'my deen journey',
             'my deen journey (parenting system)',
@@ -107,6 +124,8 @@ class BookingServiceInterest
             self::QURAN_MEMORIZATION => self::QURAN_MEMORIZATION,
             self::QURANIC_ARABIC => self::QURANIC_ARABIC,
             self::ARABIC_LANGUAGE => self::ARABIC_LANGUAGE,
+            self::ISLAMIC_STUDIES => self::ISLAMIC_STUDIES,
+            self::QURAN_LITERATURE => self::QURAN_LITERATURE,
             self::MY_DEEN_JOURNEY => self::MY_DEEN_JOURNEY,
             self::PAID_PARENTAL_CONSULTATION => self::PAID_PARENTAL_CONSULTATION,
             self::SANAD_IJAZAH => self::SANAD_IJAZAH,

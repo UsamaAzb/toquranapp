@@ -125,6 +125,8 @@ timestamp, and checksum.
   - guarded real-target data patch that adds Arabic Language to app service reference tables for the public multi-service intake handoff
 - `patches/2026-05-29-add-arabic-language-service-reference-execution-note.sql`
   - execution note for the Arabic Language service reference patch
+- `patches/2026-06-21-add-islamic-studies-quran-literature-services-subjects.sql`
+  - guarded real-target data patch that adds Islamic Studies and Quran Literature to app service reference tables, LMS subjects, and learner-level subject mappings; production execution still requires backup/evidence and exact approval
 - `patches/2026-05-29-add-launch-task-types.sql`
   - guarded real-target data patch that adds launch task types for teacher session/task creation
 - `patches/2026-05-29-add-launch-task-types-execution-note.sql`
@@ -240,8 +242,8 @@ timestamp, and checksum.
 - Real-target framework infrastructure keys/indexes have been corrected after the baseline import.
 - Launch smoke data exists locally for testing and must be removed before deployment using the documented cleanup plan.
 - Current local users were reset to a shared test password for fast manual testing; real deployment credentials must be set individually before launch.
-- To Quran LMS class subjects are now Quran Memorization, Arabic Language, Quranic Arabic, Sanad Program, My Deen Journey, and Well Being. MDJ and Well Being are separate; parent-written behavior points affect Well Being only.
-- Arabic Language is now also a distinct app/public service value for intake; the public website can send it separately from Quranic Arabic during the multi-child/multi-service handoff.
+- To Quran LMS class subjects are now Quran Memorization, Arabic Language, Quranic Arabic, Sanad Program, Islamic Studies, Quran Literature, My Deen Journey, and Well Being. MDJ and Well Being are separate; parent-written behavior points affect Well Being only.
+- Arabic Language, Islamic Studies, and Quran Literature are distinct app/public service values for intake; the public website can send each separately during the multi-child/multi-service handoff after its matching website update.
 - Default transfer teacher assignment is configured by `TOQURAN_DEFAULT_TEACHER_EMAIL`; the current launch default teacher is `drosamaqandil@gmail.com` in `u504065335_to_quran`.
 - Launch task-type rows exist for Assignment, Lesson, Project, and Quiz so teacher session-task modals can create normal tasks during TQ4 smoke.
 - Public website Contact Us handoff requires `contacts.child_age` to be nullable because generic contact rows do not always belong to a child. The app-owned manual patch was executed locally against `u504065335_to_quran` on 2026-06-02 after target verification and focused structure backup evidence.
@@ -281,20 +283,21 @@ Do not use this numbered list for production replay. It is kept only as history;
 5. `patches/2026-05-28-toquran-starter-reference-data.sql`
 6. `patches/2026-05-29-toquran-learning-catalog-reference-data.sql`
 7. `patches/2026-05-29-add-arabic-language-service-reference.sql`
-8. `patches/2026-05-29-add-launch-task-types.sql`
-9. `patches/2026-05-29-correct-launch-task-types.sql`
-10. `patches/2026-06-02-make-contacts-child-age-nullable.sql`
-11. `patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql`
-12. `patches/2026-06-04-add-family-workspace-permissions.sql`
-13. `patches/2026-06-04-add-users-country.sql`
-14. `patches/2026-06-04-normalize-legacy-booking-children.sql`
-15. `patches/2026-06-04-heal-booking-child-school-defaults.sql`
-16. `patches/2026-06-05-mdj-behavior-wording-refresh.sql`
-17. `patches/2026-06-05-mdj-behavior-icon-mapping-refresh.sql`
-18. `patches/2026-06-06-mdj-lms-consequence-behavior-refresh.sql`
-19. `patches/2026-06-06-mdj-behavior-icon-remap.sql`
-20. `patches/2026-06-06-mdj-popup-category-flag-fix.sql`
-21. `patches/2026-06-06-mdj-good-job-popup-flag-fix.sql`
+8. `patches/2026-06-21-add-islamic-studies-quran-literature-services-subjects.sql` (after backup/evidence and approval)
+9. `patches/2026-05-29-add-launch-task-types.sql`
+10. `patches/2026-05-29-correct-launch-task-types.sql`
+11. `patches/2026-06-02-make-contacts-child-age-nullable.sql`
+12. `patches/2026-06-04-add-clean-new-customer-intake-review-enum.sql`
+13. `patches/2026-06-04-add-family-workspace-permissions.sql`
+14. `patches/2026-06-04-add-users-country.sql`
+15. `patches/2026-06-04-normalize-legacy-booking-children.sql`
+16. `patches/2026-06-04-heal-booking-child-school-defaults.sql`
+17. `patches/2026-06-05-mdj-behavior-wording-refresh.sql`
+18. `patches/2026-06-05-mdj-behavior-icon-mapping-refresh.sql`
+19. `patches/2026-06-06-mdj-lms-consequence-behavior-refresh.sql`
+20. `patches/2026-06-06-mdj-behavior-icon-remap.sql`
+21. `patches/2026-06-06-mdj-popup-category-flag-fix.sql`
+22. `patches/2026-06-06-mdj-good-job-popup-flag-fix.sql`
 
 The framework infrastructure correction is part of the current real-target baseline shape even though it is stored as a follow-up patch, because the original structure dump omitted several Laravel/Sanctum/Spatie runtime keys and indexes. The Library column correction is also part of the current real-target baseline shape; the To Quran-owned baseline replay files have been corrected, and the follow-up patch remains idempotent for already-created targets.
 

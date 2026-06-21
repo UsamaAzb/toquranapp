@@ -26,6 +26,8 @@ As of the public website commit `6dfb71f` on `main`, the public site:
 
 Website implementation is now aligned with the approved Week14-style shared-table handoff. Local production-equivalent TQ9 smoke passed on 2026-06-02 using the real app DB name `u504065335_to_quran`: clean public booking, duplicate/review booking, generic Contact Us, app transfer, parent/student/teacher login, and teacher class visibility. The remaining deployment work is server-target verification, production backup/export, smoke-data cleanup, and temporary credential rotation.
 
+2026-06-21 app-first service expansion: `toquranapp` is adding `Islamic Studies` and `Quran Literature` to the shared app contract. The public website must be updated separately before those two options are visible on `toquran.org`.
+
 ## Target Handoff Contract
 
 The public website remains a light consultation entry point. The app owns the schema, operational workflow, and review-first decisions.
@@ -69,6 +71,8 @@ The booking form should submit or transform into a children payload compatible w
   - `Quran Memorization`
   - `Quranic Arabic`
   - `Arabic Language`
+  - `Islamic Studies`
+  - `Quran Literature`
   - `Sanad Ijazah Program`
   - `My Deen Journey`
 
@@ -156,6 +160,8 @@ Fallback parser expectations, only if old W1 JSON rows must be inspected:
 | `Quran Memorization` | Quran tutoring subject/service | Adapt subject/service catalogs |
 | `Quranic Arabic` | Arabic/Quranic Arabic tutoring subject/service | Adapt subject/service catalogs |
 | `Arabic Language` | Broader Arabic language tutoring subject/service, distinct from Quranic Arabic | App service row added 2026-05-29; public website may send it as a distinct child service |
+| `Islamic Studies` | Islamic studies tutoring subject/service | App-first service/subject expansion added 2026-06-21; public website follow-up required |
+| `Quran Literature` | Quran stories, meanings, themes, and literature support | App-first service/subject expansion added 2026-06-21; public website follow-up required |
 | `Sanad Ijazah Program` | advanced Quran recitation/certification path | New To Quran-specific service metadata likely needed |
 
 ## App-Side Alias Handling
@@ -167,11 +173,13 @@ The app now accepts both the current public To Quran values and the inherited We
 | `IB Private Classes`, `IB Private Tutoring`, `Quran`, `Hifz`, `Memorization` | `Quran Memorization` |
 | `Help Me Read`, `SAT / ACT Preparation`, `Quranic Arabic` | `Quranic Arabic` |
 | `Arabic`, `Arabic Language` | `Arabic Language` |
+| `Islamic`, `Islamic Study`, `Islamic Studies` | `Islamic Studies` |
+| `Quran Literature`, `Qur'an Literature`, `Quranic Literature`, `Quran Stories` | `Quran Literature` |
 | `Help Me Study`, `My Deen Journey (Parenting System)` | `My Deen Journey` |
 | `Paid Consultation`, `Parental Consultation`, `Paid Parental Consultation` | `Paid Parental Consultation` |
 | `Sanad`, `Ijazah`, `Sanad Ijazah`, `Sanad Ijazah Program` | `Sanad Ijazah` |
 
-During transfer, app provisioning uses each child's selected public `service_interests` to activate optional launch subjects in the student's class-subject plan. Quran Memorization, Arabic Language, and Sanad Program are activated only when selected; Quranic Arabic, My Deen Journey, and Well Being remain active-by-default for launch unless the owner changes that product rule.
+During transfer, app provisioning uses each child's selected public `service_interests` to activate optional launch subjects in the student's class-subject plan. Quran Memorization, Quranic Arabic, Arabic Language, Sanad Program, Islamic Studies, and Quran Literature are activated only when selected. My Deen Journey and Well Being remain active-by-default for launch.
 
 ## Launch Scope
 

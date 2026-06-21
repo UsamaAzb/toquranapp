@@ -121,6 +121,8 @@ class TeacherClassAssignmentTest extends TestCase
             ->assertSee('Arabic Language')
             ->assertSee('Quranic Arabic')
             ->assertSee('Sanad Program')
+            ->assertSee('Islamic Studies')
+            ->assertSee('Quran Literature')
             ->assertSee('My Deen Journey')
             ->assertSee('Well Being')
             ->assertDontSee('Mathematics');
@@ -548,6 +550,8 @@ class TeacherClassAssignmentTest extends TestCase
             4 => ['Sanad Program', 'SANAD'],
             15 => ['My Deen Journey', 'MDJ'],
             16 => ['Well Being', 'WELL_BEING'],
+            17 => ['Islamic Studies', 'ISLAMIC_STUDIES'],
+            18 => ['Quran Literature', 'QURAN_LIT'],
         ];
 
         foreach ($subjects as $id => [$title, $code]) {

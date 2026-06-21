@@ -42,6 +42,14 @@ Week14 reuse:
 - reuse class/subject/session/task assignment structures
 - keep school-subject expansion paths available but inactive until approved
 
+### Islamic Studies
+
+Internal LMS class subject and child-facing service for age-appropriate Islamic studies lessons, adab, basic aqeedah/fiqh themes, stories, and practical Islamic knowledge. It is selected-only for intake transfer, and can also be manually activated/deactivated from a student's Subject Access page.
+
+### Quran Literature
+
+Internal LMS class subject and child-facing service for Quran stories, meanings, themes, reflection, and literature-style support around Quran learning. It is selected-only for intake transfer, and can also be manually activated/deactivated from a student's Subject Access page.
+
 ### My Deen Journey
 
 To Quran service that combines:
@@ -98,10 +106,12 @@ The app-side LMS class-subject catalog is:
 - Arabic Language
 - Quranic Arabic
 - Sanad Program
+- Islamic Studies
+- Quran Literature
 - My Deen Journey / `MDJ`
 - Well Being
 
-My Deen Journey and Well Being are fixed LMS surfaces available to all students and/or attachable to one or more class subjects. Keep inherited Week14 school-subject classes/subjects as inactive future-expansion options where practical, especially if My Deen Journey later expands into broader school-subject support.
+My Deen Journey and Well Being are fixed LMS surfaces active for all students. Quran Memorization, Quranic Arabic, Arabic Language, Sanad Program, Islamic Studies, and Quran Literature are selected-only or manually activated subjects. Keep inherited Week14 school-subject classes/subjects as inactive future-expansion options where practical, especially if My Deen Journey later expands into broader school-subject support.
 
 ## Intake Alias Rules
 
@@ -110,6 +120,8 @@ The app canonical service values are:
 - Quran Memorization
 - Quranic Arabic
 - Arabic Language
+- Islamic Studies
+- Quran Literature
 - My Deen Journey
 - Sanad Ijazah
 - Paid Parental Consultation (app-supported parent/support workflow; not part of the launch child-facing public selector)
@@ -119,6 +131,8 @@ The launch public child-facing booking selector should expose:
 - Quran Memorization
 - Quranic Arabic
 - Arabic Language
+- Islamic Studies
+- Quran Literature
 - Sanad Ijazah Program
 - My Deen Journey
 
@@ -131,6 +145,8 @@ Inherited Week14 labels may still arrive from old fixtures, old data, or transit
 | IB Private Classes / IB Private Tutoring | Quran Memorization |
 | Help Me Read / SAT or ACT preparation | Quranic Arabic |
 | Arabic / Arabic Language | Arabic Language |
+| Islamic / Islamic Study / Islamic Studies | Islamic Studies |
+| Quran Literature / Qur'an Literature / Quranic Literature / Quran Stories | Quran Literature |
 | Help Me Study | My Deen Journey |
 | My Deen Journey (Parenting System) | My Deen Journey |
 | Sanad Ijazah Program | Sanad Ijazah |

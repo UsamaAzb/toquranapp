@@ -27,6 +27,8 @@ class TeacherClassAssignments extends Component
         BookingSubjectProvisioning::SUBJECT_ARABIC_LANGUAGE,
         BookingSubjectProvisioning::SUBJECT_QURANIC_ARABIC,
         BookingSubjectProvisioning::SUBJECT_SANAD_PROGRAM,
+        BookingSubjectProvisioning::SUBJECT_ISLAMIC_STUDIES,
+        BookingSubjectProvisioning::SUBJECT_QURAN_LITERATURE,
         BookingSubjectProvisioning::SUBJECT_MY_DEEN_JOURNEY,
         BookingSubjectProvisioning::SUBJECT_WELL_BEING,
     ];

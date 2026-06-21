@@ -23,6 +23,8 @@ class BookingServiceInterestTest extends TestCase
         $this->assertSame('Arabic Language', BookingServiceInterest::normalize('Arabic Language'));
         $this->assertSame('Arabic Language', BookingServiceInterest::normalize('Arabic'));
         $this->assertSame('Quranic Arabic', BookingServiceInterest::normalize('Quranic Arabic'));
+        $this->assertSame('Islamic Studies', BookingServiceInterest::normalize('Islamic Study'));
+        $this->assertSame('Quran Literature', BookingServiceInterest::normalize('Qur\'an Literature'));
         $this->assertSame('My Deen Journey', BookingServiceInterest::normalize('My Deen Journey (Parenting System)'));
         $this->assertSame('Paid Parental Consultation', BookingServiceInterest::normalize('consultation'));
         $this->assertSame('Sanad Ijazah', BookingServiceInterest::normalize('ijazah'));
@@ -35,12 +37,16 @@ class BookingServiceInterestTest extends TestCase
             [
                 BookingSubjectProvisioning::SUBJECT_QURAN_MEMORIZATION,
                 BookingSubjectProvisioning::SUBJECT_ARABIC_LANGUAGE,
+                BookingSubjectProvisioning::SUBJECT_ISLAMIC_STUDIES,
+                BookingSubjectProvisioning::SUBJECT_QURAN_LITERATURE,
                 BookingSubjectProvisioning::SUBJECT_SANAD_PROGRAM,
                 BookingSubjectProvisioning::SUBJECT_MY_DEEN_JOURNEY,
             ],
             BookingSubjectProvisioning::subjectIdsForServiceInterests([
                 'Quran Memorization',
                 'Arabic Language',
+                'Islamic Studies',
+                'Quran Literature',
                 'Sanad Ijazah Program',
                 'My Deen Journey',
                 'Paid Parental Consultation',
@@ -61,8 +67,18 @@ class BookingServiceInterestTest extends TestCase
             'Quran Memorization',
             'Quranic Arabic',
             'Arabic Language',
+            'Islamic Studies',
+            'Quran Literature',
             'My Deen Journey',
             'Sanad Ijazah',
         ], BookingServiceInterest::childFacingValues());
+    }
+
+    public function test_only_mdj_and_well_being_are_active_by_default(): void
+    {
+        $this->assertSame([
+            BookingSubjectProvisioning::SUBJECT_MY_DEEN_JOURNEY,
+            BookingSubjectProvisioning::SUBJECT_WELL_BEING,
+        ], BookingSubjectProvisioning::activeByDefaultSubjectIds());
     }
 }

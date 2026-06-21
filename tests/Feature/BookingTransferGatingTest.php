@@ -245,7 +245,7 @@ class BookingTransferGatingTest extends TestCase
         $this->assertNotNull($child->student_id);
     }
 
-    public function test_transfer_creates_all_grade_level_subjects_with_to_quran_core_subjects_active(): void
+    public function test_transfer_creates_all_grade_level_subjects_with_only_mdj_and_well_being_active_by_default(): void
     {
         $child = $this->createBookingChild([], [
             'evaluation_outcome' => 'fit',
@@ -263,15 +263,15 @@ class BookingTransferGatingTest extends TestCase
 
         $gradeLevelSubjects = DB::table('grade_level_subjects')
             ->where('grade_level_id', 1)
-            ->whereIn('subject_id', [1, 2, 3, 4, 15, 16, 18])
+            ->whereIn('subject_id', [1, 2, 3, 4, 15, 16, 17, 18, 20])
             ->pluck('id', 'subject_id');
 
-        $this->assertCount(7, $gradeLevelSubjects);
+        $this->assertCount(9, $gradeLevelSubjects);
 
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
             'grade_level_subject_id' => $gradeLevelSubjects[1],
-            'status' => 'active',
+            'status' => 'inactive',
         ]);
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
@@ -286,7 +286,7 @@ class BookingTransferGatingTest extends TestCase
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
             'grade_level_subject_id' => $gradeLevelSubjects[2],
-            'status' => 'active',
+            'status' => 'inactive',
         ]);
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
@@ -300,24 +300,34 @@ class BookingTransferGatingTest extends TestCase
         ]);
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[17],
+            'status' => 'inactive',
+        ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
             'grade_level_subject_id' => $gradeLevelSubjects[18],
+            'status' => 'inactive',
+        ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[20],
             'status' => 'inactive',
         ]);
 
         $this->assertSame(
-            7,
+            9,
             DB::table('students_subjects')->where('student_id', $studentId)->count()
         );
 
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 1,
             'subject_name' => 'Quran Memorization',
-            'status' => 'active',
+            'status' => 'inactive',
         ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 2,
             'subject_name' => 'Quranic Arabic',
-            'status' => 'active',
+            'status' => 'inactive',
         ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 15,
@@ -331,6 +341,11 @@ class BookingTransferGatingTest extends TestCase
         ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 18,
+            'subject_name' => 'Quran Literature',
+            'status' => 'inactive',
+        ]);
+        $this->assertDatabaseHas('teacher_subject_classes', [
+            'subject_id' => 20,
             'subject_name' => 'WTA',
             'status' => 'inactive',
         ]);
@@ -361,7 +376,7 @@ class BookingTransferGatingTest extends TestCase
             'id' => DB::table('students')->where('id', $studentId)->value('current_class_id'),
             'academic_year_id' => 2,
         ]);
-        $this->assertSame(7, DB::table('students_subjects')->where('student_id', $studentId)->where('academic_year_id', 2)->count());
+        $this->assertSame(9, DB::table('students_subjects')->where('student_id', $studentId)->where('academic_year_id', 2)->count());
         $this->assertSame(10, DB::table('student_gifts')->where('student_id', $studentId)->where('academic_year_id', 2)->count());
     }
 
@@ -371,7 +386,7 @@ class BookingTransferGatingTest extends TestCase
             'evaluation_outcome' => 'fit',
             'meeting_disposition' => 'completed',
             'transfer_status' => 'not_transferred',
-            'service_interests' => ['Arabic Language', 'Sanad Ijazah Program'],
+            'service_interests' => ['Arabic Language', 'Sanad Ijazah Program', 'Islamic Studies', 'Quran Literature'],
         ]);
 
         $this->makeTransferServiceDoubleWithRealClassProvisioning()->transferChild($child);
@@ -379,7 +394,7 @@ class BookingTransferGatingTest extends TestCase
         $studentId = (int) $child->fresh()->student_id;
         $gradeLevelSubjects = DB::table('grade_level_subjects')
             ->where('grade_level_id', 1)
-            ->whereIn('subject_id', [3, 4])
+            ->whereIn('subject_id', [3, 4, 17, 18])
             ->pluck('id', 'subject_id');
 
         $this->assertDatabaseHas('students_subjects', [
@@ -392,12 +407,30 @@ class BookingTransferGatingTest extends TestCase
             'grade_level_subject_id' => $gradeLevelSubjects[4],
             'status' => 'active',
         ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[17],
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[18],
+            'status' => 'active',
+        ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 3,
             'status' => 'active',
         ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 4,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('teacher_subject_classes', [
+            'subject_id' => 17,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('teacher_subject_classes', [
+            'subject_id' => 18,
             'status' => 'active',
         ]);
     }
@@ -454,7 +487,7 @@ class BookingTransferGatingTest extends TestCase
         $child->refresh();
         $gradeLevelSubjects = DB::table('grade_level_subjects')
             ->where('grade_level_id', 1)
-            ->whereIn('subject_id', [1, 2, 3, 4, 15, 16, 18])
+            ->whereIn('subject_id', [1, 2, 3, 4, 15, 16, 17, 18, 20])
             ->pluck('id', 'subject_id');
 
         $this->assertSame($studentId, (int) $child->student_id);
@@ -462,11 +495,11 @@ class BookingTransferGatingTest extends TestCase
             'id' => $studentId,
             'current_class_id' => $classId,
         ]);
-        $this->assertSame(7, DB::table('students_subjects')->where('student_id', $studentId)->count());
+        $this->assertSame(9, DB::table('students_subjects')->where('student_id', $studentId)->count());
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
             'grade_level_subject_id' => $gradeLevelSubjects[1],
-            'status' => 'active',
+            'status' => 'inactive',
         ]);
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
@@ -481,6 +514,11 @@ class BookingTransferGatingTest extends TestCase
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
             'grade_level_subject_id' => $gradeLevelSubjects[18],
+            'status' => 'inactive',
+        ]);
+        $this->assertDatabaseHas('students_subjects', [
+            'student_id' => $studentId,
+            'grade_level_subject_id' => $gradeLevelSubjects[20],
             'status' => 'inactive',
         ]);
     }
@@ -515,11 +553,11 @@ class BookingTransferGatingTest extends TestCase
             'class_id' => $classId,
             'subject_id' => 1,
             'subject_name' => 'Quran Memorization',
-            'status' => 'active',
+            'status' => 'inactive',
         ]);
 
         $this->assertSame(
-            7,
+            9,
             DB::table('teacher_subject_classes')
                 ->where('user_teacher_coteacher_id', $defaultTeacher->id)
                 ->where('class_id', $classId)
@@ -836,7 +874,7 @@ class BookingTransferGatingTest extends TestCase
         $this->assertDatabaseHas('students_subjects', [
             'student_id' => $studentId,
             'grade_level_subject_id' => $languageAndLiteratureGradeLevelSubjectId,
-            'status' => 'active',
+            'status' => 'inactive',
         ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 21,
@@ -844,7 +882,7 @@ class BookingTransferGatingTest extends TestCase
         ]);
         $this->assertDatabaseHas('teacher_subject_classes', [
             'subject_id' => 1,
-            'status' => 'active',
+            'status' => 'inactive',
         ]);
     }
 
@@ -862,7 +900,7 @@ class BookingTransferGatingTest extends TestCase
             'updated_at' => now(),
         ]);
         DB::table('subjects')->insert([
-            'id' => 20,
+            'id' => 22,
             'title' => 'Hidden Subject',
             'type' => 'standard',
             'program_id' => 10,
@@ -885,7 +923,7 @@ class BookingTransferGatingTest extends TestCase
             ],
             [
                 'grade_level_id' => 1,
-                'subject_id' => 20,
+                'subject_id' => 22,
                 'academic_year_id' => 1,
                 'type' => 'standard',
                 'status' => 'active',
@@ -910,7 +948,7 @@ class BookingTransferGatingTest extends TestCase
             ->value('id');
         $hiddenGradeLevelSubjectId = DB::table('grade_level_subjects')
             ->where('grade_level_id', 1)
-            ->where('subject_id', 20)
+            ->where('subject_id', 22)
             ->value('id');
 
         $this->assertDatabaseMissing('students_subjects', [
@@ -1859,6 +1897,22 @@ class BookingTransferGatingTest extends TestCase
                     'updated_at' => now(),
                 ],
                 [
+                    'title' => 'Islamic Studies',
+                    'value' => 'Islamic Studies',
+                    'info' => null,
+                    'active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'title' => 'Quran Literature',
+                    'value' => 'Quran Literature',
+                    'info' => null,
+                    'active' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
                     'title' => 'My Deen Journey',
                     'value' => 'My Deen Journey',
                     'info' => null,
@@ -1892,7 +1946,9 @@ class BookingTransferGatingTest extends TestCase
             4 => ['title' => 'Sanad Program', 'code' => 'sanad-program'],
             15 => ['title' => 'My Deen Journey', 'code' => 'my-deen-journey'],
             16 => ['title' => 'Well Being', 'code' => 'well-being'],
-            18 => ['title' => 'WTA', 'code' => 'wta'],
+            17 => ['title' => 'Islamic Studies', 'code' => 'islamic-studies'],
+            18 => ['title' => 'Quran Literature', 'code' => 'quran-literature'],
+            20 => ['title' => 'WTA', 'code' => 'wta'],
         ] as $subjectId => $subject) {
             DB::table('subjects')->updateOrInsert(
                 ['id' => $subjectId],
