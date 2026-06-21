@@ -340,3 +340,43 @@
 --   child_activation:first:1 status=sent
 --   child_activation:first:2 status=sent
 --   child_activation:first:3 status=sent
+
+-- 2026-06-21 demo family gift/Points Lab polish deployment:
+-- - Owner explicitly approved deploying the demo gift image and Points Lab
+--   follow-up after commit:
+--   84e8d1d Polish demo family behavior and gift images
+-- - Deployed only runtime files/assets needed for this follow-up:
+--   app/Console/Commands/BootstrapDemoFamily.php
+--   resources/views/livewire/teacher/reward-discipline-points.blade.php
+--   resources/demo-gifts/** (30 image files)
+-- - Did not upload .env, vendor, node_modules, tests, raw SQL, storage logs,
+--   or DB backup artifacts.
+-- - Remote syntax/caches:
+--   /opt/alt/php83/usr/bin/php -l app/Console/Commands/BootstrapDemoFamily.php
+--   artisan optimize:clear
+--   artisan config:cache
+--   artisan route:cache
+--   artisan view:cache
+-- - Production dry-run passed:
+--   /opt/alt/php83/usr/bin/php artisan toquran:bootstrap-demo-family \
+--     --dry-run \
+--     --confirm-db=u504065335_to_quran
+--   DB: u504065335_to_quran
+--   Teacher: drosamaqandil@gmail.com
+--   Library resources: 84
+--   Quran repetition resources: 11
+--   Family reference: TQDEMO-001
+-- - Idempotent real command completed successfully:
+--   /opt/alt/php83/usr/bin/php artisan toquran:bootstrap-demo-family \
+--     --confirm-db=u504065335_to_quran
+--   booking: 2
+--   yusuf: 1
+--   maryam: 2
+--   omar: 3
+-- - Final read-only verification:
+--   REDEEMED_WITH_IMAGES=30
+--   DEMO_TITLE_ROWS=0
+--   DEMO_DESCRIPTION_ROWS=0
+--   LINKED_BEHAVIOR_ROWS=13
+--   storage/app/public/gifts/demo-family file count=30
+--   sample image URL https://app.toquran.org/storage/gifts/demo-family/Yusuf/Sticker-Pack.webp returned 200 image/webp
