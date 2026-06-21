@@ -586,10 +586,19 @@ class BootstrapDemoFamily extends Command
             $pointsRequired = $giftNumber <= 10
                 ? $giftNumber * 100
                 : 1000 + (($giftNumber - 10) * 250);
+            $giftKeys = [
+                'student_id' => $student->id,
+                'academic_year_id' => $academicYearId,
+                'points_required' => $pointsRequired,
+            ];
+            $existingGiftImage = StudentGift::query()
+                ->where($giftKeys)
+                ->value('gift_image');
+            $demoGiftImage = $this->demoGiftImagePath($childKey, $name);
 
             $attributes = [
                 'gift_name' => $name,
-                'gift_image' => $this->demoGiftImagePath($childKey, $name),
+                'gift_image' => $demoGiftImage ?: $existingGiftImage,
                 'gift_id' => null,
                 'points_required' => $pointsRequired,
                 'status' => match (true) {
@@ -606,11 +615,7 @@ class BootstrapDemoFamily extends Command
             ];
 
             StudentGift::query()->updateOrCreate(
-                [
-                    'student_id' => $student->id,
-                    'academic_year_id' => $academicYearId,
-                    'points_required' => $pointsRequired,
-                ],
+                $giftKeys,
                 $attributes
             );
         }

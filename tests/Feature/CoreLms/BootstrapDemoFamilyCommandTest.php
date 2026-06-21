@@ -106,6 +106,12 @@ class BootstrapDemoFamilyCommandTest extends TestCase
 
         $counts = $this->demoCounts();
 
+        Storage::disk('public')->put('gifts/manual/yusuf-water-bottle.webp', 'manual image');
+        DB::table('student_gifts')
+            ->where('student_id', $yusuf->id)
+            ->where('gift_name', 'Water Bottle Sticker')
+            ->update(['gift_image' => 'gifts/manual/yusuf-water-bottle.webp']);
+
         $exitCode = Artisan::call('toquran:bootstrap-demo-family', [
             '--confirm-db' => ':memory:',
         ]);
@@ -113,6 +119,13 @@ class BootstrapDemoFamilyCommandTest extends TestCase
         $this->assertSame(0, $exitCode, Artisan::output());
 
         $this->assertSame($counts, $this->demoCounts());
+        $this->assertSame(
+            'gifts/manual/yusuf-water-bottle.webp',
+            DB::table('student_gifts')
+                ->where('student_id', $yusuf->id)
+                ->where('gift_name', 'Water Bottle Sticker')
+                ->value('gift_image')
+        );
     }
 
     public function test_dry_run_does_not_write_demo_rows(): void

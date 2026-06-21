@@ -380,3 +380,43 @@
 --   LINKED_BEHAVIOR_ROWS=13
 --   storage/app/public/gifts/demo-family file count=30
 --   sample image URL https://app.toquran.org/storage/gifts/demo-family/Yusuf/Sticker-Pack.webp returned 200 image/webp
+
+-- 2026-06-21 demo family active-gift image repair:
+-- - Owner reported that manually uploaded images for open/active demo rewards
+--   disappeared after the demo command was rerun.
+-- - Cause:
+--   gifts 11-20 do not have bundled demo images. The command was recomputing
+--   gift_image from bundled assets and overwrote existing manual image paths
+--   with NULL.
+-- - Local code fix:
+--   app/Console/Commands/BootstrapDemoFamily.php now preserves an existing
+--   gift_image when no bundled demo image exists for the gift.
+--   tests/Feature/CoreLms/BootstrapDemoFamilyCommandTest.php now covers this
+--   idempotency case.
+-- - Points Lab polish:
+--   resources/views/livewire/teacher/reward-discipline-points.blade.php now
+--   renders behavior-count badges as the plain number, not x{number}.
+-- - Local verification:
+--   php artisan test tests/Feature/CoreLms/BootstrapDemoFamilyCommandTest.php \
+--     tests/Feature/MyDeenJourneyLaunchDefaultsTest.php \
+--     tests/Feature/AdminRewardDisciplinePointsTest.php
+--   Result: 7 passed, 63 assertions.
+-- - Production repair:
+--   Deployed the two runtime files above.
+--   Ran a temporary guarded Laravel script in appdashboard to restore gift_image
+--   paths for student_gifts ids 31-60 from the already-uploaded files under
+--   storage/app/public/gifts/.
+--   The temporary script verified database() = u504065335_to_quran and verified
+--   every target file existed before updating rows, then it was deleted.
+-- - Production guard verification:
+--   Reran:
+--   /opt/alt/php83/usr/bin/php artisan toquran:bootstrap-demo-family \
+--     --confirm-db=u504065335_to_quran
+--   Then verified:
+--   future_images=30
+--   all_demo_images=60
+--   blank_future=0
+--   has_x_badge=false
+-- - Public file smoke:
+--   https://app.toquran.org/storage/gifts/CI5BwKkXldGbSbE1NGdOVD3gFwEbvNLuZvN7cU7r.webp
+--   returned 200 image/webp, length 82680.
