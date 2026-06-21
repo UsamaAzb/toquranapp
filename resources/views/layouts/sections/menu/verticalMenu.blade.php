@@ -87,6 +87,14 @@ $canAccessTransferredFamilies = auth()->check() && $user?->hasAnyRole(['admin', 
               <div>Teacher Assignments</div>
             </a>
           </li>
+          <li class="menu-item {{ $currentRouteName === 'admin.starter-catalog-installer.index' ? 'active' : '' }}">
+            <a href="{{ route('admin.starter-catalog-installer.index') }}"
+               class="menu-link"
+            >
+              <i class="menu-icon icon-base ti tabler-stack-push"></i>
+              <div>Starter Catalog</div>
+            </a>
+          </li>
           <li class="menu-item {{ $currentRouteName === 'admin.library.index' || str_starts_with($currentPath, 'admin/library') ? 'active' : '' }}">
             <a href="{{ route('admin.library.index') }}"
                class="menu-link"

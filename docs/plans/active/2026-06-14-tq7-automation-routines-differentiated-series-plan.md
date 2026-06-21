@@ -1,6 +1,6 @@
 # TQ7/TQ7.5 Automation Tracks And Starter Catalog Plan
 
-Status: TQ7 implemented and merged; TQ7.5 starter catalog implementation revised locally with per-version task inclusion and full parsed adhkar/dua banks; local registry reset/reinstall smoke executed; admin copy UI follow-up planned
+Status: TQ7 implemented and merged; TQ7.5 starter catalog implementation revised locally with per-version task inclusion and full parsed adhkar/dua banks; local registry reset/reinstall smoke executed; admin/superadmin copy UI implemented
 Date: 2026-06-14
 Branch: `codex/tq7-5-starter-automation-catalog` for current TQ7.5 follow-up; TQ7 implementation was completed on `codex/tq7-automation-tracks-routines-series`
 Sprint: TQ7 Automation Tracks For Routines, Differentiated Tasks, And Series Tasks; TQ7.5 Prebuilt Routine And Series Task Launch Catalog
@@ -81,6 +81,7 @@ Implemented so far:
 - Code-defined starter catalog manifest in `app/Support/ToQuranAutomationCatalog/StarterAutomationCatalog.php`.
 - Guarded installer service in `app/Support/ToQuranAutomationCatalog/AutomationCatalogInstaller.php`.
 - Artisan command `toquran:install-automation-catalog` with dry-run, single-teacher install, all-active-teacher install guard, DB confirmation guard, and no automatic student assignment.
+- Admin/superadmin Starter Catalog UI in `App\Livewire\Admin\StarterCatalogInstaller`, exposed as `admin.starter-catalog-installer.index`, with active-teacher selection, preview, explicit confirmation, install result messages, and no all-teachers bulk action.
 - Guarded manual registry SQL artifact `database/manual/patches/2026-06-15-create-tq7-5-automation-catalog-registry.sql`.
 - Guarded General Library text-source schema artifact `database/manual/patches/2026-06-17-add-general-library-text-sources.sql`.
 - Execution-note template `database/manual/patches/2026-06-15-tq7-5-automation-catalog-install-execution-note-template.sql`.
@@ -299,7 +300,7 @@ Launch model:
 
 Required TQ7.5 follow-up before normal operational use:
 
-1. Add a small admin/superadmin UI for copying starter tasks to selected teachers. The UI must call `AutomationCatalogInstaller` directly; it must not shell out to the Artisan command.
+1. Add a small admin/superadmin UI for copying starter tasks to selected teachers. The UI must call `AutomationCatalogInstaller` directly; it must not shell out to the Artisan command. Completed on 2026-06-21 in `App\Livewire\Admin\StarterCatalogInstaller`.
 2. UI minimum:
    - active-teacher search/dropdown;
    - `Preview` action that runs dry-run and shows created/updated/skipped messages;
@@ -781,7 +782,7 @@ TQ7.5 current implementation-review state:
 - The catalog creates/updates launch-ready automation templates for eligible teachers without duplicate drift in root rows, versions, tasks, items, or attachments, and refuses ambiguous source lookups, ineligible teacher/subject targets, stale registry target mismatches, stale `DUA-*` seed rows, duplicate seed labels, and missing text-source schema.
 - Catalog idempotency uses the guarded `toquran_automation_catalog_entries` registry table.
 - Local execution was guarded by target DB checks and recorded under `database/manual/`.
-- The admin/superadmin copy UI follow-up is planned and specified, but not implemented in this branch.
+- The admin/superadmin copy UI follow-up is implemented and covered by `tests/Feature/CoreLms/StarterCatalogInstallerUiTest.php`.
 
 TQ7.5 current launch-smoke state:
 

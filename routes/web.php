@@ -244,6 +244,10 @@ Route::namespace('App\Http\Controllers\Admin')->middleware(['auth', 'role:admin|
         ->middleware('role:super_admin|admin')
         ->name('admin.teacher-class-assignments.index');
 
+    Route::get('starter-catalog-installer', '\\'.\App\Livewire\Admin\StarterCatalogInstaller::class)
+        ->middleware('role:super_admin|admin')
+        ->name('admin.starter-catalog-installer.index');
+
     Route::prefix('booking')->name('admin.booking.')->group(function () use ($retiredBookingEndpointResponse) {
 
         Route::get('data', $retiredBookingEndpointResponse)
