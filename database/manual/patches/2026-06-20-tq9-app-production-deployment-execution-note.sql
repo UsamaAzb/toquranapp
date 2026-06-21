@@ -310,3 +310,33 @@
 --   FAILED_JOBS=0
 -- - Production activation/email smoke remains a separate owner-approved step
 --   through the normal family lifecycle flow.
+
+-- 2026-06-21 activation/login follow-up:
+-- - Owner reported that demo login failed before manual activation and no
+--   emails were received after using the admin activation UI.
+-- - Server-side credential verification:
+--   Demo_PT1244 / osama.salem0217@gmail.com status=active, password hash checks
+--   for the recoverable credential.
+--   YU101, MA101, and OM101 status=active, password hashes check for the
+--   recoverable credential.
+-- - Lifecycle gate verification:
+--   parent lifecycle_status=active
+--   all three demo students account_status=active
+-- - HTTPS login POST checks:
+--   YU101 redirected to https://app.toquran.org/student/workplace
+--   osama.salem0217@gmail.com redirected to https://app.toquran.org/students
+-- - Email diagnosis:
+--   activation UI had queued 4 database jobs with attempts=0:
+--   one SendParentActivationEmailJob and three SendChildActivationEmailJob rows.
+--   Hostinger scheduler/queue worker was not processing them automatically.
+-- - Processed the four queued activation jobs with:
+--   /opt/alt/php83/usr/bin/php artisan queue:work --once --stop-when-empty --tries=1
+--   repeated four times.
+-- - Queue verification after processing:
+--   JOBS=0
+--   FAILED_JOBS=0
+-- - email_delivery_claims verification:
+--   parent_activation:first:1 status=sent
+--   child_activation:first:1 status=sent
+--   child_activation:first:2 status=sent
+--   child_activation:first:3 status=sent
