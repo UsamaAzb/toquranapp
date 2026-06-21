@@ -263,4 +263,50 @@
 -- - Read-only post-dry-run no-write check:
 --   TQDEMO_BOOKINGS=0
 --   TQDEMO_STUDENTS=0
--- - No production demo-family write command has been run yet.
+
+-- 2026-06-21 demo family production write:
+-- - Owner explicitly approved the real production command after the dry-run.
+-- - Approved command:
+--   /opt/alt/php83/usr/bin/php artisan toquran:bootstrap-demo-family \
+--     --confirm-db=u504065335_to_quran
+-- - First write attempt exposed a production-schema mismatch in the booking
+--   scaffold before a clean success output was captured:
+--   bookings does not own booking_children workflow columns such as
+--   consultation_status/evaluation_outcome/meeting_disposition/transfer_status.
+-- - Verified before retry that the failed attempt had not duplicated demo
+--   rows:
+--   TQDEMO_BOOKINGS=0
+--   TQDEMO_STUDENTS=0
+-- - Fix committed locally as:
+--   810fb31 Fix demo family booking scaffold for production schema
+-- - Deployed only:
+--   app/Console/Commands/BootstrapDemoFamily.php
+-- - Remote syntax/caches:
+--   /opt/alt/php83/usr/bin/php -l app/Console/Commands/BootstrapDemoFamily.php
+--   artisan optimize:clear
+--   artisan config:cache
+--   artisan route:cache
+--   artisan view:cache
+-- - Second production dry-run passed against DB u504065335_to_quran.
+-- - Idempotent real command completed successfully:
+--   booking: 2
+--   yusuf: 1
+--   maryam: 2
+--   omar: 3
+-- - Final production verification:
+--   BOOKINGS=1
+--   STUDENTS=3
+--   STUDENT_USERS=3
+--   ACTIVE_SUBJECT_LINKS=12
+--   GIFTS_TOTAL=60
+--   GIFTS_REDEEMED=30
+--   SESSIONS=583
+--   TASKS=635
+--   TASK_PIVOTS=635
+--   ATTACHMENTS=100
+--   YOUTUBE_ATTACHMENTS=36
+--   FILE_ATTACHMENTS=64
+--   REWARD_LEDGER=580
+--   FAILED_JOBS=0
+-- - Production activation/email smoke remains a separate owner-approved step
+--   through the normal family lifecycle flow.

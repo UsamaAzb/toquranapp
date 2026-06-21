@@ -1,6 +1,6 @@
 # TQ9 Demo Family History Plan
 
-Status: Phases 1-2 complete; production dry-run passed; no production demo data written yet
+Status: production demo family created and verified; activation/email smoke still separate
 Date: 2026-06-21
 Branch: `codex/tq9-launch-readiness`
 Scope: one intentional production demo family after core app deployment smoke
@@ -50,6 +50,29 @@ Local implementation evidence as of 2026-06-21:
   - `toquran:bootstrap-demo-family --dry-run --confirm-db=u504065335_to_quran` passed on Hostinger;
   - production dry-run saw `84` beginner-book resources and `11` Quran Repetition resources;
   - read-only no-write check after dry-run showed `TQDEMO_BOOKINGS=0` and `TQDEMO_STUDENTS=0`.
+- production write evidence on 2026-06-21:
+  - owner approved the real production run after the dry-run and no-write check;
+  - the first write attempt exposed a production-schema mismatch in the demo booking scaffold before a clean success output was captured;
+  - no duplicate demo rows existed before retry: `TQDEMO_BOOKINGS=0`, `TQDEMO_STUDENTS=0`;
+  - fix committed as `810fb31` and deployed only `app/Console/Commands/BootstrapDemoFamily.php`;
+  - remote syntax check and Laravel cache refresh passed;
+  - second production dry-run passed against `u504065335_to_quran`;
+  - idempotent real command completed successfully:
+    - booking `2`;
+    - Yusuf student `1`;
+    - Maryam student `2`;
+    - Omar student `3`.
+  - final production verification:
+    - bookings: `1`;
+    - students: `3`;
+    - student users: `3`;
+    - active subject links: `12`;
+    - gifts: `60`, with `30` redeemed;
+    - sessions: `583`;
+    - task rows/pivots: `635`;
+    - attachments: `100` total, `36` YouTube and `64` file;
+    - reward ledger rows: `580`;
+    - failed jobs: `0`.
 
 ## Safety Rules
 
