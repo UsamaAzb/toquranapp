@@ -1,0 +1,70 @@
+-- To Quran production execution note: Islamic Studies and Quran Literature
+-- Date: 2026-06-21
+-- Target DB: u504065335_to_quran
+-- Scope: additive service/subject reference data only
+--
+-- Owner approval:
+-- - Owner requested continuing with Islamic Studies and Quran Literature as
+--   real app/LMS subjects and child-facing selected services.
+-- - Owner also clarified that Arabic Language is not default-active; only
+--   My Deen Journey and Well Being are default-active, while Arabic Language,
+--   Sanad Program, Islamic Studies, and Quran Literature are selected-only or
+--   manually activated.
+--
+-- Preflight evidence:
+-- - Hostinger PHP/runtime DB identity check:
+--   database()=u504065335_to_quran
+--   @@hostname=nl-srv-web512.main-hosting.eu
+--   USER()=u504065335_to_quran@127.0.0.1
+--   table count=357
+--   existing_new_subject_refs=0
+-- - Guarded patch used:
+--   database/manual/patches/2026-06-21-add-islamic-studies-quran-literature-services-subjects.sql
+--
+-- Backup evidence:
+-- - A private server-side mysqldump was created before executing the patch.
+-- - Backup path on Hostinger:
+--   storage/app/private/deployment-backups/20260621-134350-u504065335_to_quran-before-islamic-quran-literature.sql
+-- - Backup bytes: 1704727
+-- - Backup sha256:
+--   4c93557ff3ef1310459800079a3e89ae95a55404fc99d95ab73001fa4f047ccb
+-- - The raw backup is intentionally not committed.
+--
+-- Execution:
+-- - The patch was run through mysql on the selected Hostinger DB after setting:
+--   SET @toquran_confirm_real_db_target = 'u504065335_to_quran';
+-- - No destructive SQL was run.
+--
+-- Post-execution verification:
+-- - services:
+--   service_7=Islamic Studies
+--   service_8=Quran Literature
+-- - subjects:
+--   subject_17=Islamic Studies|ISLAMIC_STUDIES|active=1
+--   subject_18=Quran Literature|QURAN_LIT|active=1
+-- - services_types count for the two values: 2
+-- - grade_level_subjects count for subject ids 17 and 18: 8
+--
+-- App-side production smoke after deploying support files:
+-- - Deployed:
+--   app/Support/BookingServiceInterest.php
+--   app/Support/BookingSubjectProvisioning.php
+-- - Remote syntax/caches:
+--   /opt/alt/php83/usr/bin/php -l app/Support/BookingServiceInterest.php
+--   /opt/alt/php83/usr/bin/php -l app/Support/BookingSubjectProvisioning.php
+--   /opt/alt/php83/usr/bin/php artisan optimize:clear
+--   /opt/alt/php83/usr/bin/php artisan config:cache
+--   /opt/alt/php83/usr/bin/php artisan route:cache
+--   /opt/alt/php83/usr/bin/php artisan view:cache
+-- - Runtime verification:
+--   BookingServiceInterest::normalize('Islamic Study') => Islamic Studies
+--   BookingServiceInterest::normalize('Quranic Literature') => Quran Literature
+--   BookingSubjectProvisioning::subjectIdsForServiceInterests([...]) => 17,18
+--   BookingSubjectProvisioning::activeByDefaultSubjectIds() => 15,16
+--   DB subject_rows=2
+--   DB service_rows=2
+--   DB grade_map_rows=8
+--
+-- Remaining work:
+-- - Public website repo must now expose Islamic Studies and Quran Literature
+--   in the booking form/service contract, then run an end-to-end intake smoke.

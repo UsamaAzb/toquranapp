@@ -126,7 +126,9 @@ timestamp, and checksum.
 - `patches/2026-05-29-add-arabic-language-service-reference-execution-note.sql`
   - execution note for the Arabic Language service reference patch
 - `patches/2026-06-21-add-islamic-studies-quran-literature-services-subjects.sql`
-  - guarded real-target data patch that adds Islamic Studies and Quran Literature to app service reference tables, LMS subjects, and learner-level subject mappings; production execution still requires backup/evidence and exact approval
+  - guarded real-target data patch that adds Islamic Studies and Quran Literature to app service reference tables, LMS subjects, and learner-level subject mappings; executed on Hostinger production on 2026-06-21 after private backup/evidence, with public website follow-up still pending
+- `patches/2026-06-21-add-islamic-studies-quran-literature-services-subjects-execution-note.sql`
+  - production execution note for the Islamic Studies and Quran Literature service/subject reference-data patch, including private backup evidence, verification counts, and app-side smoke
 - `patches/2026-05-29-add-launch-task-types.sql`
   - guarded real-target data patch that adds launch task types for teacher session/task creation
 - `patches/2026-05-29-add-launch-task-types-execution-note.sql`

@@ -64,7 +64,7 @@ This is a To Quran-specific roadmap scaffold. It adapts Week14's sprint style wi
 - Current artifact: app-side service/intake adaptation committed in `124756b` and merged to `main` in `0b99741`; focused booking/family suite passed before merge.
 - Launch scope: keep consultation scheduling, finance, class assignment detail, and teacher management manual for first deployment. Do not build those workflows before launch unless explicitly reopened.
 - Website action: align public form values and reference prefix during TQ9 public website handoff.
-- DB action: real-target transition and starter/reference data are complete; app-side service aliases now normalize old Week14 labels and To Quran website labels to the app service values. On 2026-05-29 Arabic Language was added as a distinct app/public service reference row so the website can send it separately from Quranic Arabic. On 2026-06-21 Islamic Studies and Quran Literature were added as selected-only app service/subject references pending production DB execution and website follow-up.
+- DB action: real-target transition and starter/reference data are complete; app-side service aliases now normalize old Week14 labels and To Quran website labels to the app service values. On 2026-05-29 Arabic Language was added as a distinct app/public service reference row so the website can send it separately from Quranic Arabic. On 2026-06-21 Islamic Studies and Quran Literature were added as selected-only app service/subject references in production after backup/evidence; public website exposure remains the follow-up.
 
 ### TQ3. Family Workspace And Account Lifecycle Launch Verification
 
