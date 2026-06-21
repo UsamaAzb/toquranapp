@@ -1,6 +1,6 @@
 # TQ9 Demo Family History Plan
 
-Status: local implementation started; no production demo data written yet
+Status: Phases 1-2 complete locally; Phase 3 blocked on missing local `Tajweed Beginner's Book`; no production demo data written yet
 Date: 2026-06-21
 Branch: `codex/tq9-launch-readiness`
 Scope: one intentional production demo family after core app deployment smoke
@@ -23,7 +23,7 @@ This plan does not authorize production data writes by itself. The implementatio
 
 ## Implementation Evidence
 
-Local implementation started on 2026-06-21:
+Local implementation evidence as of 2026-06-21:
 
 - command added: `toquran:bootstrap-demo-family`
 - command file: `app/Console/Commands/BootstrapDemoFamily.php`

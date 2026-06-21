@@ -32,7 +32,7 @@
     # Block direct web access to framework/source directories when Hostinger
     # serves the app from the project root instead of public/.
     RewriteRule ^(?:app|bootstrap|config|database|docs|lang|resources|routes|scripts|specs|storage|tests|tmp|vendor|node_modules)(?:/|$) - [F,L]
-    RewriteRule ^(?:composer\.(?:json|lock)|package(?:-lock)?\.json|yarn\.lock|vite\.config\.js|phpunit\.xml|artisan|docker-compose\.yml|to_quran_adhkar_dua_banks\.md|.*\.(?:md|sql|log|bak)|\.env(?:\..*)?|\.git(?:/|ignore|attributes)?|\.editorconfig|\.gitattributes|\.gitignore)$ - [F,L]
+    RewriteRule ^(?:composer\.(?:json|lock)|package(?:-lock)?\.json|yarn\.lock|vite\.config\.js|phpunit\.xml|artisan|docker-compose\.yml|to_quran_adhkar_dua_banks\.md|.*\.(?:md|sql|log|bak)|\.env(?:\..*)?|\.git(?:/|ignore|attributes)?|\.editorconfig)$ - [F,L]
 
     # Handle Authorization and XSRF headers.
     RewriteCond %{HTTP:Authorization} .

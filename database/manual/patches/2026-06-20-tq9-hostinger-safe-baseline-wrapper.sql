@@ -1,4 +1,4 @@
-﻿-- TQ9 Hostinger-safe baseline wrapper
+-- TQ9 Hostinger-safe baseline wrapper
 -- Date: 2026-06-20
 -- Target: already-created and already-selected Hostinger DB u504065335_to_quran
 -- Source artifact: database/manual/patches/2026-05-28-transition-u504065335_to_quran-to-app-baseline.sql
@@ -23,28 +23,28 @@
 --   - No Week14 rows are imported; this is structure-only.
 --   - Legacy Quran video data is preserved separately for a later Library migration.
 
-DELIMITER $$
-DROP PROCEDURE IF EXISTS `_u504065335_to_quran_baseline_preflight`$$
-CREATE PROCEDURE `_u504065335_to_quran_baseline_preflight`()
-BEGIN
-    DECLARE table_count INT DEFAULT 0;
+SET @tq9_selected_database := DATABASE();
+SET @tq9_guard_sql := IF(
+    @tq9_selected_database = 'u504065335_to_quran',
+    'SELECT ''TQ9 selected database guard passed'' AS guard_status',
+    'SELECT * FROM `__ABORT_TQ9_SELECTED_DATABASE_IS_NOT_u504065335_to_quran__`'
+);
+PREPARE tq9_guard_stmt FROM @tq9_guard_sql;
+EXECUTE tq9_guard_stmt;
+DEALLOCATE PREPARE tq9_guard_stmt;
 
-    IF DATABASE() <> 'u504065335_to_quran' THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Refusing To Quran baseline: selected DB is not u504065335_to_quran';
-    END IF;
+SELECT COUNT(*) INTO @tq9_table_count
+FROM information_schema.tables
+WHERE table_schema = 'u504065335_to_quran';
 
-    SELECT COUNT(*) INTO table_count
-    FROM information_schema.tables
-    WHERE table_schema = 'u504065335_to_quran';
-
-    IF table_count > 0 THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Refusing To Quran baseline: u504065335_to_quran already contains tables';
-    END IF;
-END$$
-DELIMITER ;
-
-CALL `_u504065335_to_quran_baseline_preflight`();
-DROP PROCEDURE `_u504065335_to_quran_baseline_preflight`;
+SET @tq9_guard_sql := IF(
+    @tq9_table_count = 0,
+    'SELECT ''TQ9 empty target guard passed'' AS guard_status',
+    'SELECT * FROM `__ABORT_TQ9_TARGET_DATABASE_ALREADY_CONTAINS_TABLES__`'
+);
+PREPARE tq9_guard_stmt FROM @tq9_guard_sql;
+EXECUTE tq9_guard_stmt;
+DEALLOCATE PREPARE tq9_guard_stmt;
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;

@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class LibraryResourceValidator
 {
+    // Keep PHP/web-server upload limits at or above this value on production.
     public const MAX_UPLOAD_KB = 512000;
 
     public const ALLOWED_EXTENSIONS = [

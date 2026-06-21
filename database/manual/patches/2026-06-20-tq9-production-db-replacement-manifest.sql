@@ -30,7 +30,9 @@
 --
 -- 0.2. Confirm production target identity from the execution location:
 --      SELECT DATABASE(), USER(), @@hostname;
---      The evidence must show Hostinger, not local 127.0.0.1 / localhost.
+--      The evidence must show the Hostinger server in @@hostname.
+--      USER() may show @127.0.0.1 or @localhost when executed from the
+--      Hostinger host; do not treat that alone as local evidence.
 --
 -- 0.3. Owner must approve the exact destructive/replacement action after
 --      backup/export and identity evidence are captured.
