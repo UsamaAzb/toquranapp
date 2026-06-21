@@ -580,3 +580,46 @@
 --   /.env, /composer.json, /vendor/autoload.php, /database/, /routes/web.php.
 --   Remote scan over app/resources/public build manifest found no
 --   ToQuranPdfViewer, pdfjs-dist, or data-tq-pdf-viewer markers.
+
+-- 2026-06-22 final runtime polish and document-viewer deployment:
+-- - Local commit:
+--   7a91461 Finalize TQ9 launch readiness polish
+-- - Local code updates included:
+--   protected document viewer provider support for Google PDF viewer and
+--   Microsoft Office viewer using existing public storage URLs;
+--   explicit gold primary-color swatch in the Vuexy customizer so choosing
+--   another color does not remove the To Quran gold option;
+--   refreshed To Quran favicon assets;
+--   starter-catalog UI hardening;
+--   demo-family command/history polish.
+-- - Local verification:
+--   npm run build
+--   php artisan test tests/Unit/PrimaryColorCssTest.php \
+--     tests/Unit/TaskAttachmentPresenterTest.php
+--   Result: 15 passed, 44 assertions.
+--   php artisan test tests/Feature/CoreLms/StarterCatalogInstallerUiTest.php \
+--     tests/Feature/CoreLms/BootstrapDemoFamilyCommandTest.php
+--   Result: 4 passed, 59 assertions.
+--   php artisan test tests/Feature/CoreLms/LifecycleGateTest.php \
+--     --filter=attachment_study_viewer
+--   Result: 6 passed, 63 assertions.
+--   git diff --check returned clean.
+-- - Production deployment:
+--   Uploaded runtime files, favicons, and Vite build folders to:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard
+-- - Remote backup of replaced files:
+--   /home/u504065335/tq9-app-runtime-backup-20260622-020902
+-- - Remote cache refresh:
+--   /opt/alt/php83/usr/bin/php artisan optimize:clear
+--   /opt/alt/php83/usr/bin/php artisan config:cache
+--   /opt/alt/php83/usr/bin/php artisan route:cache
+--   /opt/alt/php83/usr/bin/php artisan view:cache
+-- - Production verification:
+--   https://app.toquran.org/login returned 200 with title To Quran | Login.
+--   https://app.toquran.org/favicon.ico returned 200 image/x-icon,
+--   length 21086.
+--   A real Tajweed Beginner's Book PDF under /storage returned 200
+--   application/pdf, length 176914.
+--   Google gview for that same production PDF returned 200 text/html.
+--   Production storage scan found no existing Office files to smoke against
+--   Microsoft viewer during this pass.
