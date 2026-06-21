@@ -432,7 +432,7 @@ $completedCount = $completedCount ?? 0;
   <ol class="breadcrumb mb-0{{ $mobileBackUrl && $breadcrumbCount > 1 ? ' breadcrumb-has-mobile-back' : '' }}">
     @if($mobileBackUrl && $breadcrumbCount > 1)
       <li class="breadcrumb-item breadcrumb-mobile-back">
-        <a href="{{ $mobileBackUrl }}" @if(! request()->is('admin*')) wire:navigate @endif aria-label="Go back">
+        <a href="{{ $mobileBackUrl }}" aria-label="Go back">
         </a>
       </li>
     @endif
@@ -442,7 +442,7 @@ $completedCount = $completedCount ?? 0;
       @endphp
       @if($url)
         <li class="breadcrumb-item breadcrumb-title active{{ $compactClass }}">
-          <a href="{{ $url }}" @if(! request()->is('admin*')) wire:navigate @endif>{{ $label }}</a>
+          <a href="{{ $url }}">{{ $label }}</a>
         </li>
       @else
         <li class="breadcrumb-item breadcrumb-current active{{ $compactClass }}" aria-current="page" title="{{ $label }}">

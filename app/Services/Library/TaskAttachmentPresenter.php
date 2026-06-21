@@ -30,6 +30,8 @@ class TaskAttachmentPresenter
     /** @var array<string, bool> */
     private array $legacyTableExists = [];
 
+    public function __construct(private readonly DocumentViewerUrlFactory $documentViewerUrlFactory) {}
+
     /**
      * @return array{
      *   id:int|null,
@@ -43,6 +45,9 @@ class TaskAttachmentPresenter
      *   download_url:string|null,
      *   embed_url:string|null,
      *   open_url:string|null,
+     *   public_url:string|null,
+     *   viewer_provider:string|null,
+     *   viewer_url:string|null,
      *   hostname:string|null,
      *   unavailable_reason:string|null
      * }
@@ -166,10 +171,17 @@ class TaskAttachmentPresenter
             'student_id' => $studentId,
         ];
 
+        $contentUrl = route($routeBase.'.file', $params);
+        $viewer = $this->documentViewerUrlFactory->forPublicStorageFile($storagePath, $extension, $contentUrl);
+
         return array_merge($this->baseItem($id, $title, $type, $extension, self::MODE_PROTECTED_FILE), [
-            'content_url' => route($routeBase.'.file', $params),
+            'content_url' => $contentUrl,
             'show_url' => route($routeBase.'.show', $params),
             'download_url' => route($routeBase.'.file', $params + ['download' => 1]),
+            'open_url' => $viewer['public_url'],
+            'public_url' => $viewer['public_url'],
+            'viewer_provider' => $viewer['provider'],
+            'viewer_url' => $viewer['viewer_url'],
         ]);
     }
 
@@ -193,10 +205,17 @@ class TaskAttachmentPresenter
             'attachment' => $attachment->getKey(),
         ];
 
+        $contentUrl = route('teacher.sessions.attachment.file', $params);
+        $viewer = $this->documentViewerUrlFactory->forPublicStorageFile($storagePath, $extension, $contentUrl);
+
         return array_merge($this->baseItem($id, $title, $type, $extension, self::MODE_PROTECTED_FILE), [
-            'content_url' => route('teacher.sessions.attachment.file', $params),
+            'content_url' => $contentUrl,
             'show_url' => route('teacher.sessions.attachment.show', $params),
             'download_url' => route('teacher.sessions.attachment.file', $params + ['download' => 1]),
+            'open_url' => $viewer['public_url'],
+            'public_url' => $viewer['public_url'],
+            'viewer_provider' => $viewer['provider'],
+            'viewer_url' => $viewer['viewer_url'],
         ]);
     }
 
@@ -221,6 +240,9 @@ class TaskAttachmentPresenter
             'download_url' => null,
             'embed_url' => null,
             'open_url' => null,
+            'public_url' => null,
+            'viewer_provider' => null,
+            'viewer_url' => null,
             'hostname' => null,
             'unavailable_reason' => null,
         ];

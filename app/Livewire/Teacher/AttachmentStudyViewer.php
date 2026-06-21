@@ -151,6 +151,7 @@ class AttachmentStudyViewer extends Component
             'video' => in_array($extension, ['mp4', 'mov', 'webm', 'm4v', 'ogv'], true),
             'audio' => in_array($extension, ['mp3', 'wav', 'ogg', 'm4a'], true),
             'pdf' => $extension === 'pdf',
+            'office' => in_array($extension, ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'], true),
         ];
     }
 
@@ -165,6 +166,8 @@ class AttachmentStudyViewer extends Component
                 (string) ($this->currentItem['content_url'] ?? ''),
                 (string) ($this->currentItem['open_url'] ?? ''),
                 (string) ($this->currentItem['embed_url'] ?? ''),
+                (string) ($this->currentItem['viewer_provider'] ?? ''),
+                (string) ($this->currentItem['viewer_url'] ?? ''),
                 $this->currentItemExtension(),
             ]));
     }

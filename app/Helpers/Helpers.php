@@ -127,7 +127,12 @@ class Helpers
 
         // Check for primary color in cookie
         if (isset($_COOKIE[$primaryColorCookieName])) {
-            $primaryColor = $_COOKIE[$primaryColorCookieName];
+            $cookiePrimaryColor = self::normalizePrimaryColor($_COOKIE[$primaryColorCookieName]);
+            $brandPrimaryColor = self::normalizePrimaryColor($data['primaryColor'] ?? null);
+
+            if ($cookiePrimaryColor && ! self::isLegacyPrimaryColor($cookiePrimaryColor, $brandPrimaryColor)) {
+                $primaryColor = $cookiePrimaryColor;
+            }
         }
 
         // Determine style based on cookies, only if not 'blank-layout'
@@ -336,6 +341,30 @@ class Helpers
   --bs-primary-contrast: {$contrastColor};
 }
 CSS;
+    }
+
+    public static function normalizePrimaryColor(?string $color): ?string
+    {
+        $color = strtolower(trim((string) $color));
+
+        return preg_match('/^#[0-9a-f]{6}$/', $color) ? $color : null;
+    }
+
+    public static function isLegacyPrimaryColor(?string $color, ?string $brandPrimaryColor = null): bool
+    {
+        $color = self::normalizePrimaryColor($color);
+        $brandPrimaryColor = self::normalizePrimaryColor($brandPrimaryColor ?? config('custom.custom.primaryColor'));
+
+        if (! $color || $color === $brandPrimaryColor) {
+            return false;
+        }
+
+        return in_array($color, [
+            '#2092ec',
+            '#696cff',
+            '#7367f0',
+            '#0d6efd',
+        ], true);
     }
 
     public static function youtubeToEmbed(string $url): string

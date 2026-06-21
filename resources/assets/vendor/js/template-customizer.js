@@ -139,7 +139,7 @@ class TemplateCustomizer {
   setColor(color, defaultChange = false) {
     // Check if color is actually different from current setting
     const currentColor = this._getSetting('PrimaryColor')
-    const defaultPrimaryColor = TemplateCustomizer.COLORS[0].color
+    const defaultPrimaryColor = this.settings.defaultPrimaryColor
 
     // Only apply changes if color is different or being explicitly set (defaultChange)
     if (color && (color !== currentColor || defaultChange)) {
@@ -1764,7 +1764,7 @@ window.onload = () => {
   }
 
   const savedColor = getCookie(cookieName) || window.templateCustomizer.settings.defaultPrimaryColor
-  const defaultPrimaryColor = TemplateCustomizer.COLORS[0].color
+  const defaultPrimaryColor = window.templateCustomizer.settings.defaultPrimaryColor
 
   // Set the color for the picker button
   const pcrButton = document.querySelector('.custom-option-content .pcr-button')

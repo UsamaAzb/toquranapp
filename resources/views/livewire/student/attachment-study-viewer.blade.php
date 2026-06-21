@@ -7,6 +7,10 @@
       $isVideo = $media['video'];
       $isAudio = $media['audio'];
       $isPdf = $media['pdf'];
+      $isOffice = $media['office'];
+      $viewerUrl = (string) ($currentItem['viewer_url'] ?? '');
+      $viewerProvider = (string) ($currentItem['viewer_provider'] ?? '');
+      $canEmbedDocument = $viewerUrl !== '' && ($isPdf || $isOffice);
       $viewerItemKey = $this->currentItemViewerKey;
     @endphp
 
@@ -154,6 +158,67 @@
               <h3>{{ $currentItem['title'] ?? 'Audio attachment' }}</h3>
               <audio controls preload="metadata" src="{{ $currentItem['content_url'] }}"></audio>
             </div>
+          @elseif($canEmbedDocument)
+            <div wire:key="{{ $viewerItemKey }}-document-shell" class="attachment-study-frame-shell attachment-study-frame-shell--document">
+              <div
+                x-cloak
+                x-show="frameLoading"
+                class="attachment-study-loading"
+                role="status"
+                aria-live="polite">
+                <span class="attachment-study-spinner" aria-hidden="true"></span>
+                <span x-text="slowFrame ? 'Still loading...' : 'Loading...'"></span>
+              </div>
+              <iframe
+                x-ref="studyFrame"
+                class="attachment-study-frame"
+                src="{{ $viewerUrl }}"
+                title="{{ $currentItem['title'] ?? 'Attachment' }}"
+                x-on:load="$dispatch('attachment-study-frame-loaded')"
+                allowfullscreen></iframe>
+              @if($viewerProvider !== 'native')
+                <div class="attachment-study-fallback-actions" aria-label="Document fallback actions">
+                  <button
+                    type="button"
+                    class="attachment-study-fallback-btn"
+                    x-on:click="
+                      frameLoading = true;
+                      slowFrame = false;
+                      clearTimeout(slowTimer);
+                      clearTimeout(fallbackTimer);
+                      slowTimer = setTimeout(() => slowFrame = true, 2500);
+                      fallbackTimer = setTimeout(() => {
+                        frameLoading = false;
+                        slowFrame = false;
+                      }, 6500);
+                      if ($refs.studyFrame) {
+                        const src = $refs.studyFrame.src;
+                        $refs.studyFrame.src = 'about:blank';
+                        $nextTick(() => $refs.studyFrame.src = src);
+                      }
+                    ">
+                    <i class="ti tabler-refresh" aria-hidden="true"></i>
+                    <span>{{ __('Retry') }}</span>
+                  </button>
+                  @if(!empty($currentItem['open_url']))
+                    <a
+                      class="attachment-study-fallback-btn"
+                      href="{{ $currentItem['open_url'] }}"
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      <i class="ti tabler-external-link" aria-hidden="true"></i>
+                      <span>{{ __('Open') }}</span>
+                    </a>
+                  @endif
+                  @if(!empty($currentItem['download_url']))
+                    <a class="attachment-study-fallback-btn" href="{{ $currentItem['download_url'] }}">
+                      <i class="ti tabler-download" aria-hidden="true"></i>
+                      <span>{{ __('Download') }}</span>
+                    </a>
+                  @endif
+                </div>
+              @endif
+            </div>
           @elseif($isPdf)
             <div wire:key="{{ $viewerItemKey }}-pdf-shell" class="attachment-study-frame-shell">
               <div
@@ -251,6 +316,11 @@
           overflow: hidden !important;
         }
 
+        body.attachment-study-viewer-open .template-customizer-open-btn,
+        body.attachment-study-viewer-open .template-customizer-toggler {
+          display: none !important;
+        }
+
         .attachment-study-viewer {
           position: fixed;
           inset: 0;
@@ -323,7 +393,7 @@
         }
 
         .attachment-study-close {
-          color: #0f67f5;
+          color: var(--bs-primary, #d1ab4d);
         }
 
         .attachment-study-count {
@@ -363,8 +433,9 @@
         .attachment-study-spinner {
           width: 34px;
           height: 34px;
-          border: 3px solid rgba(15, 103, 245, 0.18);
-          border-top-color: #0f67f5;
+          border: 3px solid rgba(209, 171, 77, 0.18);
+          border-color: color-mix(in srgb, var(--bs-primary, #d1ab4d) 18%, transparent);
+          border-top-color: var(--bs-primary, #d1ab4d);
           border-radius: 50%;
           animation: attachmentStudySpin 0.8s linear infinite;
         }
@@ -391,6 +462,46 @@
           min-width: 0;
           min-height: 0;
           display: flex;
+        }
+
+        .attachment-study-frame-shell--document {
+          background: #f4f1e9;
+        }
+
+        .attachment-study-fallback-actions {
+          position: absolute;
+          right: 12px;
+          bottom: 12px;
+          z-index: 3;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px;
+          border: 1px solid rgba(47, 51, 73, 0.12);
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.94);
+          box-shadow: 0 8px 24px rgba(47, 51, 73, 0.12);
+        }
+
+        .attachment-study-fallback-btn {
+          min-height: 32px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          padding: 6px 10px;
+          border: 1px solid rgba(47, 51, 73, 0.14);
+          border-radius: 6px;
+          background: #fff;
+          color: #2f3349;
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 1.2;
+          text-decoration: none;
+        }
+
+        .attachment-study-fallback-btn:hover {
+          color: var(--bs-primary, #d1ab4d);
         }
 
         .attachment-study-video-shell {
@@ -461,6 +572,11 @@
           color: #2f3349;
         }
 
+        .attachment-study-mini-btn:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+
         .attachment-study-zoom-level {
           min-width: 44px;
           text-align: center;
@@ -498,7 +614,7 @@
 
         .attachment-study-card-icon {
           font-size: 36px;
-          color: #0f67f5;
+          color: var(--bs-primary, #d1ab4d);
         }
 
         .attachment-study-host {
@@ -542,6 +658,19 @@
           .attachment-study-card {
             padding: 18px;
           }
+
+          .attachment-study-fallback-actions {
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            justify-content: center;
+          }
+
+          .attachment-study-fallback-btn {
+            flex: 1 1 0;
+            padding-inline: 8px;
+          }
+
         }
 
         @media (max-width: 359.98px) {

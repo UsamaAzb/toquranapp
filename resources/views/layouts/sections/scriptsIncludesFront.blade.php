@@ -1,8 +1,21 @@
 @php
   use Illuminate\Support\Facades\Vite;
+  use App\Helpers\Helpers;
 
   // Get primary color - first from cookie, then from config
-  $primaryColor = isset($_COOKIE['front-primaryColor']) ? $_COOKIE['front-primaryColor'] : $configData['color'] ?? null;
+  $brandPrimaryColor = Helpers::normalizePrimaryColor(config('custom.custom.primaryColor'));
+  $cookiePrimaryColor = isset($_COOKIE['front-primaryColor']) ? Helpers::normalizePrimaryColor($_COOKIE['front-primaryColor']) : null;
+  $primaryColor =
+      $cookiePrimaryColor && ! Helpers::isLegacyPrimaryColor($cookiePrimaryColor, $brandPrimaryColor)
+          ? $cookiePrimaryColor
+          : $configData['color'] ?? null;
+  $templateCustomizerColors = [
+      ['name' => 'brand', 'title' => 'To Quran Gold', 'color' => $brandPrimaryColor ?? '#c9a24d'],
+      ['name' => 'success', 'title' => 'Success', 'color' => '#0D9394'],
+      ['name' => 'warning', 'title' => 'Warning', 'color' => '#FFAB1D'],
+      ['name' => 'danger', 'title' => 'Danger', 'color' => '#EB3D63'],
+      ['name' => 'info', 'title' => 'Info', 'color' => '#2092EC'],
+  ];
 @endphp
 <!-- laravel style -->
 @vite(['resources/assets/vendor/js/helpers.js'])
@@ -19,6 +32,26 @@
 @if ($configData['hasCustomizer'] && $configData['displayCustomizer'])
 <script type="module">
   document.addEventListener('DOMContentLoaded', function() {
+    const legacyPrimaryColors = ['#2092ec', '#696cff', '#7367f0', '#0d6efd'];
+    const normalizeColor = color => String(color || '').trim().toLowerCase();
+    const layoutName = document.documentElement.getAttribute('data-template') || window.templateName || 'front-menu-template';
+    const localStorageColorKey = `templateCustomizer-${layoutName}--Color`;
+    const localStorageMigrationKey = `templateCustomizer-${layoutName}--ToQuranPrimaryColorMigration`;
+
+    try {
+      if (localStorage.getItem(localStorageMigrationKey) !== 'true') {
+        const savedColor = normalizeColor(localStorage.getItem(localStorageColorKey));
+
+        if (!savedColor || legacyPrimaryColors.includes(savedColor)) {
+          localStorage.removeItem(localStorageColorKey);
+        }
+
+        localStorage.setItem(localStorageMigrationKey, 'true');
+      }
+    } catch (error) {
+      console.warn('Template primary color migration skipped:', error);
+    }
+
     // Initialize template customizer after DOM is loaded
     if (window.TemplateCustomizer) {
       try {
@@ -31,7 +64,8 @@
           defaultShowDropdownOnHover: "{{ $configData['showDropdownOnHover'] }}",
           displayCustomizer: "{{ $configData['displayCustomizer'] }}",
           lang: '{{ app()->getLocale() }}',
-          'controls': <?php echo json_encode(['color', 'theme', 'rtl']); ?>,
+          availableColors: @json($templateCustomizerColors),
+          'controls': @json(['color', 'theme', 'rtl']),
         });
 
         // Ensure color is applied on page load

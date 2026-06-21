@@ -152,6 +152,28 @@
 -- - Public storage smoke:
 --   /storage/gifts/5fshNgvuWGk9u5DnqcNLdedoBzaP3kxkCbOtdXB8.png returned 200.
 --
+-- 2026-06-22 document viewer follow-up:
+-- - Deployed the scoped external document viewer code/config plus corrected
+--   root/public favicon files directly to the app path.
+-- - Remote backup before overwrite:
+--   /home/u504065335/tq9-doc-viewer-backup-20260621-222445
+-- - Refreshed Laravel caches:
+--   optimize:clear, config:cache, view:cache, route:cache.
+-- - Production favicon checks returned 200 image/x-icon with 21086 bytes:
+--   /favicon.ico
+--   /assets/img/favicon/favicon.ico
+-- - Real demo task PDF snapshot smoke:
+--   /storage/attachments/general-library-resource-181/
+--   79946e8a-65ac-4396-9211-93cacc86303d.pdf returned 200 application/pdf
+--   with 176914 bytes.
+-- - Google gview smoke for that same task snapshot returned 200 with the
+--   expected PDF title.
+-- - Production Library source files remain on Laravel local/private storage;
+--   task delivery uses public attachment snapshots, which are the URLs used
+--   by Google/Microsoft viewers.
+-- - Office-file smoke is still pending because no production Office resource
+--   existed at the time of this check.
+--
 -- Authenticated production smoke after owner-updated launch passwords:
 -- - Superadmin login succeeded for the owner account.
 -- - Superadmin routes returned 200 with no fatal/error or inherited-branding
@@ -512,3 +534,49 @@
 --   image/png length 225637.
 --   https://app.toquran.org/pwa/icons/toquran-apple-touch-icon.png returned
 --   200 image/png length 43083.
+
+-- 2026-06-21 breadcrumb/demo-title/starter-catalog follow-up:
+-- - Owner tested the local PDF.js protected-PDF experiment and rejected it
+--   because it added a second page-navigation layer and made mobile PDFs feel
+--   cramped. The PDF.js experiment was reverted before this deployment.
+-- - Local code updates kept for deployment:
+--   app/Console/Commands/BootstrapDemoFamily.php removes the visible [Demo]
+--   prefix from newly reconciled demo class-session titles while preserving
+--   idempotent lookup through TQDEMO-001 session material markers.
+--   resources/views/layouts/sections/navbar/navbar-partial.blade.php removes
+--   Livewire navigation from breadcrumb back/title links so mobile sidebar
+--   state is reset by normal page navigation.
+--   app/Livewire/Admin/StarterCatalogInstaller.php and
+--   app/Support/ToQuranAutomationCatalog/AutomationCatalogInstaller.php include
+--   starter-catalog review hardening: shared registry-table constant, explicit
+--   auth check, safer teacher id handling, and generic error logging.
+-- - Local verification:
+--   npm run build
+--   php artisan test tests/Feature/CoreLms/LifecycleGateTest.php --filter=attachment_study_viewer
+--   php artisan test tests/Feature/CoreLms/LibraryAuthTest.php \
+--     tests/Feature/CoreLms/ProtectedLibraryResourceAccessTest.php \
+--     tests/Feature/CoreLms/LibraryManagerTest.php \
+--     tests/Feature/CoreLms/BootstrapDemoFamilyCommandTest.php \
+--     tests/Feature/CoreLms/StarterCatalogInstallerUiTest.php
+--   Result: 50 passed, 305 assertions across the focused runs.
+--   git diff --check returned clean.
+-- - Production deployment:
+--   Working tree based on local HEAD 1cfb29c; deployed only runtime files:
+--   app/Console/Commands/BootstrapDemoFamily.php
+--   app/Livewire/Admin/StarterCatalogInstaller.php
+--   app/Support/ToQuranAutomationCatalog/AutomationCatalogInstaller.php
+--   resources/views/layouts/sections/navbar/navbar-partial.blade.php
+-- - Remote backup of replaced files:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard/storage/app/private/deployment-file-backups/20260621-211542-pdf-revert-navbar-catalog
+-- - Remote syntax/caches:
+--   /opt/alt/php83/usr/bin/php -l passed for all uploaded PHP/Blade files.
+--   /opt/alt/php83/usr/bin/php artisan optimize:clear
+--   /opt/alt/php83/usr/bin/php artisan config:cache
+--   /opt/alt/php83/usr/bin/php artisan route:cache
+--   /opt/alt/php83/usr/bin/php artisan view:cache
+-- - Production verification:
+--   https://app.toquran.org/login returned 200 and included To Quran branding.
+--   Source/private deny checks returned 403 for:
+--   /.env, /composer.json, /vendor/autoload.php, /database/, /routes/web.php.
+--   Remote scan over app/resources/public build manifest found no
+--   ToQuranPdfViewer, pdfjs-dist, or data-tq-pdf-viewer markers.

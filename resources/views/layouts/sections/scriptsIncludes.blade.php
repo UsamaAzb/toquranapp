@@ -1,5 +1,6 @@
 @php
   use Illuminate\Support\Facades\Vite;
+  use App\Helpers\Helpers;
 
   $menuCollapsed = $configData['menuCollapsed'] === 'layout-menu-collapsed' ? json_encode(true) : false;
 
@@ -16,10 +17,22 @@
   $isAdminLayout = !str_contains($configData['layout'] ?? '', 'front');
   $primaryColorCookieName = $isAdminLayout ? 'admin-primaryColor' : 'front-primaryColor';
 
-  // Get primary color - first from cookie, then from config
-  $primaryColor = isset($_COOKIE[$primaryColorCookieName])
-      ? $_COOKIE[$primaryColorCookieName]
-      : $configData['color'] ?? null;
+  // Get primary color - first from a non-legacy cookie, then from config
+  $brandPrimaryColor = Helpers::normalizePrimaryColor(config('custom.custom.primaryColor'));
+  $cookiePrimaryColor = isset($_COOKIE[$primaryColorCookieName])
+      ? Helpers::normalizePrimaryColor($_COOKIE[$primaryColorCookieName])
+      : null;
+  $primaryColor =
+      $cookiePrimaryColor && ! Helpers::isLegacyPrimaryColor($cookiePrimaryColor, $brandPrimaryColor)
+          ? $cookiePrimaryColor
+          : $configData['color'] ?? null;
+  $templateCustomizerColors = [
+      ['name' => 'brand', 'title' => 'To Quran Gold', 'color' => $brandPrimaryColor ?? '#c9a24d'],
+      ['name' => 'success', 'title' => 'Success', 'color' => '#0D9394'],
+      ['name' => 'warning', 'title' => 'Warning', 'color' => '#FFAB1D'],
+      ['name' => 'danger', 'title' => 'Danger', 'color' => '#EB3D63'],
+      ['name' => 'info', 'title' => 'Info', 'color' => '#2092EC'],
+  ];
 @endphp
 <!-- laravel style -->
 @vite(['resources/assets/vendor/js/helpers.js'])
@@ -37,6 +50,25 @@
 <script type="module">
   document.addEventListener('DOMContentLoaded', function() {
     const customizerControls = @json($configData['customizerControls']);
+    const legacyPrimaryColors = ['#2092ec', '#696cff', '#7367f0', '#0d6efd'];
+    const normalizeColor = color => String(color || '').trim().toLowerCase();
+    const layoutName = document.documentElement.getAttribute('data-template') || window.templateName || 'vertical-menu-template';
+    const localStorageColorKey = `templateCustomizer-${layoutName}--Color`;
+    const localStorageMigrationKey = `templateCustomizer-${layoutName}--ToQuranPrimaryColorMigration`;
+
+    try {
+      if (localStorage.getItem(localStorageMigrationKey) !== 'true') {
+        const savedColor = normalizeColor(localStorage.getItem(localStorageColorKey));
+
+        if (!savedColor || legacyPrimaryColors.includes(savedColor)) {
+          localStorage.removeItem(localStorageColorKey);
+        }
+
+        localStorage.setItem(localStorageMigrationKey, 'true');
+      }
+    } catch (error) {
+      console.warn('Template primary color migration skipped:', error);
+    }
 
     // Initialize template customizer after DOM is loaded
     if (window.TemplateCustomizer) {
@@ -56,6 +88,7 @@
           defaultShowDropdownOnHover: "{{ $configData['showDropdownOnHover'] }}",
           displayCustomizer: "{{ $configData['displayCustomizer'] }}",
           lang: '{{ app()->getLocale() }}',
+          availableColors: @json($templateCustomizerColors),
           'controls': customizerControls,
         });
 

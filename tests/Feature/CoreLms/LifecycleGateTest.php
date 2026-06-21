@@ -600,6 +600,8 @@ class LifecycleGateTest extends TestCase
 
     public function test_attachment_study_viewer_keys_media_bodies_when_navigating_between_modes(): void
     {
+        config(['filesystems.disks.public.url' => 'https://app.toquran.org/storage']);
+
         [$studentUser, $student] = $this->createStudentFamily(
             FamilyLifecycleStatus::Active->value,
             ChildAccountStatus::Active->value,
@@ -653,7 +655,13 @@ class LifecycleGateTest extends TestCase
             ->call('nextAttachment')
             ->assertSet('currentItem.id', 86)
             ->assertSet('currentItem.extension', 'pdf')
+            ->assertSet('currentItem.viewer_provider', 'google')
             ->assertSee('Reading PDF')
+            ->assertSee('<iframe', false)
+            ->assertSee('docs.google.com/gview', false)
+            ->assertSee('Open')
+            ->assertSee('Download')
+            ->assertDontSee('data-tq-pdf-canvas-viewer', false)
             ->assertSee('wire:key="viewer-item-86-1-protected_file-', false)
             ->assertDontSee('wire:key="viewer-item-85-0-protected_file-', false)
             ->call('nextAttachment')
@@ -706,6 +714,9 @@ class LifecycleGateTest extends TestCase
             ->assertSet('currentItem.content_url', asset('legacy/background/apartheid.pdf').'#toolbar=0')
             ->assertSee('wire:key="viewer-item-85-0-legacy_file-', false)
             ->assertSee(asset('legacy/background/apartheid.pdf').'#toolbar=0', false)
+            ->assertSee('<iframe', false)
+            ->assertDontSee('data-tq-pdf-canvas-viewer', false)
+            ->assertDontSee('Mobile browsers often leave protected PDF previews stuck here.', false)
             ->assertDontSee('/background/apartheid?return_to=', false)
             ->assertDontSee('sandbox="allow-same-origin allow-forms allow-scripts allow-popups allow-downloads"', false);
     }

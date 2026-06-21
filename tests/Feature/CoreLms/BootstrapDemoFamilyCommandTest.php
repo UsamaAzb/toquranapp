@@ -78,7 +78,14 @@ class BootstrapDemoFamilyCommandTest extends TestCase
         $this->assertSame('gifts/demo-family/Yusuf/Sticker-Pack.webp', $stickerImage);
         Storage::disk('public')->assertExists($stickerImage);
 
-        $this->assertGreaterThan(0, DB::table('class_sessions')->where('title', 'like', '[Demo]%')->count());
+        $demoSessionIds = DB::table('session_materials')
+            ->where('task_desc', 'like', 'TQDEMO-001%')
+            ->pluck('session_id')
+            ->filter()
+            ->values();
+
+        $this->assertGreaterThan(0, $demoSessionIds->count());
+        $this->assertSame(0, DB::table('class_sessions')->whereIn('id', $demoSessionIds)->where('title', 'like', '[Demo]%')->count());
         $this->assertGreaterThan(0, DB::table('session_materials')->where('status', 'published')->count());
         $this->assertGreaterThan(0, DB::table('session_tasks')->where('description', 'like', '%TQDEMO-001%')->count());
         $this->assertGreaterThan(0, DB::table('attachment_files')->count());

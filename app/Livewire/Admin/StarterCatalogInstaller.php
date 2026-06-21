@@ -9,14 +9,16 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use RuntimeException;
+use Throwable;
 
 class StarterCatalogInstaller extends Component
 {
-    private const REGISTRY_TABLE = 'toquran_automation_catalog_entries';
+    private const REGISTRY_TABLE = AutomationCatalogInstaller::REGISTRY_TABLE;
 
     public ?int $teacherId = null;
 
@@ -84,6 +86,13 @@ class StarterCatalogInstaller extends Component
             session()->flash('success', 'Starter catalog install completed for '.$this->lastTeacherLabel.'.');
         } catch (RuntimeException $exception) {
             $this->installerError = $exception->getMessage();
+        } catch (Throwable $exception) {
+            Log::error('Starter catalog installation failed.', [
+                'teacher_id' => $teacher->id,
+                'exception' => $exception,
+            ]);
+
+            $this->installerError = 'Starter catalog installation failed. Please check the logs and try again.';
         }
     }
 
@@ -100,7 +109,7 @@ class StarterCatalogInstaller extends Component
 
     protected function canInstallStarterCatalog(): bool
     {
-        return auth()->user()?->hasAnyRole(['admin', 'super_admin']) === true;
+        return auth()->check() && auth()->user()->hasAnyRole(['admin', 'super_admin']);
     }
 
     protected function validatedTeacher(): User
@@ -135,7 +144,7 @@ class StarterCatalogInstaller extends Component
 
     protected function registryCountForSelectedTeacher(): int
     {
-        if (! $this->teacherId || ! Schema::hasTable(self::REGISTRY_TABLE)) {
+        if (! is_int($this->teacherId) || $this->teacherId <= 0 || ! Schema::hasTable(self::REGISTRY_TABLE)) {
             return 0;
         }
 

@@ -21,7 +21,7 @@ use RuntimeException;
 
 class AutomationCatalogInstaller
 {
-    private const REGISTRY_TABLE = 'toquran_automation_catalog_entries';
+    public const REGISTRY_TABLE = 'toquran_automation_catalog_entries';
 
     public function __construct(
         private readonly StarterAutomationCatalog $catalog,

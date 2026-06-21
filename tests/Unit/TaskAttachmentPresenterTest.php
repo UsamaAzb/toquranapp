@@ -11,6 +11,8 @@ class TaskAttachmentPresenterTest extends TestCase
 {
     public function test_it_presents_protected_file_with_student_session_routes(): void
     {
+        config(['filesystems.disks.public.url' => 'https://app.toquran.org/storage']);
+
         Storage::persistentFake('public');
         Storage::disk('public')->deleteDirectory('test-task-attachment-presenter');
         Storage::disk('public')->put('test-task-attachment-presenter/file.pdf', '%PDF-1.4');
@@ -34,6 +36,122 @@ class TaskAttachmentPresenterTest extends TestCase
             'student_id' => 12,
         ]), $item['content_url']);
         $this->assertStringContainsString('download=1', $item['download_url']);
+        $this->assertSame('https://app.toquran.org/storage/test-task-attachment-presenter/file.pdf', $item['public_url']);
+        $this->assertSame($item['public_url'], $item['open_url']);
+        $this->assertSame('google', $item['viewer_provider']);
+        $this->assertStringStartsWith('https://docs.google.com/gview?embedded=true&url=', (string) $item['viewer_url']);
+
+        parse_str((string) parse_url((string) $item['viewer_url'], PHP_URL_QUERY), $query);
+
+        $this->assertSame($item['public_url'], $query['url'] ?? null);
+    }
+
+    public function test_it_percent_encodes_public_file_urls_by_path_segment(): void
+    {
+        config(['filesystems.disks.public.url' => 'https://app.toquran.org/storage']);
+
+        Storage::persistentFake('public');
+        Storage::disk('public')->deleteDirectory('test-task-attachment-presenter');
+        Storage::disk('public')->put('test-task-attachment-presenter/Arabic File اسم.pdf', '%PDF-1.4');
+
+        $item = app(TaskAttachmentPresenter::class)->forLearner(
+            $this->attachment([
+                'id' => 98,
+                'type' => 'file',
+                'path' => 'test-task-attachment-presenter/Arabic File اسم.pdf',
+                'title' => 'Arabic File اسم.pdf',
+            ]),
+            60,
+            12,
+        );
+
+        $this->assertSame('https://app.toquran.org/storage/test-task-attachment-presenter/Arabic%20File%20%D8%A7%D8%B3%D9%85.pdf', $item['public_url']);
+
+        parse_str((string) parse_url((string) $item['viewer_url'], PHP_URL_QUERY), $query);
+
+        $this->assertSame($item['public_url'], $query['url'] ?? null);
+    }
+
+    public function test_it_can_roll_pdf_preview_back_to_native_provider(): void
+    {
+        config([
+            'document-viewer.pdf_provider' => 'native',
+            'filesystems.disks.public.url' => 'https://app.toquran.org/storage',
+        ]);
+
+        Storage::persistentFake('public');
+        Storage::disk('public')->deleteDirectory('test-task-attachment-presenter');
+        Storage::disk('public')->put('test-task-attachment-presenter/file.pdf', '%PDF-1.4');
+
+        $item = app(TaskAttachmentPresenter::class)->forLearner(
+            $this->attachment([
+                'id' => 99,
+                'type' => 'file',
+                'path' => 'test-task-attachment-presenter/file.pdf',
+                'title' => 'Protected PDF',
+            ]),
+            60,
+            12,
+        );
+
+        $this->assertSame('native', $item['viewer_provider']);
+        $this->assertSame($item['content_url'], $item['viewer_url']);
+        $this->assertSame('https://app.toquran.org/storage/test-task-attachment-presenter/file.pdf', $item['public_url']);
+    }
+
+    public function test_it_uses_native_pdf_preview_for_loopback_public_urls(): void
+    {
+        config([
+            'document-viewer.pdf_provider' => 'google',
+            'filesystems.disks.public.url' => 'http://127.0.0.1:8014/storage',
+        ]);
+
+        Storage::persistentFake('public');
+        Storage::disk('public')->deleteDirectory('test-task-attachment-presenter');
+        Storage::disk('public')->put('test-task-attachment-presenter/file.pdf', '%PDF-1.4');
+
+        $item = app(TaskAttachmentPresenter::class)->forLearner(
+            $this->attachment([
+                'id' => 101,
+                'type' => 'file',
+                'path' => 'test-task-attachment-presenter/file.pdf',
+                'title' => 'Protected PDF',
+            ]),
+            60,
+            12,
+        );
+
+        $this->assertSame('native', $item['viewer_provider']);
+        $this->assertSame($item['content_url'], $item['viewer_url']);
+        $this->assertSame('http://127.0.0.1:8014/storage/test-task-attachment-presenter/file.pdf', $item['public_url']);
+    }
+
+    public function test_it_presents_office_files_with_microsoft_viewer(): void
+    {
+        config(['filesystems.disks.public.url' => 'https://app.toquran.org/storage']);
+
+        Storage::persistentFake('public');
+        Storage::disk('public')->deleteDirectory('test-task-attachment-presenter');
+        Storage::disk('public')->put('test-task-attachment-presenter/lesson plan.docx', 'office body');
+
+        $item = app(TaskAttachmentPresenter::class)->forLearner(
+            $this->attachment([
+                'id' => 100,
+                'type' => 'file',
+                'path' => 'test-task-attachment-presenter/lesson plan.docx',
+                'title' => 'Lesson Plan.docx',
+            ]),
+            60,
+            12,
+        );
+
+        $this->assertSame('microsoft', $item['viewer_provider']);
+        $this->assertSame('https://app.toquran.org/storage/test-task-attachment-presenter/lesson%20plan.docx', $item['public_url']);
+        $this->assertStringStartsWith('https://view.officeapps.live.com/op/embed.aspx?src=', (string) $item['viewer_url']);
+
+        parse_str((string) parse_url((string) $item['viewer_url'], PHP_URL_QUERY), $query);
+
+        $this->assertSame($item['public_url'], $query['src'] ?? null);
     }
 
     public function test_it_presents_journey_file_with_journey_routes(): void

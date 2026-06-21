@@ -799,24 +799,41 @@ class BootstrapDemoFamily extends Command
         $studentSubject = $this->activeStudentSubject($student, $subjectId);
         $teacherSubjectClass = $this->teacherSubjectClassFor($studentSubject, $subjectId);
         $teacher = $this->context['teacher'];
+        $materialKey = self::FAMILY_REFERENCE.' '.$key;
+        $sessionAttributes = [
+            'teacher_subject_classes_id' => $teacherSubjectClass->id,
+            'class_id' => $student->current_class_id,
+            'subject_id' => $subjectId,
+            'date' => $date->toDateString(),
+            'title' => $title,
+            'grade_id' => $student->grade_level_id ?: 2,
+            'teacher_id' => $teacher->id,
+            'unit_id' => 0,
+            'session_start_time' => '18:00:00',
+            'session_end_time' => '18:30:00',
+            'class_subject_id' => $studentSubject->class_subject_id,
+        ];
 
-        $session = ClassSession::query()->updateOrCreate(
-            [
-                'teacher_subject_classes_id' => $teacherSubjectClass->id,
-                'class_id' => $student->current_class_id,
-                'subject_id' => $subjectId,
-                'date' => $date->toDateString(),
-                'title' => '[Demo] '.$title,
-            ],
-            [
-                'grade_id' => $student->grade_level_id ?: 2,
-                'teacher_id' => $teacher->id,
-                'unit_id' => 0,
-                'session_start_time' => '18:00:00',
-                'session_end_time' => '18:30:00',
-                'class_subject_id' => $studentSubject->class_subject_id,
-            ]
-        );
+        $session = SessionMaterial::query()
+            ->where('task_desc', $materialKey)
+            ->first()
+            ?->classSession;
+
+        if (! $session instanceof ClassSession) {
+            $session = ClassSession::query()
+                ->where('teacher_subject_classes_id', $teacherSubjectClass->id)
+                ->where('class_id', $student->current_class_id)
+                ->where('subject_id', $subjectId)
+                ->where('date', $date->toDateString())
+                ->where('title', '[Demo] '.$title)
+                ->first();
+        }
+
+        if ($session instanceof ClassSession) {
+            $session->update($sessionAttributes);
+        } else {
+            $session = ClassSession::query()->create($sessionAttributes);
+        }
 
         $material = SessionMaterial::query()->updateOrCreate(
             ['session_id' => $session->id],
@@ -828,7 +845,7 @@ class BootstrapDemoFamily extends Command
                 'unit_id' => 0,
                 'status' => 'published',
                 'assign_to_all' => 'custom',
-                'task_desc' => self::FAMILY_REFERENCE.' '.$key,
+                'task_desc' => $materialKey,
                 'class_work_desc' => null,
             ]
         );

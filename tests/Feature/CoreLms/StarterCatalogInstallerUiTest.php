@@ -133,8 +133,8 @@ class StarterCatalogInstallerUiTest extends TestCase
             $table->string('entry_key', 191);
             $table->string('target_table', 128);
             $table->unsignedBigInteger('target_id');
-            $table->integer('teacher_user_id');
-            $table->integer('subject_id');
+            $table->unsignedBigInteger('teacher_user_id');
+            $table->unsignedBigInteger('subject_id');
             $table->string('installed_version', 80);
             $table->char('manifest_hash', 64);
             $table->json('metadata')->nullable();
