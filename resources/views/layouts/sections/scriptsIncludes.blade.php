@@ -31,7 +31,7 @@
       ['name' => 'success', 'title' => 'Success', 'color' => '#0D9394'],
       ['name' => 'warning', 'title' => 'Warning', 'color' => '#FFAB1D'],
       ['name' => 'danger', 'title' => 'Danger', 'color' => '#EB3D63'],
-      ['name' => 'info', 'title' => 'Info', 'color' => '#2092EC'],
+      ['name' => 'info', 'title' => 'Info', 'color' => '#1684d8'],
   ];
 @endphp
 <!-- laravel style -->

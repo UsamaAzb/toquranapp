@@ -41,4 +41,15 @@ class PrimaryColorCssTest extends TestCase
             unset($_COOKIE['admin-primaryColor']);
         }
     }
+
+    public function test_customizer_blue_swatch_is_not_a_legacy_reset_color(): void
+    {
+        $adminScripts = file_get_contents(resource_path('views/layouts/sections/scriptsIncludes.blade.php'));
+        $frontScripts = file_get_contents(resource_path('views/layouts/sections/scriptsIncludesFront.blade.php'));
+
+        $this->assertStringNotContainsString("'color' => '#2092EC'", $adminScripts);
+        $this->assertStringNotContainsString("'color' => '#2092EC'", $frontScripts);
+        $this->assertStringContainsString("'color' => '#1684d8'", $adminScripts);
+        $this->assertStringContainsString("'color' => '#1684d8'", $frontScripts);
+    }
 }
