@@ -21,6 +21,9 @@
     .shadow_success{
         box-shadow: 0 .35rem .85rem rgba(40, 199, 111, .22) !important;
     }
+    .shadow_primary{
+        box-shadow: 0 .35rem .85rem rgba(var(--bs-primary-rgb), .22) !important;
+    }
     .shadow_warning{
         box-shadow: 0 .35rem .85rem rgba(255, 159, 67, .2) !important;
     }
@@ -138,9 +141,9 @@
   /*  user-select: none;*/
   /*  font-weight: 600;*/
   /*}*/
-  .points-theme-success .point-pill input:checked + .point-circle{
+  .points-theme-primary .point-pill input:checked + .point-circle{
     border-width: 2px;
-    background-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-success));
+    background-color: color-mix(in sRGB, var(--bs-paper-bg) var(--bs-bg-label-tint-amount), var(--bs-primary));
   }
   .points-theme-warning .point-pill input:checked + .point-circle{
     border-width: 2px;
@@ -501,7 +504,7 @@
     overflow-wrap: anywhere;
   }
 
-  .points-history-filter-success { --history-filter-tone: var(--bs-success); }
+  .points-history-filter-primary { --history-filter-tone: var(--bs-primary); }
   .points-history-filter-warning { --history-filter-tone: var(--bs-warning); }
   .points-history-filter-danger { --history-filter-tone: var(--bs-danger); }
   .points-history-filter-info { --history-filter-tone: var(--bs-info); }
@@ -536,7 +539,7 @@
     padding: .85rem .95rem;
   }
 
-  .points-history-card-positive { --history-accent: var(--bs-success); }
+  .points-history-card-positive { --history-accent: var(--bs-primary); }
   .points-history-card-slip { --history-accent: var(--bs-warning); }
   .points-history-card-no-way { --history-accent: var(--bs-danger); }
   .points-history-card-consequences { --history-accent: var(--bs-info); }
@@ -876,7 +879,7 @@
 
 @php
   $tabColor = [
-    'Positive' => 'success',
+    'Positive' => 'primary',
     'Slip'     => 'warning',
     'No Way'   => 'danger',
   ];
@@ -1086,7 +1089,7 @@
 
         <p class="fs-6 mb-0" style="color: #333;">
           {{ $recentAward['type'] === 'Positive' ? '+' : '-' }}{{ $recentAward['points'] }}
-          <span style="color: {{ $recentAward['type'] === 'Positive' ? '#28a745' : '#d9534f' }};">
+          <span style="color: {{ $recentAward['type'] === 'Positive' ? 'var(--bs-primary)' : '#d9534f' }};">
             for {{ $recentAward['title'] }}
           </span>
         </p>
@@ -1131,7 +1134,7 @@
  
      @php
   $tabColor = [
-    'Positive' => 'success',
+    'Positive' => 'primary',
     'Slip'     => 'warning',
     'No Way'   => 'danger',
   ];
@@ -1158,7 +1161,7 @@
   $negLen = $circ * $negRatio;       // طول الأحمر
 
   // ألوان
-  $greenDark  = '#2092EC';           // Positive
+  $greenDark  = 'var(--bs-primary)'; // Positive
   $redDark    = '#ef5350cf';           // Needs-work
   $ringBg     = '#e9ecef';           // خلفية فاتحة محايدة
 
@@ -1307,7 +1310,7 @@
 @endphp
 
 <div class="col-sm-6 col-md-4 col-xl-3 col-lg-3 col-12 ">
-  <div class="card h-100 bg-label-success points-analysis-card" style="border-radius: 18px;">
+  <div class="card h-100 bg-label-primary points-analysis-card" style="border-radius: 18px;">
 
   
 
@@ -1338,7 +1341,7 @@
       <div class="d-flex align-items-center mt-3 mb-0">
         <div class="progress w-100 points-analysis-progress">
           <div
-            class="progress-bar bg-success"
+            class="progress-bar bg-primary"
             style="width: {{ $posPct }}%"
             role="progressbar"
             aria-valuenow="{{ $posPct }}"
@@ -1411,7 +1414,7 @@
  @if(in_array($activeTab, ['Positive','Slip','No Way']))
   @php
     $badgeColor = match ($activeTab) {
-      'Positive' => 'success',
+      'Positive' => 'primary',
       'Slip'     => 'warning',
       'No Way'   => 'danger',
       default    => 'primary',
@@ -1515,7 +1518,7 @@
         {{-- Behavior Description --}}
         <p class="fs-5 mb-0" style="color: #333;">
           {{ $recentAward['type'] === 'Positive' ? '+' : '−' }}{{ $recentAward['points'] }}
-          <span style="color: {{ $recentAward['type'] === 'Positive' ? '#28a745' : '#d9534f' }};">
+          <span style="color: {{ $recentAward['type'] === 'Positive' ? 'var(--bs-primary)' : '#d9534f' }};">
             for {{ $recentAward['title'] }}
           </span>
         </p>
@@ -1774,7 +1777,7 @@
           <div class="d-flex flex-column" style="font-size:18px">
               <div class="d-flex align-items-start gap-2 flex-column flex-lg-row  flex-md-row flex-sm-row ">
 
-                             <span class="badge @if($row['type'] == 'Positive') bg-label-success @elseif($row['type'] == 'Slip')  bg-label-warning @else bg-label-danger @endif"> {{ $rowTypeLabel }}</span>
+                             <span class="badge @if($row['type'] == 'Positive') bg-label-primary @elseif($row['type'] == 'Slip')  bg-label-warning @else bg-label-danger @endif"> {{ $rowTypeLabel }}</span>
             <div class="fw-semibold">
              {{ $row['title'] }}
             </div>
@@ -1805,7 +1808,7 @@
 
           {{-- اليمين: النقاط + الأيقونة --}}
           <div class="d-flex align-items-center gap-3">
-            <div class="fw-bold {{ $isPositive ? 'text-success' : 'text-danger' }}">
+            <div class="fw-bold {{ $isPositive ? 'text-primary' : 'text-danger' }}">
               {{ $isPositive ? '+' : '−' }}{{ $row['points'] }} pts
             </div>
 
@@ -1874,7 +1877,7 @@
 
                     <div class="d-flex align-items-start gap-2 flex-column flex-lg-row">
                       <span class="badge
-                        @if($row['type'] == 'Positive') bg-label-success
+                        @if($row['type'] == 'Positive') bg-label-primary
                         @elseif($row['type'] == 'Slip') bg-label-warning
                         @else bg-label-danger
                         @endif
@@ -1899,7 +1902,7 @@
                   </div>
 
                   <div class="d-flex align-items-center gap-3">
-                    <div class="fw-bold {{ $isPositive ? 'text-success' : 'text-danger' }}">
+                    <div class="fw-bold {{ $isPositive ? 'text-primary' : 'text-danger' }}">
                       {{ $isPositive ? '+' : '−' }}{{ $row['points'] }} pts
                     </div>
 

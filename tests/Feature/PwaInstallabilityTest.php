@@ -21,10 +21,14 @@ class PwaInstallabilityTest extends TestCase
         $this->assertSame('/login', $manifest['start_url']);
         $this->assertSame('/', $manifest['scope']);
         $this->assertSame('standalone', $manifest['display']);
+        $this->assertSame('#c9a24d', $manifest['theme_color']);
         $this->assertFalse($manifest['prefer_related_applications']);
         $this->assertContains('192x192', array_column($manifest['icons'], 'sizes'));
         $this->assertContains('512x512', array_column($manifest['icons'], 'sizes'));
         $this->assertContains('maskable', array_column($manifest['icons'], 'purpose'));
+        $this->assertFileExists(public_path('pwa/icons/toquran-icon-192.png'));
+        $this->assertFileExists(public_path('pwa/icons/toquran-icon-512.png'));
+        $this->assertFileExists(public_path('pwa/icons/toquran-maskable-512.png'));
     }
 
     public function test_login_shell_includes_pwa_metadata_without_custom_prompt_script(): void
@@ -46,6 +50,7 @@ class PwaInstallabilityTest extends TestCase
         $meta = view('pwa.meta')->render();
 
         $this->assertStringContainsString('rel="manifest"', $meta);
+        $this->assertStringContainsString('#c9a24d', $meta);
         $this->assertStringContainsString('apple-mobile-web-app-capable', $meta);
         $this->assertStringContainsString('apple-mobile-web-app-status-bar-style', $meta);
         $this->assertStringContainsString('apple-mobile-web-app-title', $meta);

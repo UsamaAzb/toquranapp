@@ -434,7 +434,7 @@ class RewardDisciplinePoints extends Component
     public function historyFilters(): array
     {
         return [
-            ['label' => 'Good', 'value' => 'Positive', 'color' => 'success', 'icon' => 'tabler-thumb-up'],
+            ['label' => 'Good', 'value' => 'Positive', 'color' => 'primary', 'icon' => 'tabler-thumb-up'],
             ['label' => 'Slips', 'value' => 'Slip', 'color' => 'warning', 'icon' => 'tabler-alert-circle'],
             ['label' => 'Red Flag', 'value' => 'No Way', 'color' => 'danger', 'icon' => 'tabler-alert-triangle'],
             ['label' => 'Consequences', 'value' => 'Consequences', 'color' => 'info', 'icon' => 'tabler-clipboard-list'],
@@ -572,7 +572,7 @@ class RewardDisciplinePoints extends Component
     protected static function behaviorTypeColor(?string $type): string
     {
         return match ($type) {
-            'Positive' => 'success',
+            'Positive' => 'primary',
             'Slip' => 'warning',
             'No Way' => 'danger',
             default => 'primary',

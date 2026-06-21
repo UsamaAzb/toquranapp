@@ -453,3 +453,62 @@
 --   blank_future=0
 --   gift_11_reached=0
 -- - Temporary production verification script was deleted after use.
+
+-- 2026-06-21 PWA icon and Behavior Lab theme-color polish:
+-- - Owner requested:
+--   1) app install icon should show To Quran branding instead of the temporary
+--      TQ shortcut icon;
+--   2) green Positive/Behavior Lab card tones should use the To Quran theme
+--      color.
+-- - Local code/assets changed:
+--   app/Http/Controllers/PwaController.php now exposes manifest theme_color
+--   #c9a24d.
+--   public/pwa/icons/toquran-*.png were regenerated from the gold To Quran
+--   tree/book mark asset.
+--   app/Livewire/Teacher/RewardDisciplinePoints.php and
+--   resources/views/livewire/teacher/reward-discipline-points.blade.php now
+--   render Positive Behavior Lab controls, cards, counts, history badges, and
+--   analysis bars with Bootstrap primary/theme color instead of success green.
+--   tests/Feature/PwaInstallabilityTest.php now asserts the gold manifest theme
+--   color and required icon files.
+-- - Local verification:
+--   php -l app/Http/Controllers/PwaController.php
+--   php -l app/Livewire/Teacher/RewardDisciplinePoints.php
+--   php artisan test tests/Feature/PwaInstallabilityTest.php
+--   Result: 3 passed, 32 assertions.
+--   php artisan test tests/Feature/AdminRewardDisciplinePointsTest.php
+--   Result: 1 passed, 6 assertions.
+--   php artisan test tests/Unit/BookingServiceInterestTest.php \
+--     tests/Feature/BookingTransferGatingTest.php \
+--     --filter "selected|service|Islamic|Quran Literature|optional|subject"
+--   Result: 13 passed, 93 assertions.
+-- - Production deployment:
+--   Uploaded only:
+--   app/Http/Controllers/PwaController.php
+--   app/Livewire/Teacher/RewardDisciplinePoints.php
+--   resources/views/livewire/teacher/reward-discipline-points.blade.php
+--   public/pwa/icons/toquran-apple-touch-icon.png
+--   public/pwa/icons/toquran-icon-192.png
+--   public/pwa/icons/toquran-icon-512.png
+--   public/pwa/icons/toquran-maskable-512.png
+--   Remote syntax/caches:
+--   /opt/alt/php83/usr/bin/php -l app/Http/Controllers/PwaController.php
+--   /opt/alt/php83/usr/bin/php -l app/Livewire/Teacher/RewardDisciplinePoints.php
+--   /opt/alt/php83/usr/bin/php artisan optimize:clear
+--   /opt/alt/php83/usr/bin/php artisan config:cache
+--   /opt/alt/php83/usr/bin/php artisan route:cache
+--   /opt/alt/php83/usr/bin/php artisan view:cache
+-- - Public HTTP verification:
+--   https://app.toquran.org/login returned 200 and included manifest,
+--   #c9a24d theme-color, and toquran-apple-touch-icon.png.
+--   https://app.toquran.org/manifest.webmanifest returned 200,
+--   Content-Type application/manifest+json; charset=UTF-8, and
+--   theme_color #c9a24d.
+--   https://app.toquran.org/pwa/icons/toquran-icon-192.png returned 200
+--   image/png length 48404.
+--   https://app.toquran.org/pwa/icons/toquran-icon-512.png returned 200
+--   image/png length 318462.
+--   https://app.toquran.org/pwa/icons/toquran-maskable-512.png returned 200
+--   image/png length 225637.
+--   https://app.toquran.org/pwa/icons/toquran-apple-touch-icon.png returned
+--   200 image/png length 43083.
