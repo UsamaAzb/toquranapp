@@ -43,7 +43,7 @@
         <div class="d-flex align-items-center">
           <div class="avatar me-4">
             <span class="avatar-initial rounded bg-label-primary">
-              <i class="icon-base ti tabler-stack-push icon-28px"></i>
+              <i class="icon-base ti tabler-package icon-28px"></i>
             </span>
           </div>
           <div>
@@ -123,7 +123,7 @@
           </div>
 
           <button type="button" class="btn btn-primary" wire:click="installCatalog" wire:loading.attr="disabled">
-            <i class="icon-base ti tabler-stack-push me-1"></i>
+            <i class="icon-base ti tabler-package me-1"></i>
             Install Starter Catalog
           </button>
         </div>

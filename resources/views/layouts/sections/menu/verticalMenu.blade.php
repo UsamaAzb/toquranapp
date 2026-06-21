@@ -91,7 +91,7 @@ $canAccessTransferredFamilies = auth()->check() && $user?->hasAnyRole(['admin', 
             <a href="{{ route('admin.starter-catalog-installer.index') }}"
                class="menu-link"
             >
-              <i class="menu-icon icon-base ti tabler-stack-push"></i>
+              <i class="menu-icon icon-base ti tabler-package"></i>
               <div>Starter Catalog</div>
             </a>
           </li>
