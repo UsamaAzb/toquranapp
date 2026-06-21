@@ -1737,6 +1737,29 @@ class BookingMilestoneTest extends TestCase
             ->assertDontSee('checked value="Help Me Study"', false);
     }
 
+    public function test_original_service_labels_prefer_current_child_values_over_booking_summary(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $child = $this->createBookingChild([
+            'service_interest' => 'Smoke Islamic Studies Child: Islamic Studies | Smoke Quran Literature Child: Quran Literature, Quran Memorization',
+        ], [
+            'service_interests' => ['Islamic Studies'],
+        ]);
+
+        $component = Livewire::test(BookingChildEdit::class, ['bookingChild' => $child])
+            ->assertSet('serviceInterests', ['Islamic Studies'])
+            ->assertSee('Islamic Studies')
+            ->assertSee('Available service option for this child')
+            ->assertDontSee('Available support line for this child')
+            ->assertDontSee('Smoke Quran Literature Child', false);
+
+        $originalValues = new \ReflectionMethod(BookingChildEdit::class, 'originalBookingServiceValues');
+        $originalValues->setAccessible(true);
+
+        $this->assertSame(['Islamic Studies'], $originalValues->invoke($component->instance()));
+    }
+
     public function test_child_edit_service_options_filter_internal_values_consistently(): void
     {
         $this->actingAs(User::factory()->create());

@@ -1092,12 +1092,8 @@ class BookingChildEdit extends Component
 
     protected function originalBookingServiceInterests(): array
     {
-        if (! filled($this->child->booking?->service_interest)) {
-            return [];
-        }
-
-        return collect(explode(',', (string) $this->child->booking->service_interest))
-            ->map(fn (string $value) => BookingServiceInterest::display(trim($value)))
+        return collect($this->originalBookingServiceValues())
+            ->map(fn (string $value) => BookingServiceInterest::display($value))
             ->filter()
             ->unique()
             ->values()
@@ -1106,11 +1102,21 @@ class BookingChildEdit extends Component
 
     protected function originalBookingServiceValues(): array
     {
+        $childServiceValues = collect($this->child->service_interests ?? [])
+            ->map(fn ($value) => BookingServiceInterest::normalize(is_string($value) ? trim($value) : $value))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($childServiceValues->isNotEmpty()) {
+            return $childServiceValues->all();
+        }
+
         if (! filled($this->child->booking?->service_interest)) {
             return [];
         }
 
-        return collect(explode(',', (string) $this->child->booking->service_interest))
+        return collect(preg_split('/[,|]/', (string) $this->child->booking->service_interest) ?: [])
             ->map(fn (string $value) => BookingServiceInterest::normalize(trim($value)))
             ->filter()
             ->unique()

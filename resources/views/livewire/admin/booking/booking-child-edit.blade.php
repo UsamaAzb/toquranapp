@@ -237,7 +237,7 @@
                 @if ($originalBookingServiceInterests !== [])
                   <div class="d-flex flex-wrap gap-2 mt-2">
                     @foreach ($originalBookingServiceInterests as $serviceLabel)
-                      <span class="badge bg-label-primary">{{ $serviceLabel }}</span>
+                      <span class="badge bg-label-primary text-wrap text-start" style="max-width: 100%; overflow-wrap: anywhere;">{{ $serviceLabel }}</span>
                     @endforeach
                   </div>
                 @else
@@ -719,7 +719,7 @@
                                   @if ($fromOriginal)
                                     Original booking choice
                                   @else
-                                    Available support line for this child
+                                    Available service option for this child
                                   @endif
                                 </span>
                               </span>
