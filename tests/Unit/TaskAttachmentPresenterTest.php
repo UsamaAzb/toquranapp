@@ -96,6 +96,7 @@ class TaskAttachmentPresenterTest extends TestCase
 
         $this->assertSame('native', $item['viewer_provider']);
         $this->assertSame($item['content_url'], $item['viewer_url']);
+        $this->assertSame($item['content_url'], $item['open_url']);
         $this->assertSame('https://app.toquran.org/storage/test-task-attachment-presenter/file.pdf', $item['public_url']);
     }
 
@@ -123,6 +124,7 @@ class TaskAttachmentPresenterTest extends TestCase
 
         $this->assertSame('native', $item['viewer_provider']);
         $this->assertSame($item['content_url'], $item['viewer_url']);
+        $this->assertSame($item['content_url'], $item['open_url']);
         $this->assertSame('http://127.0.0.1:8014/storage/test-task-attachment-presenter/file.pdf', $item['public_url']);
     }
 
@@ -147,6 +149,7 @@ class TaskAttachmentPresenterTest extends TestCase
 
         $this->assertSame('microsoft', $item['viewer_provider']);
         $this->assertSame('https://app.toquran.org/storage/test-task-attachment-presenter/lesson%20plan.docx', $item['public_url']);
+        $this->assertSame($item['public_url'], $item['open_url']);
         $this->assertStringStartsWith('https://view.officeapps.live.com/op/embed.aspx?src=', (string) $item['viewer_url']);
 
         parse_str((string) parse_url((string) $item['viewer_url'], PHP_URL_QUERY), $query);

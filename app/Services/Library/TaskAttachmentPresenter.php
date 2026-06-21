@@ -178,7 +178,7 @@ class TaskAttachmentPresenter
             'content_url' => $contentUrl,
             'show_url' => route($routeBase.'.show', $params),
             'download_url' => route($routeBase.'.file', $params + ['download' => 1]),
-            'open_url' => $viewer['public_url'],
+            'open_url' => $this->openUrlForViewer($viewer, $contentUrl),
             'public_url' => $viewer['public_url'],
             'viewer_provider' => $viewer['provider'],
             'viewer_url' => $viewer['viewer_url'],
@@ -212,11 +212,22 @@ class TaskAttachmentPresenter
             'content_url' => $contentUrl,
             'show_url' => route('teacher.sessions.attachment.show', $params),
             'download_url' => route('teacher.sessions.attachment.file', $params + ['download' => 1]),
-            'open_url' => $viewer['public_url'],
+            'open_url' => $this->openUrlForViewer($viewer, $contentUrl),
             'public_url' => $viewer['public_url'],
             'viewer_provider' => $viewer['provider'],
             'viewer_url' => $viewer['viewer_url'],
         ]);
+    }
+
+    /** @param array{provider:string, viewer_url:string|null, public_url:string|null} $viewer */
+    private function openUrlForViewer(array $viewer, string $contentUrl): string
+    {
+        return in_array($viewer['provider'], [
+            DocumentViewerUrlFactory::PROVIDER_GOOGLE,
+            DocumentViewerUrlFactory::PROVIDER_MICROSOFT,
+        ], true)
+            ? (string) $viewer['public_url']
+            : $contentUrl;
     }
 
     private function unavailableItem(?int $id, string $title, string $type, string $extension, string $reason): array
