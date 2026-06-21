@@ -420,3 +420,36 @@
 -- - Public file smoke:
 --   https://app.toquran.org/storage/gifts/CI5BwKkXldGbSbE1NGdOVD3gFwEbvNLuZvN7cU7r.webp
 --   returned 200 image/webp, length 82680.
+
+-- 2026-06-21 demo family Points Lab history expansion:
+-- - Owner requested a richer showcase history where behavior cards show many
+--   different count bubbles such as 25, 18, 50, and 31 for each child.
+-- - Local code update:
+--   app/Console/Commands/BootstrapDemoFamily.php now seeds a curated
+--   per-child Points Lab distribution across Positive, Slip, and a small
+--   number of Red Flag cards. The command deletes/recreates only its known
+--   demo timestamps, then reconciles reward ledger/totals back to the existing
+--   demo gift-point targets so gift #11 remains open.
+-- - Local verification:
+--   php artisan test tests/Feature/CoreLms/BootstrapDemoFamilyCommandTest.php \
+--     tests/Feature/MyDeenJourneyLaunchDefaultsTest.php \
+--     tests/Feature/AdminRewardDisciplinePointsTest.php
+--   Result: 7 passed, 66 assertions.
+-- - Production deployment:
+--   Deployed app/Console/Commands/BootstrapDemoFamily.php only.
+--   /opt/alt/php83/usr/bin/php -l app/Console/Commands/BootstrapDemoFamily.php
+--   returned no syntax errors.
+--   Ran:
+--   /opt/alt/php83/usr/bin/php artisan optimize:clear
+--   /opt/alt/php83/usr/bin/php artisan toquran:bootstrap-demo-family \
+--     --confirm-db=u504065335_to_quran
+-- - Production verification:
+--   linked demo discipline rows for the three students=988
+--   Yusuf Good Effort=31
+--   Maryam Responsibility=50
+--   Omar Self-Control=50
+--   Omar Good Deed=40
+--   future_images=30
+--   blank_future=0
+--   gift_11_reached=0
+-- - Temporary production verification script was deleted after use.

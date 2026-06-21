@@ -1064,55 +1064,184 @@ class BootstrapDemoFamily extends Command
     {
         app(MyDeenJourneyLaunchDefaults::class)->ensureBehaviorTemplates($student->id);
 
-        $behaviors = match ($childKey) {
-            'yusuf' => [
-                ['Good Effort', 'Positive', 4, 'Tried again after a difficult ayah.'],
-                ['Good Adab', 'Positive', 3, 'Started class with good adab.'],
-                ['Low Practice', 'Slip', 1, 'Needed one reminder to slow down during recitation.'],
-                ['Responsibility', 'Positive', 2, 'Cleaned toys before class.'],
-            ],
-            'maryam' => [
-                ['Responsibility', 'Positive', 5, 'Marked all Salahs for the day.'],
-                ['Helping Others', 'Positive', 3, 'Helped Yusuf prepare his page.'],
-                ['Task Not Done', 'Slip', 1, 'Needed a parent reminder.'],
-                ['Focused', 'Positive', 4, 'Read the page carefully.'],
-            ],
-            default => [
-                ['Responsibility', 'Positive', 5, 'Kept mosque Salah habit.'],
-                ['Helping Others', 'Positive', 4, 'Helped with page review.'],
-                ['Device Slip', 'Slip', 2, 'Needed a device reminder.'],
-                ['Self-Control', 'Positive', 4, 'Reviewed without rushing.'],
-            ],
-        };
-
         $teacherSubjectClass = $this->teacherSubjectClassFor(
             $this->activeStudentSubject($student, $this->subjects['deen']),
             $this->subjects['deen']
         );
+        $events = $this->demoBehaviorEvents($childKey);
+        $createdAtStamps = array_column($events, 'created_at');
+        $legacyCreatedAtStamps = collect([0, 1, 2, 3])
+            ->map(fn (int $index): string => CarbonImmutable::parse('2026-06-05')->addDays($index * 4)->toDateTimeString())
+            ->all();
 
-        foreach ($behaviors as $index => [$title, $type, $points, $description]) {
-            $createdAt = CarbonImmutable::parse('2026-06-05')->addDays($index * 4)->toDateTimeString();
-            $behaviorTemplate = $this->rewardBehaviorTemplate($student, $title, $type);
+        Student_Session_Discipline::query()
+            ->where('student_id', $student->id)
+            ->whereIn('created_at', array_merge($legacyCreatedAtStamps, $createdAtStamps))
+            ->delete();
+
+        foreach ($events as $event) {
+            $behaviorTemplate = $this->rewardBehaviorTemplate($student, $event['title'], $event['type']);
+
+            if (! $behaviorTemplate) {
+                continue;
+            }
 
             Student_Session_Discipline::query()->updateOrCreate(
                 [
                     'student_id' => $student->id,
-                    'created_at' => $createdAt,
+                    'created_at' => $event['created_at'],
                 ],
                 [
-                    'title' => $title,
-                    'discipline_icon_id' => (int) ($behaviorTemplate?->discipline_icon_id ?: 1),
-                    'discipline_icon_path' => (string) ($behaviorTemplate?->discipline_icon_path ?: 'images/discipline/respect.png'),
+                    'title' => $event['title'],
+                    'discipline_icon_id' => (int) ($behaviorTemplate->discipline_icon_id ?: 1),
+                    'discipline_icon_path' => (string) ($behaviorTemplate->discipline_icon_path ?: 'images/discipline/respect.png'),
                     'class_session_id' => null,
                     'teacher_subject_classes_id' => $teacherSubjectClass->id,
-                    'student_reward_discipline_id' => $behaviorTemplate?->id,
-                    'points' => $points,
-                    'description' => $description,
-                    'type' => $type,
-                    'updated_at' => $createdAt,
+                    'student_reward_discipline_id' => $behaviorTemplate->id,
+                    'points' => (int) $behaviorTemplate->points,
+                    'description' => $event['description'],
+                    'type' => $event['type'],
+                    'updated_at' => $event['created_at'],
                 ]
             );
         }
+    }
+
+    /**
+     * @return array<int, array{title: string, type: string, created_at: string, description: string}>
+     */
+    private function demoBehaviorEvents(string $childKey): array
+    {
+        $baseDate = match ($childKey) {
+            'yusuf' => CarbonImmutable::parse('2025-10-25 16:10:00'),
+            'maryam' => CarbonImmutable::parse('2025-06-25 16:20:00'),
+            default => CarbonImmutable::parse('2025-05-20 16:30:00'),
+        };
+
+        $events = [];
+        $eventIndex = 0;
+
+        foreach ($this->demoBehaviorDistribution($childKey) as [$title, $type, $count]) {
+            for ($iteration = 1; $iteration <= $count; $iteration++) {
+                $createdAt = $baseDate
+                    ->addDays($eventIndex)
+                    ->setTime(16 + ($eventIndex % 4), ($eventIndex * 7) % 60, 0);
+
+                $events[] = [
+                    'title' => $title,
+                    'type' => $type,
+                    'created_at' => $createdAt->toDateTimeString(),
+                    'description' => $this->demoBehaviorDescription($childKey, $title, $iteration),
+                ];
+
+                $eventIndex++;
+            }
+        }
+
+        return $events;
+    }
+
+    /**
+     * @return array<int, array{0: string, 1: string, 2: int}>
+     */
+    private function demoBehaviorDistribution(string $childKey): array
+    {
+        return match ($childKey) {
+            'yusuf' => [
+                ['Good Job', 'Positive', 25],
+                ['Good Effort', 'Positive', 31],
+                ['Focused', 'Positive', 18],
+                ['Good Adab', 'Positive', 22],
+                ['Responsibility', 'Positive', 24],
+                ['Helping Others', 'Positive', 15],
+                ['Good Deed', 'Positive', 20],
+                ['Good Question', 'Positive', 12],
+                ['On Time', 'Positive', 17],
+                ['Oops!', 'Slip', 14],
+                ['Low Practice', 'Slip', 18],
+                ['Task Not Done', 'Slip', 9],
+                ['Device Slip', 'Slip', 6],
+                ['Serious Matter', 'No Way', 2],
+            ],
+            'maryam' => [
+                ['Good Job', 'Positive', 29],
+                ['Good Effort', 'Positive', 24],
+                ['Focused', 'Positive', 28],
+                ['Good Adab', 'Positive', 31],
+                ['Honesty', 'Positive', 25],
+                ['Responsibility', 'Positive', 50],
+                ['Self-Control', 'Positive', 27],
+                ['Helping Others', 'Positive', 36],
+                ['Good Deed', 'Positive', 22],
+                ['Good Question', 'Positive', 18],
+                ['On Time', 'Positive', 29],
+                ['Oops!', 'Slip', 10],
+                ['Task Not Done', 'Slip', 13],
+                ['Adab Slip', 'Slip', 8],
+                ['Low Practice', 'Slip', 7],
+                ['Hurtful Words', 'No Way', 1],
+                ['Serious Matter', 'No Way', 1],
+            ],
+            default => [
+                ['Good Job', 'Positive', 21],
+                ['Good Effort', 'Positive', 18],
+                ['Focused', 'Positive', 34],
+                ['Good Adab', 'Positive', 25],
+                ['Honesty', 'Positive', 30],
+                ['Responsibility', 'Positive', 38],
+                ['Self-Control', 'Positive', 50],
+                ['Helping Others', 'Positive', 31],
+                ['Good Deed', 'Positive', 40],
+                ['Good Question', 'Positive', 21],
+                ['On Time', 'Positive', 26],
+                ['Distracted', 'Slip', 12],
+                ['Time Wasted', 'Slip', 9],
+                ['Task Not Done', 'Slip', 11],
+                ['Device Slip', 'Slip', 18],
+                ['Rule Reminder', 'Slip', 6],
+                ['Device Misuse', 'No Way', 3],
+                ['Hurtful Words', 'No Way', 2],
+            ],
+        };
+    }
+
+    private function demoBehaviorDescription(string $childKey, string $title, int $iteration): string
+    {
+        $name = match ($childKey) {
+            'yusuf' => 'Yusuf',
+            'maryam' => 'Maryam',
+            default => 'Omar',
+        };
+
+        $descriptions = [
+            'Good Job' => ["{$name} finished an agreed routine with a happy attitude.", "{$name} followed through without extra reminders."],
+            'Good Effort' => ["{$name} tried again after a difficult moment.", "{$name} kept practicing even when it felt hard."],
+            'Focused' => ["{$name} stayed focused through the lesson.", "{$name} listened carefully and completed the next step."],
+            'Good Adab' => ["{$name} used respectful words and calm manners.", "{$name} showed good adab with the teacher and family."],
+            'Honesty' => ["{$name} corrected a mistake honestly.", "{$name} spoke truthfully and accepted feedback."],
+            'Responsibility' => ["{$name} handled an agreed responsibility without delay.", "{$name} prepared materials and kept the routine moving."],
+            'Self-Control' => ["{$name} paused, calmed down, and chose the better action.", "{$name} controlled the pace and avoided rushing."],
+            'Helping Others' => ["{$name} helped a sibling with kindness.", "{$name} helped at home without being pushed."],
+            'Good Deed' => ["{$name} chose a small good deed during the day.", "{$name} made a helpful choice that parents noticed."],
+            'Good Question' => ["{$name} asked a thoughtful learning question.", "{$name} asked for clarification instead of guessing."],
+            'On Time' => ["{$name} came ready on time.", "{$name} started the routine at the agreed time."],
+            'Device Boundary' => ["{$name} respected the agreed device limit.", "{$name} stopped screen time at the agreed moment."],
+            'Oops!' => ["{$name} needed a gentle reminder and repaired it.", "{$name} had a small slip, then corrected course."],
+            'Low Practice' => ["{$name} practiced less than agreed and needed a reminder.", "{$name} needed help returning to practice."],
+            'Task Not Done' => ["{$name} left an agreed task unfinished.", "{$name} needed a parent reminder to complete the task."],
+            'Device Slip' => ["{$name} needed a reminder about the device agreement.", "{$name} went past the screen-time boundary and repaired it."],
+            'Adab Slip' => ["{$name} needed a reminder to use calmer words.", "{$name} corrected tone after a small adab slip."],
+            'Distracted' => ["{$name} drifted from the task and needed refocus.", "{$name} needed a reminder to return attention to the lesson."],
+            'Time Wasted' => ["{$name} delayed the routine and needed a reset.", "{$name} spent too long before starting the agreed task."],
+            'Rule Reminder' => ["{$name} needed a clear reminder about an agreed rule.", "{$name} repaired a rule slip after parent follow-up."],
+            'Serious Matter' => ["{$name} needed a parent conversation and repair plan.", "{$name} had a stronger accountability moment and recovered."],
+            'Hurtful Words' => ["{$name} needed to repair hurtful words with an apology.", "{$name} practiced calmer words after a hard moment."],
+            'Device Misuse' => ["{$name} broke a device boundary and accepted the agreed consequence.", "{$name} needed a device reset and parent follow-up."],
+        ];
+
+        $options = $descriptions[$title] ?? ["{$name} had a recorded behavior moment."];
+
+        return $options[($iteration - 1) % count($options)];
     }
 
     private function rewardBehaviorTemplate(Student $student, string $title, string $type): ?RewardDisciplinePoint
@@ -1187,9 +1316,7 @@ class BootstrapDemoFamily extends Command
 
         $behaviorRows = Student_Session_Discipline::query()
             ->where('student_id', $student->id)
-            ->whereIn('created_at', collect([0, 1, 2, 3])
-                ->map(fn (int $index): string => CarbonImmutable::parse('2026-06-05')->addDays($index * 4)->toDateTimeString())
-                ->all())
+            ->whereIn('created_at', array_column($this->demoBehaviorEvents($childKey), 'created_at'))
             ->get();
 
         foreach ($behaviorRows as $behavior) {

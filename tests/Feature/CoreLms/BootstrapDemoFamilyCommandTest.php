@@ -55,6 +55,7 @@ class BootstrapDemoFamilyCommandTest extends TestCase
         $this->assertSame(3, DB::table('students')->count());
 
         $omar = Student::query()->where('first_name', 'Omar')->firstOrFail();
+        $maryam = Student::query()->where('first_name', 'Maryam')->firstOrFail();
         $yusuf = Student::query()->where('first_name', 'Yusuf')->firstOrFail();
 
         $this->assertStudentSubjectStatus($omar, 2, 'inactive');
@@ -84,7 +85,31 @@ class BootstrapDemoFamilyCommandTest extends TestCase
 
         $this->assertSame(0, DB::table('student_session_discipline')->where('title', 'like', '[Demo]%')->count());
         $this->assertSame(0, DB::table('student_session_discipline')->where('description', 'like', '%TQDEMO-001%')->count());
-        $this->assertSame(12, DB::table('student_session_discipline')->whereNotNull('student_reward_discipline_id')->count());
+        $this->assertSame(987, DB::table('student_session_discipline')->whereNotNull('student_reward_discipline_id')->count());
+        $this->assertSame(
+            31,
+            DB::table('student_session_discipline')
+                ->join('reward_discipline_points', 'reward_discipline_points.id', '=', 'student_session_discipline.student_reward_discipline_id')
+                ->where('student_session_discipline.student_id', $yusuf->id)
+                ->where('reward_discipline_points.title', 'Good Effort')
+                ->count()
+        );
+        $this->assertSame(
+            50,
+            DB::table('student_session_discipline')
+                ->join('reward_discipline_points', 'reward_discipline_points.id', '=', 'student_session_discipline.student_reward_discipline_id')
+                ->where('student_session_discipline.student_id', $maryam->id)
+                ->where('reward_discipline_points.title', 'Responsibility')
+                ->count()
+        );
+        $this->assertSame(
+            50,
+            DB::table('student_session_discipline')
+                ->join('reward_discipline_points', 'reward_discipline_points.id', '=', 'student_session_discipline.student_reward_discipline_id')
+                ->where('student_session_discipline.student_id', $omar->id)
+                ->where('reward_discipline_points.title', 'Self-Control')
+                ->count()
+        );
         $this->assertGreaterThanOrEqual(
             1,
             DB::table('student_session_discipline')
@@ -400,15 +425,28 @@ class BootstrapDemoFamilyCommandTest extends TestCase
         );
 
         foreach ([
+            ['Good Job', 'Positive', 1, 'images/discipline/34-ud0vRyQq.png', 10],
             ['Good Effort', 'Positive', 1, 'images/discipline/74-Dizvjp7n.png', 20],
             ['Focused', 'Positive', 1, 'images/discipline/20-BPaZ4Ete.png', 30],
             ['Good Adab', 'Positive', 1, 'images/discipline/respect.png', 40],
+            ['Honesty', 'Positive', 1, 'images/discipline/35-CxgcOsNl.png', 50],
             ['Responsibility', 'Positive', 1, 'images/discipline/61-DWTOj_T6.png', 60],
             ['Self-Control', 'Positive', 1, 'images/discipline/71-Ey5tyt2G.png', 70],
             ['Helping Others', 'Positive', 1, 'images/discipline/shakehands.png', 80],
+            ['Good Deed', 'Positive', 1, 'images/discipline/67-DlneWycG.png', 90],
+            ['Good Question', 'Positive', 1, 'images/discipline/59-DctAzBtq.png', 100],
+            ['On Time', 'Positive', 1, 'images/discipline/clock.png', 110],
+            ['Oops!', 'Slip', 1, 'images/discipline/42-CcVNxBRq.png', 10],
+            ['Distracted', 'Slip', 1, 'images/discipline/51-CZkeNwpv.png', 20],
+            ['Time Wasted', 'Slip', 1, 'images/discipline/clock.png', 30],
+            ['Adab Slip', 'Slip', 1, 'images/discipline/73-tSz4ujTS.png', 40],
             ['Low Practice', 'Slip', 1, 'images/discipline/leafpng.png', 60],
             ['Task Not Done', 'Slip', 1, 'images/discipline/61-DWTOj_T6.png', 50],
             ['Device Slip', 'Slip', 1, 'images/discipline/63-C0dY3Flz.png', 80],
+            ['Rule Reminder', 'Slip', 1, 'images/discipline/40-CVyPO1Sf.png', 90],
+            ['Serious Matter', 'No Way', 5, 'images/discipline/41-D3kTTAuf.png', 10],
+            ['Hurtful Words', 'No Way', 5, 'images/discipline/43-D4EMnrNR.png', 20],
+            ['Device Misuse', 'No Way', 5, 'images/discipline/63-C0dY3Flz.png', 30],
         ] as [$title, $type, $points, $iconPath, $sort]) {
             $iconId = DB::table('discipline_icons')->insertGetId([
                 'path' => $iconPath,
