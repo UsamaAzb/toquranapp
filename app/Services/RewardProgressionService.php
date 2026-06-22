@@ -8,6 +8,7 @@ use App\Models\RewardTotal;
 use App\Models\Student;
 use App\Models\StudentGift;
 use App\Models\StudentGiftPointsHistory;
+use App\Services\BrowserPush\BrowserPushService;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -23,6 +24,10 @@ use Illuminate\Support\Facades\DB;
  */
 class RewardProgressionService
 {
+    public function __construct(
+        private readonly BrowserPushService $browserPush
+    ) {}
+
     /**
      * Apply a signed points change and advance milestone gifts when thresholds are reached.
      */
@@ -70,7 +75,13 @@ class RewardProgressionService
             ]);
 
             $this->applyRewardTotalDelta($studentId, $academicYearId, $subjectId, $pointsDelta);
-            $this->advanceGiftQueueForTotal($studentId, $currentTotal, $academicYearId);
+            $reachedGiftIds = $this->advanceGiftQueueForTotal($studentId, $currentTotal, $academicYearId);
+
+            if ($reachedGiftIds !== []) {
+                DB::afterCommit(function () use ($reachedGiftIds): void {
+                    $this->browserPush->notifyReachedGifts($reachedGiftIds);
+                });
+            }
 
             return $history->fresh();
         }, 3);
@@ -145,22 +156,25 @@ class RewardProgressionService
      * Advance as many gift milestones as the current total has earned.
      *
      * The current total must come from the caller's locked point-history flow.
+     *
+     * @return array<int>
      */
-    public function advanceGiftQueueForTotal(int $studentId, int $currentTotal, ?int $academicYearId = null): void
+    public function advanceGiftQueueForTotal(int $studentId, int $currentTotal, ?int $academicYearId = null): array
     {
         $academicYearId ??= AcademicYear::currentId();
+        $reachedGiftIds = [];
 
         for ($guard = 0; $guard < 100; $guard++) {
             $pending = $this->ensurePendingGift($studentId, $academicYearId);
 
             if (! $pending || $pending->points_required === null) {
-                return;
+                return $reachedGiftIds;
             }
 
             if ($currentTotal < (int) $pending->points_required) {
                 StudentGift::maintainUpcomingRunway($studentId, $academicYearId);
 
-                return;
+                return $reachedGiftIds;
             }
 
             $locked = StudentGift::query()
@@ -177,9 +191,12 @@ class RewardProgressionService
             $locked->status = StudentGift::STATUS_REACHED;
             $locked->reached_at ??= now(config('app.timezone'));
             $locked->save();
+            $reachedGiftIds[] = (int) $locked->id;
         }
 
         StudentGift::maintainUpcomingRunway($studentId, $academicYearId);
+
+        return $reachedGiftIds;
     }
 
     private function lockOrCreatePointsHistory(int $studentId, int $academicYearId): StudentGiftPointsHistory

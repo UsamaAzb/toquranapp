@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\GiftController;
 use App\Http\Controllers\Admin\GradeController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\StudentGiftController;
+use App\Http\Controllers\BrowserPushSubscriptionController;
 use App\Http\Controllers\authentications\ForgotPasswordBasic;
 use App\Http\Controllers\authentications\ForgotPasswordCover;
 use App\Http\Controllers\authentications\LoginBasic;
@@ -52,6 +53,7 @@ use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\pages\HomePage;
 use App\Http\Controllers\pages\MiscError;
 use App\Http\Controllers\pages\Page2;
+use App\Http\Controllers\PushServiceWorkerController;
 use App\Http\Controllers\PwaController;
 use App\Http\Controllers\VocabularyAssignmentController;
 use App\Http\Controllers\VocabularyGameController;
@@ -76,6 +78,15 @@ Route::get('/manifest.webmanifest', [PwaController::class, 'manifest'])
         VerifyCsrfToken::class,
     ])
     ->name('pwa.manifest');
+Route::get('/service-worker.js', PushServiceWorkerController::class)
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        VerifyCsrfToken::class,
+    ])
+    ->name('pwa.service-worker');
 Route::get('/storage/gifts/{filename}', function (string $filename) {
     $path = 'gifts/'.$filename;
 
@@ -146,6 +157,15 @@ Route::get('/auth/two-steps-cover', [TwoStepsCover::class, 'index'])->name('auth
 // Route::get('hangman/get-word','App\Http\Controllers\Hang_manController::class,getWord')->middleware(['auth', 'role:teacher']);
 
 Route::middleware(['auth'])->group(function () {
+    Route::prefix('browser-push')
+        ->name('browser-push.')
+        ->group(function (): void {
+            Route::get('/config', [BrowserPushSubscriptionController::class, 'config'])->name('config');
+            Route::post('/subscriptions', [BrowserPushSubscriptionController::class, 'store'])->name('subscriptions.store');
+            Route::delete('/subscriptions', [BrowserPushSubscriptionController::class, 'destroy'])->name('subscriptions.destroy');
+            Route::post('/test', [BrowserPushSubscriptionController::class, 'test'])->name('test');
+        });
+
     Route::prefix('vocabulary/games')->name('vocabulary.games.')->group(function (): void {
         Route::get('/', [VocabularyGameController::class, 'hub'])->name('hub')->middleware('role:teacher|student|parent|admin|super_admin|owner');
         Route::get('/source/{source}', [VocabularyGameController::class, 'playSource'])->name('source')->middleware('role:teacher|student|parent|admin|super_admin|owner');

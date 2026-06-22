@@ -189,6 +189,30 @@ class StudentTaskApprovalServiceTest extends TestCase
             ->count());
     }
 
+    public function test_reward_progression_returns_every_gift_reached_by_one_points_jump(): void
+    {
+        $context = $this->seedTaskContext();
+        DB::table('student_gifts')->insert([
+            'student_id' => $context['student']->id,
+            'academic_year_id' => 1,
+            'points_required' => 100,
+            'status' => 'waiting',
+        ]);
+
+        $reachedGiftIds = app(RewardProgressionService::class)->advanceGiftQueueForTotal(
+            $context['student']->id,
+            125,
+            1
+        );
+
+        $this->assertCount(2, $reachedGiftIds);
+
+        $this->assertSame(2, DB::table('student_gifts')
+            ->whereIn('id', $reachedGiftIds)
+            ->where('status', StudentGift::STATUS_REACHED)
+            ->count());
+    }
+
     public function test_deducting_points_does_not_revert_reached_gift(): void
     {
         $context = $this->seedTaskContext(defaultPoints: 50, maxPoints: 50);

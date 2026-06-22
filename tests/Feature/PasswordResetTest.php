@@ -142,6 +142,118 @@ class PasswordResetTest extends TestCase
         });
     }
 
+    public function test_child_reset_password_link_uses_parent_user_email_when_parent_record_email_is_blank(): void
+    {
+        if (! Features::enabled(Features::resetPasswords())) {
+            $this->markTestSkipped('Password updates are not enabled.');
+        }
+
+        Mail::fake();
+
+        $parentUser = User::factory()->create([
+            'email' => 'parent.user@example.test',
+            'name' => 'Fallback Parent',
+        ]);
+        $parent = ParentModel::create([
+            'first_name' => 'Fallback',
+            'last_name' => 'Parent',
+            'email' => null,
+            'phone' => '+201000000000',
+            'user_id' => $parentUser->id,
+            'active' => true,
+        ]);
+        $childUser = User::factory()->create([
+            'email' => 'fp101@toquran.org',
+            'name' => 'Fallback Child',
+        ]);
+        $student = Student::create([
+            'first_name' => 'Fallback',
+            'last_name' => 'Child',
+            'parent_id' => $parent->id,
+            'student_email' => $childUser->email,
+            'user_id' => $childUser->id,
+            'status' => 'active',
+            'account_status' => 'active',
+        ]);
+
+        $this->post('/forgot-password', [
+            'email' => $childUser->email,
+        ])->assertSessionHasNoErrors();
+
+        Mail::assertSent(ChildPasswordResetLinkMail::class, function (ChildPasswordResetLinkMail $mail) use ($parentUser, $parent, $student, $childUser) {
+            return $mail->hasTo($parentUser->email)
+                && $mail->parent->is($parent)
+                && $mail->student->is($student)
+                && $mail->user->is($childUser);
+        });
+    }
+
+    public function test_child_reset_password_link_is_not_sent_to_synthetic_child_email_when_parent_has_no_email(): void
+    {
+        if (! Features::enabled(Features::resetPasswords())) {
+            $this->markTestSkipped('Password updates are not enabled.');
+        }
+
+        Mail::fake();
+
+        $parent = ParentModel::create([
+            'first_name' => 'Phone',
+            'last_name' => 'Only',
+            'email' => null,
+            'phone' => '+201000000000',
+            'user_id' => null,
+            'active' => true,
+        ]);
+        $childUser = User::factory()->create([
+            'email' => 'po101@toquran.org',
+            'name' => 'Phone Only Child',
+        ]);
+        Student::create([
+            'first_name' => 'Phone',
+            'last_name' => 'Only Child',
+            'parent_id' => $parent->id,
+            'student_email' => $childUser->email,
+            'user_id' => $childUser->id,
+            'status' => 'active',
+            'account_status' => 'active',
+        ]);
+
+        $this->post('/forgot-password', [
+            'email' => $childUser->email,
+        ])->assertSessionHasNoErrors();
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_orphaned_child_reset_password_link_is_not_sent_to_synthetic_child_email(): void
+    {
+        if (! Features::enabled(Features::resetPasswords())) {
+            $this->markTestSkipped('Password updates are not enabled.');
+        }
+
+        Mail::fake();
+
+        $childUser = User::factory()->create([
+            'email' => 'oc101@toquran.org',
+            'name' => 'Orphaned Child',
+        ]);
+        Student::create([
+            'first_name' => 'Orphaned',
+            'last_name' => 'Child',
+            'parent_id' => null,
+            'student_email' => $childUser->email,
+            'user_id' => $childUser->id,
+            'status' => 'active',
+            'account_status' => 'active',
+        ]);
+
+        $this->post('/forgot-password', [
+            'email' => $childUser->email,
+        ])->assertSessionHasNoErrors();
+
+        Mail::assertNothingSent();
+    }
+
     public function test_successful_forgot_password_request_shows_confirmation_instead_of_live_form(): void
     {
         if (! Features::enabled(Features::resetPasswords())) {

@@ -235,6 +235,8 @@
       </div>
     </section>
 
+    <x-browser-push-control context="parent" />
+
     @if ($visibleStudentsCount === 0)
       <section class="card">
         <div class="card-body text-center py-5">

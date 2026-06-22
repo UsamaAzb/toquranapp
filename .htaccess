@@ -10,6 +10,9 @@
     RewriteCond %{HTTP_HOST} !^app\.toquran\.org$ [NC]
     RewriteRule ^ - [F,L]
 
+    # Public security contact file for scanners and researchers.
+    RewriteRule ^\.well-known/security\.txt$ public/.well-known/security.txt [L]
+
     # Shared-hosting root entry: Laravel asset() URLs should resolve to
     # public/ even when Hostinger serves the app from the project root.
     RewriteCond %{DOCUMENT_ROOT}/public/assets/$1 -f
@@ -32,7 +35,7 @@
     # Block direct web access to framework/source directories when Hostinger
     # serves the app from the project root instead of public/.
     RewriteRule ^(?:app|bootstrap|config|database|docs|lang|resources|routes|scripts|specs|storage|tests|tmp|vendor|node_modules)(?:/|$) - [F,L]
-    RewriteRule ^(?:composer\.(?:json|lock)|package(?:-lock)?\.json|yarn\.lock|vite\.config\.js|phpunit\.xml|artisan|docker-compose\.yml|to_quran_adhkar_dua_banks\.md|.*\.(?:md|sql|log|bak)|\.env(?:\..*)?|\.git(?:/|ignore|attributes)?|\.editorconfig)$ - [F,L]
+    RewriteRule ^(?:composer\.(?:json|lock)|package(?:-lock)?\.json|yarn\.lock|vite\.config\.js|phpunit\.xml|artisan|docker-compose\.yml|to_quran_adhkar_dua_banks\.md|.*\.(?:md|sql|log|bak)|\.env(?:\..*)?|\.user\.ini|\.git(?:/|ignore|attributes)?|\.editorconfig)$ - [F,L]
 
     # Handle Authorization and XSRF headers.
     RewriteCond %{HTTP:Authorization} .
@@ -50,4 +53,16 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=()"
+    Header always set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+    Header always set Content-Security-Policy-Report-Only "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: blob: https:; media-src 'self' blob: https:; font-src 'self' data: https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; connect-src 'self'; worker-src 'self' blob:; frame-src 'self' https://docs.google.com https://view.officeapps.live.com https://www.youtube.com https://www.youtube-nocookie.com"
+    Header always unset X-Powered-By
+    Header unset X-Powered-By
 </IfModule>

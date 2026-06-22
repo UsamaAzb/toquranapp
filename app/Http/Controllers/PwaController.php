@@ -6,6 +6,8 @@ use Illuminate\Http\Response;
 
 class PwaController extends Controller
 {
+    private const ICON_VERSION = '20260623-icon-padding';
+
     public function manifest(): Response
     {
         $manifest = [
@@ -20,19 +22,19 @@ class PwaController extends Controller
             'prefer_related_applications' => false,
             'icons' => [
                 [
-                    'src' => asset('pwa/icons/toquran-icon-192.png'),
+                    'src' => asset('pwa/icons/toquran-icon-192.png').'?v='.self::ICON_VERSION,
                     'sizes' => '192x192',
                     'type' => 'image/png',
                     'purpose' => 'any',
                 ],
                 [
-                    'src' => asset('pwa/icons/toquran-icon-512.png'),
+                    'src' => asset('pwa/icons/toquran-icon-512.png').'?v='.self::ICON_VERSION,
                     'sizes' => '512x512',
                     'type' => 'image/png',
                     'purpose' => 'any',
                 ],
                 [
-                    'src' => asset('pwa/icons/toquran-maskable-512.png'),
+                    'src' => asset('pwa/icons/toquran-maskable-512.png').'?v='.self::ICON_VERSION,
                     'sizes' => '512x512',
                     'type' => 'image/png',
                     'purpose' => 'maskable',

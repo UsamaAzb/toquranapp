@@ -1,0 +1,66 @@
+-- TQ9 production smoke booking/transfer cleanup execution note
+--
+-- Status:
+--   Executed successfully on Hostinger production.
+--
+-- Target DB:
+--   u504065335_to_quran
+--
+-- Patch:
+--   database/manual/patches/2026-06-22-clean-tq9-production-smoke-bookings-and-transfers.sql
+--
+-- Backup evidence:
+--   database/manual/backups/2026-06-22-u504065335_to_quran-before-tq9-smoke-cleanup.sql
+--
+-- Raw backup:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard/_deploy_backups/20260622-144851-before-smoke-cleanup/u504065335_to_quran-full-before-smoke-cleanup.sql.gz
+--
+-- Remote executed patch copy:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard/_deploy_backups/20260622-144851-before-smoke-cleanup/2026-06-22-clean-tq9-production-smoke-bookings-and-transfers.sql
+--
+-- Remote execution output:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard/_deploy_backups/20260622-144851-before-smoke-cleanup/2026-06-22-clean-tq9-production-smoke-bookings-and-transfers-output.txt
+--
+-- Output SHA-256:
+--   998a3e0d70c0276e434bcfcf238e2ea0ca6daf192b83718bfc7ab5160eb4dc08
+--
+-- Executed:
+--   2026-06-22T14:53:56+00:00
+--
+-- Guard output:
+--   selected_database: u504065335_to_quran
+--   expected_database: u504065335_to_quran
+--   demo_parent_ok: 1
+--   demo_students_ok: 3
+--   smoke_parent_ok: 1
+--   smoke_students_ok: 2
+--   smoke_booking_ok: 4
+--   can_execute: 1
+--
+-- Patch post-check output:
+--   remaining_smoke_bookings: 0
+--   remaining_smoke_booking_children: 0
+--   remaining_smoke_intake_reviews: 0
+--   remaining_smoke_parent: 0
+--   remaining_smoke_students: 0
+--   demo_parent: 1
+--   demo_students: 3
+--
+-- Independent read-only verification after execution:
+--   smoke bookings: 0
+--   smoke booking children: 0
+--   smoke intake reviews: 0
+--   smoke parents: 0
+--   smoke students: 0
+--   smoke users: 0
+--   demo parent:
+--     id 1, Demo Parent Amina, osama.salem0217@gmail.com, +201091051913
+--   demo students:
+--     id 1, Yusuf, parent_id 1, user_id 4, current_class_id 3
+--     id 2, Maryam, parent_id 1, user_id 5, current_class_id 4
+--     id 3, Omar, parent_id 1, user_id 6, current_class_id 5
+--
+-- Notes:
+--   The cleanup removed only the production smoke rows created during TQ9
+--   service-expansion/booking-transfer verification. The intentional demo
+--   family remains available for launch demonstrations.

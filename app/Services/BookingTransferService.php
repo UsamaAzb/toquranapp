@@ -704,7 +704,7 @@ class BookingTransferService
         $username = $this->generateChildUsername($student);
         $plain = app(CredentialService::class)->generateChildPassword();
 
-        $studentEmail = $username.'@app.toquran.org';
+        $studentEmail = $username.'@toquran.org';
         $attributes = [
             'name' => $username,
             'first_name' => trim((string) ($student->first_name ?? '')),

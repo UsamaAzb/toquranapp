@@ -97,9 +97,9 @@ class User extends Authenticatable
 
         $resetUrl = $this->passwordResetUrl($token);
 
-        if ($this->student?->parent) {
+        if ($this->student) {
             $parent = $this->student->parent;
-            $recipient = $parent->email ?: $parent->user?->email;
+            $recipient = $parent ? ($parent->email ?: $parent->user?->email) : null;
 
             if ($recipient) {
                 Mail::to($recipient, $parent->display_name)
@@ -107,6 +107,8 @@ class User extends Authenticatable
 
                 return;
             }
+
+            return;
         }
 
         if ($this->parent_user) {

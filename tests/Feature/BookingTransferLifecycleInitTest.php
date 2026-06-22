@@ -101,7 +101,7 @@ class BookingTransferLifecycleInitTest extends TestCase
         $this->assertNotNull($parent->user?->recoverable_password_encrypted);
         $this->assertNotNull($student->user?->recoverable_password_encrypted);
         $this->assertSame('ToQuran', $student->user?->recoverable_password_encrypted);
-        $this->assertSame($student->user?->name.'@app.toquran.org', $student->user?->email);
+        $this->assertSame($student->user?->name.'@toquran.org', $student->user?->email);
         $this->assertNull($parent->user?->decryp_password);
         $this->assertNull($student->user?->decryp_password);
         $this->assertArrayNotHasKey('parent_temp_password', $result);

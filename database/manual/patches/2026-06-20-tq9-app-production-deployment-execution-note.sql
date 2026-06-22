@@ -623,3 +623,204 @@
 --   Google gview for that same production PDF returned 200 text/html.
 --   Production storage scan found no existing Office files to smoke against
 --   Microsoft viewer during this pass.
+
+-- 2026-06-22 browser/PWA push notifications deployment:
+-- - Local code updates included:
+--   minishlink/web-push Composer dependency;
+--   push_subscriptions model/table patch;
+--   browser push config, service, controller routes, and root service-worker;
+--   parent/student opt-in controls;
+--   parent task-review push after StudentTaskApprovalService::putToReview();
+--   parent/student reward-reached push after RewardProgressionService advances
+--   newly reached gifts.
+-- - Local verification before deployment:
+--   composer validate --no-check-publish
+--   php artisan route:list --name=browser-push
+--   php artisan route:list --path=service-worker
+--   php artisan test tests\Feature\CoreLms\BrowserPushNotificationsTest.php \
+--     tests\Unit\StudentTaskApprovalServiceTest.php
+--   Result: 30 passed, 95 assertions.
+--   git diff --check returned clean.
+-- - Production deployment:
+--   Uploaded scoped runtime package:
+--   /home/u504065335/toquranapp-browser-push-20260622-221212.tgz
+--   Extracted into:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard
+-- - Remote backup of replaced files and pre-change DB:
+--   /home/u504065335/tq9-browser-push-tail-backup-20260622-192321
+--   DB backup file:
+--   /home/u504065335/tq9-browser-push-tail-backup-20260622-192321/u504065335_to_quran-before-browser-push-tail.sql.gz
+-- - SQL execution:
+--   Applied database/manual/patches/2026-06-22-create-browser-push-subscriptions.sql
+--   with @toquran_confirm_real_db_target='u504065335_to_quran'.
+--   Verification returned push_subscription_tables=1.
+-- - Remote dependency/env/cache:
+--   COMPOSER_ALLOW_SUPERUSER=1 /opt/alt/php83/usr/bin/php $(which composer)
+--     install --no-dev --optimize-autoloader --no-interaction
+--   Browser push was enabled in production .env with VAPID keys configured
+--   and subject mailto:support@toquran.org.
+--   /opt/alt/php83/usr/bin/php artisan optimize:clear
+--   /opt/alt/php83/usr/bin/php artisan config:cache
+--   /opt/alt/php83/usr/bin/php artisan route:cache
+--   /opt/alt/php83/usr/bin/php artisan view:cache
+-- - Production verification:
+--   Remote config check returned:
+--   {"enabled":true,"configured":true,"subject":"mailto:support@toquran.org"}
+--   Route checks confirmed browser-push routes and /service-worker.js route.
+--   https://app.toquran.org/service-worker.js returned 200 with
+--   Content-Type application/javascript; charset=UTF-8,
+--   Service-Worker-Allowed: /, and no-cache headers.
+--   Service-worker body contained push and notificationclick handlers and
+--   did not contain a fetch handler.
+--   https://app.toquran.org/login returned 200 with current secure cookies
+--   and security headers.
+-- - Remaining manual smoke:
+--   Parent/student must opt in on a real supported phone/browser or installed
+--   PWA, receive a test push, then verify task-review and reward-reached
+--   notifications.
+
+-- 2026-06-22 browser push notification badge follow-up:
+-- - Owner real-device smoke confirmed the browser push test notification
+--   worked, made the normal device sound, and opened the installed app when
+--   tapped.
+-- - The Android status-bar badge rendered as a plain white square because
+--   browser-push payloads reused the full-color maskable app icon for the
+--   notification `badge`.
+-- - Local fix:
+--   added public/pwa/icons/toquran-notification-badge.png as a transparent
+--   monochrome tree/book notification badge;
+--   app/Http/Controllers/PushServiceWorkerController.php now uses it as
+--   DEFAULT_BADGE;
+--   app/Services/BrowserPush/BrowserPushService.php sends it in push payloads.
+-- - Local verification:
+--   php -l app/Http/Controllers/PushServiceWorkerController.php
+--   php -l app/Services/BrowserPush/BrowserPushService.php
+--   php artisan test tests\Feature\CoreLms\BrowserPushNotificationsTest.php
+--   Result: 4 passed, 16 assertions.
+-- - Production deployment:
+--   Uploaded only the badge icon and the two runtime PHP files.
+--   Remote backup:
+--   /home/u504065335/tq9-browser-push-badge-backup-20260622-234151
+--   Refreshed Laravel caches.
+-- - Production verification:
+--   https://app.toquran.org/service-worker.js contains
+--   /pwa/icons/toquran-notification-badge.png.
+--   https://app.toquran.org/pwa/icons/toquran-notification-badge.png
+--   returned 200 image/png, length 1055.
+--   Service worker still has push=1, notificationclick=1, fetch=0.
+
+-- 2026-06-22 browser push notification badge tree-only polish:
+-- - Owner smoke confirmed the first dedicated badge no longer rendered as a
+--   blank square, but the tiny Android status-bar mark still showed a visible
+--   book/base line under the tree.
+-- - Local fix:
+--   regenerated public/pwa/icons/toquran-notification-badge.png as a
+--   transparent monochrome tree-only silhouette with no book/base line.
+-- - Local verification:
+--   php artisan test tests\Feature\CoreLms\BrowserPushNotificationsTest.php
+--   Result: 4 passed, 16 assertions.
+--   git diff --check returned clean.
+-- - Production deployment:
+--   Uploaded only public/pwa/icons/toquran-notification-badge.png.
+--   Remote backup:
+--   /home/u504065335/tq9-browser-push-badge-tree-polish-backup-20260623-000118.png
+-- - Production verification:
+--   https://app.toquran.org/pwa/icons/toquran-notification-badge.png
+--   returned 200 image/png, length 1005.
+--   Remote SHA-256:
+--   866f57a60333b295f3188afac99cf09f9caf09dfbdd2fded70963f8531f6b365.
+
+-- 2026-06-23 browser push parent/student launch UX follow-up:
+-- - Owner decision: after production smoke passed, parent/student launch UI
+--   should not keep showing Test or Turn off controls every time they log in.
+-- - Local fix:
+--   resources/views/components/browser-push-control.blade.php now shows only
+--   the Enable action when the current browser is not subscribed. If the
+--   current browser already has a push subscription, the whole opt-in card
+--   stays hidden.
+-- - Local verification:
+--   php artisan test tests\Feature\CoreLms\BrowserPushNotificationsTest.php
+--   Result: 4 passed, 16 assertions.
+--   Component grep found no Test, Turn off, data-browser-push-test,
+--   data-browser-push-disable, or unsubscribe UI wiring.
+-- - Production deployment:
+--   Uploaded only resources/views/components/browser-push-control.blade.php.
+--   Remote backup:
+--   /home/u504065335/tq9-browser-push-control-launch-ux-backup-20260623-001723.blade.php
+--   Cleared and rebuilt Laravel view cache.
+
+-- 2026-06-23 demo child login email domain normalization:
+-- - Owner asked why demo child login emails used @app.toquran.org instead of
+--   @toquran.org. The creation path was hard-coded in
+--   app/Services/BookingTransferService.php.
+-- - Local fix:
+--   BookingTransferService now creates future child login emails as
+--   {student_username}@toquran.org.
+--   tests/Feature/BookingTransferLifecycleInitTest.php was updated to match.
+-- - Local verification:
+--   php artisan test tests\Feature\BookingTransferLifecycleInitTest.php
+--   Result: 6 passed, 56 assertions.
+--   Guarded SQL patch syntax was checked locally with the confirmation
+--   variable intentionally absent:
+--   database/manual/patches/2026-06-23-normalize-demo-child-login-email-domain.sql
+-- - Production deployment:
+--   Uploaded app/Services/BookingTransferService.php and the guarded SQL patch.
+--   Fresh production backup:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard/_deploy_backups/20260622-214004-before-child-login-email-domain-normalization/u504065335_to_quran-before-child-login-email-domain-normalization.sql.gz
+--   Ran the SQL patch with @toquran_confirm_real_db_target='u504065335_to_quran'.
+--   Refreshed Laravel optimize/config/route/view caches.
+-- - Production verification:
+--   Before:
+--     MA101@app.toquran.org
+--     OM101@app.toquran.org
+--     YU101@app.toquran.org
+--   After users.email:
+--     MA101@toquran.org
+--     OM101@toquran.org
+--     YU101@toquran.org
+--   After students.student_email:
+--     MA101@toquran.org
+--     OM101@toquran.org
+--     YU101@toquran.org
+
+-- 2026-06-23 child reset synthetic-email fallback guard:
+-- - External review found that public forgot-password requests for a child
+--   account without a parent email route could fall through to the child
+--   synthetic login email. Because child login emails now use @toquran.org,
+--   this should fail closed instead of attempting delivery to the child login.
+-- - Local fix:
+--   app/Models/User.php now stops child reset delivery once the user is
+--   identified as a child account and no parent email/user email exists.
+-- - Local verification:
+--   php artisan test tests\Feature\PasswordResetTest.php
+--   Result: 11 passed, 40 assertions.
+--   php artisan test tests\Feature\BookingTransferLifecycleInitTest.php tests\Feature\PasswordResetTest.php
+--   Result: 17 passed, 96 assertions.
+-- - Production deployment:
+--   Uploaded only app/Models/User.php.
+--   Remote backup:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard/app/Models/User.php.bak-20260623-child-reset-route
+--   Cleared Laravel optimize/cache/bootstrap files.
+-- - Production verification:
+--   Remote artisan tinker confirmed the normalized demo child email domain
+--   still exists for YU101@toquran.org after deployment.
+
+-- 2026-06-23 child reset orphan/student-row hardening follow-up:
+-- - External review found one remaining low-risk edge case: a child user with
+--   a students row but a missing/dangling parent relation could still skip the
+--   child reset branch and fall through to the generic reset notification.
+-- - Local fix:
+--   app/Models/User.php now treats any user with an attached students row as
+--   a child reset request. It sends only when a parent email or linked parent
+--   user email is available; otherwise it stops without sending.
+-- - Local verification:
+--   php artisan test tests\Feature\PasswordResetTest.php
+--   Result: 13 passed, 44 assertions.
+--   php artisan test tests\Feature\BookingTransferLifecycleInitTest.php tests\Feature\PasswordResetTest.php
+--   Result: 19 passed, 100 assertions.
+--   git diff --check returned clean for the touched reset files.
+-- - Production deployment:
+--   Uploaded only app/Models/User.php.
+--   Remote backup:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard/app/Models/User.php.bak-20260623-child-reset-orphan-guard
+--   Cleared Laravel optimize/cache/bootstrap files.

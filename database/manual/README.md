@@ -59,6 +59,10 @@ timestamp, and checksum.
   - focused structure-only backup of `users` before adding first-class `country`; no user/auth/contact row data exported
 - `backups/2026-06-04-u504065335_to_quran-before-legacy-booking-child-normalization.sql`
   - focused restore backup of `bookings` and `booking_children` before normalizing legacy booking-level child rows into editable child workflow rows
+- `backups/2026-06-22-u504065335_to_quran-before-tq9-smoke-cleanup.sql`
+  - redacted evidence note for the private Hostinger full-DB backup captured before removing TQ9 smoke booking/transfer rows while preserving the intentional demo family
+- `backups/2026-06-22-u504065335_to_quran-before-browser-push.sql`
+  - redacted evidence note for the private Hostinger full-DB backup captured before applying the browser/PWA push subscription table patch and enabling browser push production config
 - `backups/2026-06-05-u504065335_to_quran-before-mdj-behavior-wording-refresh.sql`
   - focused restore backup of MDJ behavior templates and consequence agreement tables before refreshing launch behavior/consequence wording
 - `backups/2026-06-05-u504065335_to_quran-before-mdj-behavior-icon-mapping-refresh.sql`
@@ -129,6 +133,14 @@ timestamp, and checksum.
   - guarded real-target data patch that adds Islamic Studies and Quran Literature to app service reference tables, LMS subjects, and learner-level subject mappings; executed on Hostinger production on 2026-06-21 after private backup/evidence, with public website follow-up still pending
 - `patches/2026-06-21-add-islamic-studies-quran-literature-services-subjects-execution-note.sql`
   - production execution note for the Islamic Studies and Quran Literature service/subject reference-data patch, including private backup evidence, verification counts, and app-side smoke
+- `patches/2026-06-22-clean-tq9-production-smoke-bookings-and-transfers.sql`
+  - guarded production cleanup patch for removing TQ9 smoke booking queue, intake review, transferred smoke family/student, class, subject, reward, and role rows while preserving the intentional demo family
+- `patches/2026-06-22-clean-tq9-production-smoke-bookings-and-transfers-execution-note.sql`
+  - Hostinger production execution note for the TQ9 smoke cleanup patch, including guard output and independent verification that smoke rows are gone while the demo family remains
+- `patches/2026-06-22-create-browser-push-subscriptions.sql`
+  - guarded additive production patch creating the `push_subscriptions` table for browser/PWA push subscriptions; no account, task, gift, booking, or notification rows are created
+- `patches/2026-06-23-normalize-demo-child-login-email-domain.sql`
+  - guarded production correction patch that normalizes only the intentional demo child login emails and linked `students.student_email` values from `@app.toquran.org` to `@toquran.org`
 - `patches/2026-05-29-add-launch-task-types.sql`
   - guarded real-target data patch that adds launch task types for teacher session/task creation
 - `patches/2026-05-29-add-launch-task-types-execution-note.sql`
@@ -265,6 +277,7 @@ timestamp, and checksum.
 - MDJ behavior icons were remapped locally on 2026-06-06 after manual review showed a few visually weak choices; Oops, Task Not Done, Device Slip, Rule Reminder, and several red-flag cards now use better-fitting Week14 icon files already present in the repo.
 - MDJ popup category flags were restored locally on 2026-06-06 after manual testing showed `Oops!` and `Serious Matter` were deducting points directly; both now open the parent/teacher behavior and consequence agreement popup before saving.
 - MDJ Positive popup category flag was restored locally on 2026-06-06 after manual testing showed `Good Job` was adding points directly; it now opens the parent/teacher behavior popup before saving.
+- Demo child login emails were normalized in production on 2026-06-23 by guarded patch `patches/2026-06-23-normalize-demo-child-login-email-domain.sql`, changing the intentional demo children from `@app.toquran.org` synthetic login emails to `@toquran.org` while preserving the linked demo parent/family rows.
 
 ## Current Real-Target Replay Order
 

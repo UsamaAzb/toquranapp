@@ -8,6 +8,7 @@ use App\Models\SessionTaskStudent;
 use App\Models\StudentTaskApprovalEvent;
 use App\Models\StudentTaskApprovalSetting;
 use App\Models\User;
+use App\Services\BrowserPush\BrowserPushService;
 use App\Support\LifecycleGate;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
@@ -20,7 +21,8 @@ class StudentTaskApprovalService
 
     public function __construct(
         private readonly TeacherStudentSubjectVisibilityService $teacherVisibility,
-        private readonly RewardProgressionService $rewardProgression
+        private readonly RewardProgressionService $rewardProgression,
+        private readonly BrowserPushService $browserPush
     ) {}
 
     public function putToReview(User $actor, int $sessionTaskId, int $studentId): SessionTaskStudent
@@ -62,7 +64,16 @@ class StudentTaskApprovalService
                 SessionTaskStudent::SOURCE_STUDENT_REVIEW
             );
 
-            return $pivot->fresh();
+            $freshPivot = $pivot->fresh();
+
+            DB::afterCommit(function () use ($freshPivot): void {
+                $this->browserPush->notifyTaskSubmittedForReview(
+                    (int) $freshPivot->student_id,
+                    (int) $freshPivot->session_task_id
+                );
+            });
+
+            return $freshPivot;
         }, 3);
     }
 

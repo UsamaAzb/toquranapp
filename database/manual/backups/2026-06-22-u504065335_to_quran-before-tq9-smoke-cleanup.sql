@@ -1,0 +1,26 @@
+-- Redacted backup evidence note only. This file is safe to commit.
+-- Raw production backup is intentionally NOT committed.
+--
+-- Purpose:
+--   Backup before removing TQ9 smoke booking/transfer rows from the Hostinger
+--   production app DB while preserving the intentional demo family.
+--
+-- Target DB:
+--   u504065335_to_quran
+--
+-- Raw backup location on Hostinger:
+--   /home/u504065335/domains/toquran.org/public_html/appdashboard/_deploy_backups/20260622-144851-before-smoke-cleanup/u504065335_to_quran-full-before-smoke-cleanup.sql.gz
+--
+-- Size:
+--   196191 bytes
+--
+-- SHA-256:
+--   952245fd54c3a9d6c034abaabff6fdb5c4396858023208bb58ae8089afaf39be
+--
+-- Created:
+--   2026-06-22T14:48:52+00:00
+--
+-- Contents:
+--   Full production DB export captured with mysqldump over the Hostinger app
+--   connection. The raw dump may contain user/account data and must remain
+--   private.

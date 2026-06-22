@@ -347,10 +347,7 @@ $configData = Helper::appClasses();
   $totalReviewBySubject = (int) $student_subjects->sum(fn ($subject) => (int) ($subject->in_review_task_count ?? 0));
 @endphp
 
-
-
-
-
+<x-browser-push-control context="student" />
 
 <div class="row g-6 mb-6">
     

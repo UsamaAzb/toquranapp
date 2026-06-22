@@ -1,0 +1,28 @@
+-- Redacted backup evidence note
+-- Raw backup is intentionally not committed because it is a full production
+-- database dump and may contain account/contact/session data.
+--
+-- Purpose:
+--   Production backup before applying the TQ9 browser/PWA push notifications
+--   table patch and enabling browser push VAPID configuration.
+--
+-- Target:
+--   u504065335_to_quran
+--
+-- Captured on Hostinger:
+--   2026-06-22 19:23:22 UTC
+--
+-- Raw backup location:
+--   /home/u504065335/tq9-browser-push-tail-backup-20260622-192321/u504065335_to_quran-before-browser-push-tail.sql.gz
+--
+-- Size:
+--   184983 bytes
+--
+-- SHA-256:
+--   1d87e2b5a8e96fd035ad419ec35a44b6a0ceeda7d5f121178f3809d02f69685a
+--
+-- Related patch:
+--   database/manual/patches/2026-06-22-create-browser-push-subscriptions.sql
+--
+-- Related execution evidence:
+--   database/manual/patches/2026-06-20-tq9-app-production-deployment-execution-note.sql
