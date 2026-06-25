@@ -99,7 +99,7 @@ class User extends Authenticatable
 
         if ($this->student) {
             $parent = $this->student->parent;
-            $recipient = $parent ? ($parent->email ?: $parent->user?->email) : null;
+            $recipient = $parent ? ($parent->user?->email ?: $parent->email) : null;
 
             if ($recipient) {
                 Mail::to($recipient, $parent->display_name)
@@ -113,10 +113,12 @@ class User extends Authenticatable
 
         if ($this->parent_user) {
             $parent = $this->parent_user;
-            $recipient = $parent->email ?: $this->email;
+            $recipient = $this->email ?: $parent->email;
 
-            Mail::to($recipient, $parent->display_name)
-                ->send(new ParentPasswordResetLinkMail($parent, $this, $resetUrl));
+            if ($recipient) {
+                Mail::to($recipient, $parent->display_name)
+                    ->send(new ParentPasswordResetLinkMail($parent, $this, $resetUrl));
+            }
 
             return;
         }

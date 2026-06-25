@@ -6,6 +6,7 @@ use App\Enums\AccountHistoryEventType;
 use App\Enums\ChildAccountStatus;
 use App\Enums\FamilyLifecycleStatus;
 use App\Models\AccountHistory;
+use App\Models\ParentModel;
 use App\Models\Student;
 use App\Services\AccountHistoryService;
 use App\Services\CredentialService;
@@ -56,7 +57,7 @@ class SendChildActivationEmailJob implements ShouldQueue
                 ->lockForUpdate()
                 ->first();
 
-            $student?->loadMissing(['parent', 'user']);
+            $student?->loadMissing(['parent.user', 'user']);
             $parent = $student?->parent;
 
             if (! $student) {
@@ -79,6 +80,14 @@ class SendChildActivationEmailJob implements ShouldQueue
                 return null;
             }
 
+            $recipientEmail = $this->parentRecipientEmail($parent);
+
+            if ($recipientEmail === null) {
+                $this->recordSkipped($history, $parent->id, 'missing_parent_email');
+
+                return null;
+            }
+
             if (! $deliveryClaims->claim(
                 $claimKey,
                 $parent->id,
@@ -88,6 +97,7 @@ class SendChildActivationEmailJob implements ShouldQueue
                 [
                     'resend' => $this->resend,
                     'subject_user_id' => $student->user->id,
+                    'recipient_email' => $recipientEmail,
                     EmailDeliveryClaimService::OWNER_TOKEN_METADATA_KEY => $this->claimOwnerToken,
                 ]
             )) {
@@ -133,6 +143,7 @@ class SendChildActivationEmailJob implements ShouldQueue
                 'student' => $student,
                 'user_id' => $student->user->id,
                 'password' => $plainPassword,
+                'recipient_email' => $recipientEmail,
             ];
         });
 
@@ -150,7 +161,7 @@ class SendChildActivationEmailJob implements ShouldQueue
             'passwordResetUrl' => $this->passwordResetUrl((string) $sendContext['student']->user?->email),
             'isResend' => $this->resend,
         ], function ($message) use ($sendContext): void {
-            $message->to($sendContext['parent']->email, $sendContext['parent']->full_name)
+            $message->to($sendContext['recipient_email'], $sendContext['parent']->full_name)
                 ->subject($this->resend
                     ? "{$sendContext['student']->first_name}'s To Quran activation email resent"
                     : "{$sendContext['student']->first_name}'s To Quran account is active");
@@ -160,6 +171,7 @@ class SendChildActivationEmailJob implements ShouldQueue
             if (! $deliveryClaims->markSent($claimKey, [
                 'resend' => $this->resend,
                 'subject_user_id' => $sendContext['user_id'],
+                'recipient_email' => $sendContext['recipient_email'],
             ], $this->claimOwnerToken)) {
                 throw new RuntimeException('Activation email delivery claim is no longer owned by this job.');
             }
@@ -170,6 +182,7 @@ class SendChildActivationEmailJob implements ShouldQueue
                 'metadata' => [
                     'subject_user_id' => $sendContext['user_id'],
                     'resend' => $this->resend,
+                    'recipient_email' => $sendContext['recipient_email'],
                 ],
             ]);
         });
@@ -245,6 +258,19 @@ class SendChildActivationEmailJob implements ShouldQueue
     private function loginUrl(): string
     {
         return Route::has('login') ? route('login') : url('/login');
+    }
+
+    private function parentRecipientEmail(ParentModel $parent): ?string
+    {
+        $userEmail = trim((string) $parent->user?->email);
+
+        if ($userEmail !== '') {
+            return $userEmail;
+        }
+
+        $parentEmail = trim((string) $parent->email);
+
+        return $parentEmail !== '' ? $parentEmail : null;
     }
 
     private function passwordResetUrl(string $email): string

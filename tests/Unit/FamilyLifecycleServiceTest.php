@@ -563,6 +563,122 @@ class FamilyLifecycleServiceTest extends TestCase
         ]);
     }
 
+    public function test_parent_activation_email_job_sends_to_linked_parent_user_email(): void
+    {
+        [$parent, $parentUser] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        $parent->forceFill(['email' => 'stale-parent@example.test'])->save();
+        $parentUser->forceFill(['recoverable_password_encrypted' => 'Secret123'])->save();
+
+        Mail::shouldReceive('send')
+            ->once()
+            ->with(
+                'emails.parent-activation',
+                \Mockery::on(fn (array $data): bool => $data['user']->is($parentUser)
+                    && str_contains($data['passwordResetUrl'], rawurlencode($parentUser->email))),
+                \Mockery::on(function ($callback) use ($parent, $parentUser): bool {
+                    $message = \Mockery::mock();
+                    $message->shouldReceive('to')
+                        ->once()
+                        ->with($parentUser->email, $parent->full_name)
+                        ->andReturnSelf();
+                    $message->shouldReceive('subject')
+                        ->once()
+                        ->with('Your To Quran family account is active')
+                        ->andReturnSelf();
+
+                    $callback($message);
+
+                    return true;
+                })
+            );
+
+        (new SendParentActivationEmailJob($parent->id))->handle(
+            app(CredentialService::class),
+            app(AccountHistoryService::class),
+            app(EmailDeliveryClaimService::class)
+        );
+
+        $this->assertDatabaseHas('email_delivery_claims', [
+            'claim_key' => SendParentActivationEmailJob::firstClaimKey($parent->id),
+            'status' => 'sent',
+        ]);
+        $this->assertDatabaseHas('account_histories', [
+            'parent_id' => $parent->id,
+            'event_type' => AccountHistoryEventType::ParentActivationEmailSent->value,
+            'subject_type' => 'parent',
+            'subject_id' => $parent->id,
+        ]);
+    }
+
+    public function test_parent_activation_email_job_falls_back_to_parent_record_email_when_user_email_is_blank(): void
+    {
+        [$parent, $parentUser] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        $parent->forceFill(['email' => 'fallback-parent@example.test'])->save();
+        $parentUser->forceFill([
+            'email' => '',
+            'recoverable_password_encrypted' => 'Secret123',
+        ])->save();
+
+        Mail::shouldReceive('send')
+            ->once()
+            ->with(
+                'emails.parent-activation',
+                \Mockery::on(fn (array $data): bool => str_contains($data['passwordResetUrl'], rawurlencode($parent->email))),
+                \Mockery::on(function ($callback) use ($parent): bool {
+                    $message = \Mockery::mock();
+                    $message->shouldReceive('to')
+                        ->once()
+                        ->with($parent->email, $parent->full_name)
+                        ->andReturnSelf();
+                    $message->shouldReceive('subject')->once()->andReturnSelf();
+
+                    $callback($message);
+
+                    return true;
+                })
+            );
+
+        (new SendParentActivationEmailJob($parent->id))->handle(
+            app(CredentialService::class),
+            app(AccountHistoryService::class),
+            app(EmailDeliveryClaimService::class)
+        );
+
+        $this->assertDatabaseHas('email_delivery_claims', [
+            'claim_key' => SendParentActivationEmailJob::firstClaimKey($parent->id),
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_parent_activation_email_job_skips_before_claim_when_no_parent_recipient_email_exists(): void
+    {
+        Mail::fake();
+
+        [$parent, $parentUser] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        $parent->forceFill(['email' => null])->save();
+        $parentUser->forceFill([
+            'email' => '',
+            'recoverable_password_encrypted' => 'Secret123',
+        ])->save();
+
+        (new SendParentActivationEmailJob($parent->id))->handle(
+            app(CredentialService::class),
+            app(AccountHistoryService::class),
+            app(EmailDeliveryClaimService::class)
+        );
+
+        Mail::assertNothingSent();
+        $this->assertDatabaseHas('account_histories', [
+            'parent_id' => $parent->id,
+            'event_type' => AccountHistoryEventType::ParentActivationEmailSkipped->value,
+            'subject_type' => 'parent',
+            'subject_id' => $parent->id,
+        ]);
+        $this->assertDatabaseMissing('email_delivery_claims', [
+            'claim_key' => SendParentActivationEmailJob::firstClaimKey($parent->id),
+        ]);
+    }
+
     public function test_parent_activation_email_job_reclaims_stale_delivery_claim_and_sends_email(): void
     {
         Mail::fake();
@@ -661,6 +777,122 @@ class FamilyLifecycleServiceTest extends TestCase
             'parent_id' => $parent->id,
             'event_type' => AccountHistoryEventType::ChildActivationEmailSent->value,
             'subject_id' => $child->id,
+        ]);
+    }
+
+    public function test_child_activation_email_job_sends_to_linked_parent_user_email(): void
+    {
+        [$parent, $parentUser] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        $parent->forceFill(['email' => 'stale-parent@example.test'])->save();
+        [$child, $childUser] = $this->createChild($parent, ChildAccountStatus::Active->value);
+        $childUser->forceFill(['recoverable_password_encrypted' => 'Kid12345'])->save();
+
+        Mail::shouldReceive('send')
+            ->once()
+            ->with(
+                'emails.child-activation',
+                \Mockery::on(fn (array $data): bool => $data['parent']->is($parent)
+                    && $data['student']->is($child)
+                    && $data['user']->is($childUser)),
+                \Mockery::on(function ($callback) use ($child, $parent, $parentUser): bool {
+                    $message = \Mockery::mock();
+                    $message->shouldReceive('to')
+                        ->once()
+                        ->with($parentUser->email, $parent->full_name)
+                        ->andReturnSelf();
+                    $message->shouldReceive('subject')
+                        ->once()
+                        ->with("{$child->first_name}'s To Quran account is active")
+                        ->andReturnSelf();
+
+                    $callback($message);
+
+                    return true;
+                })
+            );
+
+        (new SendChildActivationEmailJob($child->id))->handle(
+            app(CredentialService::class),
+            app(AccountHistoryService::class),
+            app(EmailDeliveryClaimService::class)
+        );
+
+        $this->assertDatabaseHas('email_delivery_claims', [
+            'claim_key' => SendChildActivationEmailJob::firstClaimKey($child->id),
+            'status' => 'sent',
+        ]);
+        $this->assertDatabaseHas('account_histories', [
+            'parent_id' => $parent->id,
+            'event_type' => AccountHistoryEventType::ChildActivationEmailSent->value,
+            'subject_type' => 'child',
+            'subject_id' => $child->id,
+        ]);
+    }
+
+    public function test_child_activation_email_job_falls_back_to_parent_record_email_when_user_email_is_blank(): void
+    {
+        [$parent, $parentUser] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        $parent->forceFill(['email' => 'fallback-parent@example.test'])->save();
+        $parentUser->forceFill(['email' => ''])->save();
+        [$child, $childUser] = $this->createChild($parent, ChildAccountStatus::Active->value);
+        $childUser->forceFill(['recoverable_password_encrypted' => 'Kid12345'])->save();
+
+        Mail::shouldReceive('send')
+            ->once()
+            ->with(
+                'emails.child-activation',
+                \Mockery::type('array'),
+                \Mockery::on(function ($callback) use ($parent): bool {
+                    $message = \Mockery::mock();
+                    $message->shouldReceive('to')
+                        ->once()
+                        ->with($parent->email, $parent->full_name)
+                        ->andReturnSelf();
+                    $message->shouldReceive('subject')->once()->andReturnSelf();
+
+                    $callback($message);
+
+                    return true;
+                })
+            );
+
+        (new SendChildActivationEmailJob($child->id))->handle(
+            app(CredentialService::class),
+            app(AccountHistoryService::class),
+            app(EmailDeliveryClaimService::class)
+        );
+
+        $this->assertDatabaseHas('email_delivery_claims', [
+            'claim_key' => SendChildActivationEmailJob::firstClaimKey($child->id),
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_child_activation_email_job_skips_before_claim_when_no_parent_recipient_email_exists(): void
+    {
+        Mail::fake();
+
+        [$parent, $parentUser] = $this->createFamily(FamilyLifecycleStatus::Active->value);
+        $parent->forceFill(['email' => null])->save();
+        $parentUser->forceFill(['email' => ''])->save();
+        [$child, $childUser] = $this->createChild($parent, ChildAccountStatus::Active->value);
+        $childUser->forceFill(['recoverable_password_encrypted' => 'Kid12345'])->save();
+
+        (new SendChildActivationEmailJob($child->id))->handle(
+            app(CredentialService::class),
+            app(AccountHistoryService::class),
+            app(EmailDeliveryClaimService::class)
+        );
+
+        Mail::assertNothingSent();
+        $this->assertDatabaseHas('account_histories', [
+            'parent_id' => $parent->id,
+            'event_type' => AccountHistoryEventType::ChildActivationEmailSkipped->value,
+            'subject_type' => 'child',
+            'subject_id' => $child->id,
+        ]);
+        $this->assertDatabaseMissing('email_delivery_claims', [
+            'claim_key' => SendChildActivationEmailJob::firstClaimKey($child->id),
         ]);
     }
 

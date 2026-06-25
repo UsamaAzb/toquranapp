@@ -367,7 +367,9 @@ class FamilyWorkspace extends Component
             return;
         }
 
-        if (blank($this->parent->email)) {
+        $recipientEmail = $this->parentRecipientEmail();
+
+        if ($recipientEmail === null) {
             session()->flash('error', 'The family needs a parent email before a child reset link can be sent.');
 
             return;
@@ -386,7 +388,7 @@ class FamilyWorkspace extends Component
         $resetUrl = $this->passwordResetUrl($token, (string) $user->email);
 
         try {
-            Mail::to($this->parent->email, $this->parent->full_name)
+            Mail::to($recipientEmail, $this->parent->full_name)
                 ->send(new ChildPasswordResetLinkMail($this->parent, $child, $user, $resetUrl));
         } catch (Throwable $exception) {
             report($exception);
@@ -396,7 +398,7 @@ class FamilyWorkspace extends Component
                 'subject_id' => $subjectId,
                 'metadata' => [
                     'subject_user_id' => $user->id,
-                    'recipient_email' => $this->parent->email,
+                    'recipient_email' => $recipientEmail,
                     'error' => $exception->getMessage(),
                 ],
             ]);
@@ -411,7 +413,7 @@ class FamilyWorkspace extends Component
             'subject_id' => $subjectId,
             'metadata' => [
                 'subject_user_id' => $user->id,
-                'recipient_email' => $this->parent->email,
+                'recipient_email' => $recipientEmail,
             ],
         ]);
 
@@ -1212,6 +1214,21 @@ class FamilyWorkspace extends Component
         }
 
         return url('/reset-password/'.$token.'?email='.urlencode($email));
+    }
+
+    private function parentRecipientEmail(): ?string
+    {
+        $this->parent->loadMissing('user');
+
+        $userEmail = trim((string) $this->parent->user?->email);
+
+        if ($userEmail !== '') {
+            return $userEmail;
+        }
+
+        $parentEmail = trim((string) $this->parent->email);
+
+        return $parentEmail !== '' ? $parentEmail : null;
     }
 
     private function latestActivationHistoryId(): int

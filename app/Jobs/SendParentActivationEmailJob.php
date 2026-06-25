@@ -69,6 +69,14 @@ class SendParentActivationEmailJob implements ShouldQueue
                 return null;
             }
 
+            $recipientEmail = $this->parentRecipientEmail($parent);
+
+            if ($recipientEmail === null) {
+                $this->recordSkipped($history, $parent->id, 'missing_parent_email');
+
+                return null;
+            }
+
             if (! $deliveryClaims->claim(
                 $claimKey,
                 $parent->id,
@@ -78,6 +86,7 @@ class SendParentActivationEmailJob implements ShouldQueue
                 [
                     'resend' => $this->resend,
                     'subject_user_id' => $parent->user->id,
+                    'recipient_email' => $recipientEmail,
                     EmailDeliveryClaimService::OWNER_TOKEN_METADATA_KEY => $this->claimOwnerToken,
                 ]
             )) {
@@ -119,6 +128,7 @@ class SendParentActivationEmailJob implements ShouldQueue
                 'parent' => $parent,
                 'user_id' => $parent->user->id,
                 'password' => $plainPassword,
+                'recipient_email' => $recipientEmail,
             ];
         });
 
@@ -131,10 +141,10 @@ class SendParentActivationEmailJob implements ShouldQueue
             'user' => $sendContext['parent']->user,
             'password' => $sendContext['password'],
             'loginUrl' => $this->loginUrl(),
-            'passwordResetUrl' => $this->passwordResetUrl((string) ($sendContext['parent']->user?->email ?? $sendContext['parent']->email)),
+            'passwordResetUrl' => $this->passwordResetUrl($sendContext['recipient_email']),
             'isResend' => $this->resend,
         ], function ($message) use ($sendContext): void {
-            $message->to($sendContext['parent']->email, $sendContext['parent']->full_name)
+            $message->to($sendContext['recipient_email'], $sendContext['parent']->full_name)
                 ->subject($this->resend
                     ? 'To Quran family activation email resent'
                     : 'Your To Quran family account is active');
@@ -144,6 +154,7 @@ class SendParentActivationEmailJob implements ShouldQueue
             if (! $deliveryClaims->markSent($claimKey, [
                 'resend' => $this->resend,
                 'subject_user_id' => $sendContext['user_id'],
+                'recipient_email' => $sendContext['recipient_email'],
             ], $this->claimOwnerToken)) {
                 throw new RuntimeException('Activation email delivery claim is no longer owned by this job.');
             }
@@ -154,6 +165,7 @@ class SendParentActivationEmailJob implements ShouldQueue
                 'metadata' => [
                     'subject_user_id' => $sendContext['user_id'],
                     'resend' => $this->resend,
+                    'recipient_email' => $sendContext['recipient_email'],
                 ],
             ]);
         });
@@ -213,6 +225,19 @@ class SendParentActivationEmailJob implements ShouldQueue
     private function loginUrl(): string
     {
         return Route::has('login') ? route('login') : url('/login');
+    }
+
+    private function parentRecipientEmail(ParentModel $parent): ?string
+    {
+        $userEmail = trim((string) $parent->user?->email);
+
+        if ($userEmail !== '') {
+            return $userEmail;
+        }
+
+        $parentEmail = trim((string) $parent->email);
+
+        return $parentEmail !== '' ? $parentEmail : null;
     }
 
     private function passwordResetUrl(string $email): string

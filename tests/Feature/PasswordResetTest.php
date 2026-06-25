@@ -77,7 +77,7 @@ class PasswordResetTest extends TestCase
         $parent = ParentModel::create([
             'first_name' => 'Salem',
             'last_name' => 'Parent',
-            'email' => 'parent@example.test',
+            'email' => 'stale-parent@example.test',
             'phone' => '+201000000000',
             'user_id' => $parentUser->id,
             'active' => true,
@@ -88,14 +88,40 @@ class PasswordResetTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         Mail::assertSent(ParentPasswordResetLinkMail::class, function (ParentPasswordResetLinkMail $mail) use ($parent, $parentUser) {
-            return $mail->hasTo($parent->email)
+            return $mail->hasTo($parentUser->email)
                 && $mail->parent->is($parent)
                 && $mail->user->is($parentUser)
                 && str_contains($mail->resetUrl, 'email='.rawurlencode($parentUser->email));
         });
     }
 
-    public function test_child_reset_password_link_is_sent_to_parent_email(): void
+    public function test_parent_reset_password_link_is_not_sent_when_no_parent_recipient_email_exists(): void
+    {
+        if (! Features::enabled(Features::resetPasswords())) {
+            $this->markTestSkipped('Password updates are not enabled.');
+        }
+
+        Mail::fake();
+
+        $parentUser = User::factory()->create([
+            'email' => '',
+            'name' => 'Phone Parent',
+        ]);
+        ParentModel::create([
+            'first_name' => 'Phone',
+            'last_name' => 'Parent',
+            'email' => null,
+            'phone' => '+201000000000',
+            'user_id' => $parentUser->id,
+            'active' => true,
+        ]);
+
+        $parentUser->sendPasswordResetNotification('token-value');
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_child_reset_password_link_is_sent_to_parent_account_email(): void
     {
         if (! Features::enabled(Features::resetPasswords())) {
             $this->markTestSkipped('Password updates are not enabled.');
@@ -110,7 +136,7 @@ class PasswordResetTest extends TestCase
         $parent = ParentModel::create([
             'first_name' => 'Salem',
             'last_name' => 'Parent',
-            'email' => 'salem.parent@example.test',
+            'email' => 'stale.salem.parent@example.test',
             'phone' => '+201000000000',
             'user_id' => $parentUser->id,
             'active' => true,
@@ -133,8 +159,8 @@ class PasswordResetTest extends TestCase
             'email' => $childUser->email,
         ])->assertSessionHasNoErrors();
 
-        Mail::assertSent(ChildPasswordResetLinkMail::class, function (ChildPasswordResetLinkMail $mail) use ($parent, $student, $childUser) {
-            return $mail->hasTo($parent->email)
+        Mail::assertSent(ChildPasswordResetLinkMail::class, function (ChildPasswordResetLinkMail $mail) use ($parentUser, $parent, $student, $childUser) {
+            return $mail->hasTo($parentUser->email)
                 && $mail->parent->is($parent)
                 && $mail->student->is($student)
                 && $mail->user->is($childUser)
@@ -182,6 +208,52 @@ class PasswordResetTest extends TestCase
 
         Mail::assertSent(ChildPasswordResetLinkMail::class, function (ChildPasswordResetLinkMail $mail) use ($parentUser, $parent, $student, $childUser) {
             return $mail->hasTo($parentUser->email)
+                && $mail->parent->is($parent)
+                && $mail->student->is($student)
+                && $mail->user->is($childUser);
+        });
+    }
+
+    public function test_child_reset_password_link_falls_back_to_parent_record_email_when_parent_user_email_is_blank(): void
+    {
+        if (! Features::enabled(Features::resetPasswords())) {
+            $this->markTestSkipped('Password updates are not enabled.');
+        }
+
+        Mail::fake();
+
+        $parentUser = User::factory()->create([
+            'email' => '',
+            'name' => 'Fallback Parent',
+        ]);
+        $parent = ParentModel::create([
+            'first_name' => 'Fallback',
+            'last_name' => 'Parent',
+            'email' => 'fallback-parent@example.test',
+            'phone' => '+201000000000',
+            'user_id' => $parentUser->id,
+            'active' => true,
+        ]);
+        $childUser = User::factory()->create([
+            'email' => 'fp102@toquran.org',
+            'name' => 'Fallback Child',
+        ]);
+        $student = Student::create([
+            'first_name' => 'Fallback',
+            'last_name' => 'Child',
+            'parent_id' => $parent->id,
+            'student_email' => $childUser->email,
+            'user_id' => $childUser->id,
+            'status' => 'active',
+            'account_status' => 'active',
+        ]);
+
+        $this->post('/forgot-password', [
+            'email' => $childUser->email,
+        ])->assertSessionHasNoErrors();
+
+        Mail::assertSent(ChildPasswordResetLinkMail::class, function (ChildPasswordResetLinkMail $mail) use ($parent, $student, $childUser) {
+            return $mail->hasTo($parent->email)
                 && $mail->parent->is($parent)
                 && $mail->student->is($student)
                 && $mail->user->is($childUser);

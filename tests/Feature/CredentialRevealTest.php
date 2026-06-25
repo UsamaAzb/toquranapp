@@ -231,11 +231,45 @@ class CredentialRevealTest extends TestCase
         ]);
     }
 
-    public function test_child_password_reset_link_is_sent_to_parent_email_and_writes_history(): void
+    public function test_child_password_reset_link_is_sent_to_parent_account_email_and_writes_history(): void
     {
         Mail::fake();
 
-        [$parent, , $child, $childUser] = $this->createActiveFamily();
+        [$parent, $parentUser, $child, $childUser] = $this->createActiveFamily();
+        $parent->forceFill(['email' => 'stale-parent@example.test'])->save();
+        $support = $this->createWorkspaceStaff('customer_support', [
+            'families.view_workspace',
+            'families.history.view',
+            'families.credentials.send_reset_link',
+        ]);
+
+        $this->actingAs($support);
+
+        Livewire::test(FamilyWorkspace::class, ['parent' => $parent])
+            ->call('sendPasswordResetLink', $childUser->id, 'child');
+
+        Mail::assertSent(ChildPasswordResetLinkMail::class, function (ChildPasswordResetLinkMail $mail) use ($parentUser, $parent, $child): bool {
+            return $mail->hasTo($parentUser->email)
+                && $mail->student->is($child)
+                && $mail->parent->is($parent);
+        });
+
+        $this->assertDatabaseHas('account_histories', [
+            'parent_id' => $parent->id,
+            'event_type' => AccountHistoryEventType::ChildPasswordResetLinkSent->value,
+            'subject_type' => 'child',
+            'subject_id' => $child->id,
+            'actor_user_id' => $support->id,
+        ]);
+    }
+
+    public function test_family_workspace_child_reset_falls_back_to_parent_record_email_when_parent_user_email_is_blank(): void
+    {
+        Mail::fake();
+
+        [$parent, $parentUser, $child, $childUser] = $this->createActiveFamily();
+        $parent->forceFill(['email' => 'fallback-parent@example.test'])->save();
+        $parentUser->forceFill(['email' => ''])->save();
         $support = $this->createWorkspaceStaff('customer_support', [
             'families.view_workspace',
             'families.history.view',
@@ -316,7 +350,7 @@ class CredentialRevealTest extends TestCase
 
     public function test_child_password_reset_link_handles_delivery_failures_without_logging_success(): void
     {
-        [$parent, , $child, $childUser] = $this->createActiveFamily();
+        [$parent, $parentUser, $child, $childUser] = $this->createActiveFamily();
         $support = $this->createWorkspaceStaff('customer_support', [
             'families.view_workspace',
             'families.history.view',
@@ -325,7 +359,7 @@ class CredentialRevealTest extends TestCase
 
         Mail::shouldReceive('to')
             ->once()
-            ->with($parent->email, $parent->full_name)
+            ->with($parentUser->email, $parent->full_name)
             ->andThrow(new RuntimeException('SMTP unavailable'));
 
         $this->actingAs($support);
